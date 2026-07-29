@@ -76,7 +76,7 @@ export function TaskCharts({ metrics }: TaskChartsProps) {
           <span className="text-xs text-slate-400 font-mono">Total: {totalTasks}</span>
         </div>
 
-        <div className="flex items-center justify-center gap-6 py-2">
+        <div className="flex flex-wrap sm:flex-nowrap items-center justify-center gap-4 sm:gap-6 py-2">
           {/* SVG Donut */}
           <div className="relative w-36 h-36 flex items-center justify-center">
             <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">

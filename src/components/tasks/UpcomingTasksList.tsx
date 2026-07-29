@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { TaskItem, TASK_PRIORITY_COLOR, TASK_STATUS_COLOR } from "@/lib/types";
 import { StatusNoteModal } from "./StatusNoteModal";
+import { RescheduleModal } from "./RescheduleModal";
 
 interface UpcomingTasksListProps {
   tasks: TaskItem[];
@@ -19,11 +20,12 @@ export function UpcomingTasksList({
   onRefresh,
 }: UpcomingTasksListProps) {
   const [noteModalTask, setNoteModalTask] = useState<TaskItem | null>(null);
+  const [rescheduleModalTask, setRescheduleModalTask] = useState<TaskItem | null>(null);
 
   function getRelativeTimeBadge(dueDateStr: string, status: string) {
     if (status === "Completed") {
       return (
-        <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+        <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap">
           Completed
         </span>
       );
@@ -42,7 +44,7 @@ export function UpcomingTasksList({
     if (diffDays < 0) {
       const absDays = Math.abs(diffDays);
       return (
-        <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30">
+        <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30 whitespace-nowrap">
           Overdue by {absDays}d ({due.toLocaleDateString([], { month: "short", day: "numeric" })})
         </span>
       );
@@ -50,7 +52,7 @@ export function UpcomingTasksList({
 
     if (diffDays === 0) {
       return (
-        <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+        <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 whitespace-nowrap">
           Due Today ({timeStr})
         </span>
       );
@@ -58,14 +60,14 @@ export function UpcomingTasksList({
 
     if (diffDays === 1) {
       return (
-        <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30">
+        <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30 whitespace-nowrap">
           Tomorrow ({timeStr})
         </span>
       );
     }
 
     return (
-      <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+      <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 whitespace-nowrap">
         In {diffDays} days ({due.toLocaleDateString([], { month: "short", day: "numeric" })})
       </span>
     );
@@ -85,18 +87,25 @@ export function UpcomingTasksList({
       {tasks.map((task) => {
         const isCompleted = task.status === "Completed";
         const instName = task.institution?.instituteName || task.institutionName || "General Task";
+        const due = new Date(task.dueDate);
+        const isOverdue = !isCompleted && due.getTime() < Date.now();
 
         return (
           <div
             key={task.id}
-            className={`group rounded-xl border p-4 transition-all duration-200 bg-white dark:bg-slate-900 ${
+            className={`group rounded-xl border p-3.5 sm:p-4 transition-all duration-200 bg-white dark:bg-slate-900 ${
               isCompleted
                 ? "border-slate-200 dark:border-slate-800 opacity-75"
+                : isOverdue
+                ? "border-red-300 dark:border-red-900/50 shadow-sm"
                 : "border-slate-200 dark:border-slate-800 hover:border-brass-500/40 shadow-sm"
             }`}
           >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-start gap-3 min-w-0 flex-1">
+            {/* Top Container: Checkbox + Title/Pill on left, Action buttons on right (responsive layout) */}
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2.5 sm:gap-3">
+              
+              {/* Left Content Area */}
+              <div className="flex items-start gap-2.5 sm:gap-3 min-w-0 flex-1">
                 {/* Complete checkbox */}
                 <button
                   type="button"
@@ -116,9 +125,10 @@ export function UpcomingTasksList({
                 </button>
 
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
+                  {/* Title & Institution Pill */}
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                     <span
-                      className={`text-sm font-semibold truncate ${
+                      className={`text-sm font-semibold break-words ${
                         isCompleted
                           ? "line-through text-slate-400 dark:text-slate-500"
                           : "text-slate-900 dark:text-slate-100"
@@ -128,7 +138,7 @@ export function UpcomingTasksList({
                     </span>
 
                     {/* Institution Name Pill */}
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-brass-700 dark:text-brass-400 bg-brass-500/10 px-2 py-0.5 rounded-md">
+                    <span className="inline-flex items-center text-[11px] font-medium text-brass-700 dark:text-brass-400 bg-brass-500/10 px-2 py-0.5 rounded-md break-all">
                       {instName}
                     </span>
                   </div>
@@ -144,7 +154,7 @@ export function UpcomingTasksList({
                   {(() => {
                     const prog = task.progress ?? (isCompleted ? 100 : 0);
                     return (
-                      <div className="mt-2 flex items-center gap-2 max-w-md">
+                      <div className="mt-2 flex items-center gap-2 max-w-xs sm:max-w-md">
                         <div className="flex-1 h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden border border-slate-300/30 dark:border-slate-700/50">
                           <div
                             className={`h-full transition-all duration-300 ${
@@ -159,7 +169,7 @@ export function UpcomingTasksList({
                             style={{ width: `${prog}%` }}
                           />
                         </div>
-                        <span className="text-[11px] font-mono font-bold text-slate-600 dark:text-slate-400 min-w-[32px] text-right">
+                        <span className="text-[11px] font-mono font-bold text-slate-600 dark:text-slate-400 shrink-0">
                           {prog}%
                         </span>
                       </div>
@@ -176,12 +186,12 @@ export function UpcomingTasksList({
                     </div>
                   )}
 
-                  {/* Meta Badges */}
-                  <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                  {/* Meta Badges (Mobile Responsive Flex Row) */}
+                  <div className="mt-2.5 flex flex-wrap items-center gap-1.5 sm:gap-2">
                     {getRelativeTimeBadge(task.dueDate, task.status)}
 
                     <span
-                      className={`px-2 py-0.5 rounded text-[11px] font-medium border ${
+                      className={`px-2 py-0.5 rounded text-[11px] font-medium border whitespace-nowrap ${
                         TASK_PRIORITY_COLOR[task.priority] || "bg-slate-700/40 text-slate-400"
                       }`}
                     >
@@ -189,47 +199,65 @@ export function UpcomingTasksList({
                     </span>
 
                     <span
-                      className={`px-2 py-0.5 rounded text-[11px] font-medium border ${
+                      className={`px-2 py-0.5 rounded text-[11px] font-medium border whitespace-nowrap ${
                         TASK_STATUS_COLOR[task.status] || "bg-slate-700/40 text-slate-400"
                       }`}
                     >
                       {task.status}
                     </span>
 
-                    <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-brass-500/15 text-brass-700 dark:text-brass-300 border border-brass-500/30">
+                    <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-brass-500/15 text-brass-700 dark:text-brass-300 border border-brass-500/30 whitespace-nowrap">
                       {task.progress ?? (isCompleted ? 100 : 0)}% Progress
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-1.5 shrink-0">
+              {/* Action Buttons (Clean Flex Row for Mobile & Desktop) */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-2 sm:pt-0 shrink-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
+                {/* Reschedule Button */}
+                <button
+                  onClick={() => setRescheduleModalTask(task)}
+                  className={`px-2.5 py-1 text-xs font-semibold rounded-lg border transition-colors whitespace-nowrap ${
+                    isOverdue
+                      ? "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30 hover:bg-red-500/25"
+                      : "bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/20 hover:bg-sky-500/20"
+                  }`}
+                  title="Reschedule task to a future date or time"
+                >
+                  📅 {isOverdue ? "Reschedule Overdue" : "Reschedule"}
+                </button>
+
+                {/* Reason Note Button */}
                 <button
                   onClick={() => setNoteModalTask(task)}
-                  className="px-2 py-1 text-xs font-semibold rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-colors whitespace-nowrap"
+                  className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-colors whitespace-nowrap"
                   title="Add or update completion/failure reason"
                 >
                   {task.completionNote ? "Edit Reason" : "+ Note / Reason"}
                 </button>
+
+                {/* Edit & Delete */}
                 <button
                   onClick={() => onEdit(task)}
-                  className="px-2.5 py-1 text-xs font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  className="px-2.5 py-1 text-xs font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap"
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => onDelete(task)}
-                  className="px-2.5 py-1 text-xs font-medium rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                  className="px-2.5 py-1 text-xs font-medium rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors whitespace-nowrap"
                 >
                   Delete
                 </button>
               </div>
+
             </div>
           </div>
         );
       })}
 
+      {/* Quick Status & Reason Modal */}
       {noteModalTask && (
         <StatusNoteModal
           task={noteModalTask}
@@ -237,6 +265,18 @@ export function UpcomingTasksList({
           onSaved={() => {
             if (onRefresh) onRefresh();
             setNoteModalTask(null);
+          }}
+        />
+      )}
+
+      {/* Reschedule Modal */}
+      {rescheduleModalTask && (
+        <RescheduleModal
+          task={rescheduleModalTask}
+          onClose={() => setRescheduleModalTask(null)}
+          onSaved={() => {
+            if (onRefresh) onRefresh();
+            setRescheduleModalTask(null);
           }}
         />
       )}
