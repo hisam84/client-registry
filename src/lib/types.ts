@@ -193,6 +193,7 @@ export interface Employee {
   designation?: string | null;
   phone?: string | null;
   avatarColor?: string | null;
+  avatarUrl?: string | null;
   createdAt?: string;
   updatedAt?: string;
   deletedAt?: string | null;

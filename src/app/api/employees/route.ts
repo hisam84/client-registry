@@ -53,7 +53,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, password, role, orderSerial, designation, phone, avatarColor } = body;
+    const { name, email, password, role, orderSerial, designation, phone, avatarColor, avatarUrl } = body;
 
     if (!name || !email) {
       return NextResponse.json(
@@ -93,6 +93,7 @@ export async function POST(request: Request) {
         designation: designation ? designation.trim() : null,
         phone: phone ? phone.trim() : null,
         avatarColor: avatarColor || "#0b7677",
+        avatarUrl: avatarUrl || null,
       }
     });
 

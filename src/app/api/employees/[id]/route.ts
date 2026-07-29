@@ -9,7 +9,7 @@ export async function PUT(
   try {
     const { id } = params;
     const body = await request.json();
-    const { name, email, password, role, orderSerial, designation, phone, avatarColor } = body;
+    const { name, email, password, role, orderSerial, designation, phone, avatarColor, avatarUrl } = body;
 
     const existing = await (prisma as any).employee.findUnique({
       where: { id }
@@ -31,6 +31,7 @@ export async function PUT(
     if (designation !== undefined) updateData.designation = designation ? designation.trim() : null;
     if (phone !== undefined) updateData.phone = phone ? phone.trim() : null;
     if (avatarColor !== undefined) updateData.avatarColor = avatarColor;
+    if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
 
     const updated = await (prisma as any).employee.update({
       where: { id },

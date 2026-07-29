@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { Employee, EmployeeRole } from "@/lib/types";
 import { Button, Input, Modal } from "@/components/ui";
@@ -144,6 +145,43 @@ export default function EmployeesPage() {
     }
   }
 
+  const isSuperAdmin = currentUser.role === "SUPER_ADMIN" || currentUser.id === "super-admin";
+
+  if (!isSuperAdmin) {
+    return (
+      <SidebarLayout
+        title="Employee & Team Management"
+        subtitle="Access Restricted"
+      >
+        <div className="max-w-xl mx-auto my-12 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-8 text-center shadow-lg">
+          <div className="w-16 h-16 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 mx-auto flex items-center justify-center mb-4">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+            অ্যাক্সেস সংরক্ষিত (Super Admin Only)
+          </h2>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+            ইউজার অন্যান্য ইমপ্লয়ি ম্যানেজ করতে পারবেন না। সাধারণ ইউজার হিসেবে আপনি কেবল নিজের প্রোফাইল এডিট করতে পারবেন।
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Link href="/profile">
+              <Button className="bg-brass-500 hover:bg-brass-400 text-slate-950 font-bold">
+                মাই প্রোফাইলে যান (My Profile) →
+              </Button>
+            </Link>
+            <Link href="/dashboard">
+              <Button variant="outline">
+                ড্যাশবোর্ডে যান (Dashboard)
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </SidebarLayout>
+    );
+  }
+
   return (
     <SidebarLayout
       title="Employee & Team Management"
@@ -226,12 +264,20 @@ export default function EmployeesPage() {
 
                   {/* Employee Header Info */}
                   <div className="flex items-start gap-3.5 mb-4">
-                    <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-inner shrink-0"
-                      style={{ backgroundColor: emp.avatarColor || "#0b7677" }}
-                    >
-                      {emp.name.charAt(0).toUpperCase()}
-                    </div>
+                    {emp.avatarUrl ? (
+                      <img
+                        src={emp.avatarUrl}
+                        alt={emp.name}
+                        className="w-12 h-12 rounded-xl object-cover border border-brass-500/30 shrink-0"
+                      />
+                    ) : (
+                      <div
+                        className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-inner shrink-0"
+                        style={{ backgroundColor: emp.avatarColor || "#0b7677" }}
+                      >
+                        {emp.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
 
                     <div className="min-w-0 flex-1">
                       <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 truncate">

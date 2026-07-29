@@ -3,6 +3,7 @@ import { ReactNode, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useUserSession } from "@/lib/userSession";
 
 interface SidebarLayoutProps {
   children: ReactNode;
@@ -21,6 +22,7 @@ export function SidebarLayout({
   onAddTaskClick,
   headerActions,
 }: SidebarLayoutProps) {
+  const { currentUser, isSuperAdmin } = useUserSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifPopover, setShowNotifPopover] = useState(false);
   const [urgentTasks, setUrgentTasks] = useState<any[]>([]);
@@ -85,7 +87,7 @@ export function SidebarLayout({
     }
   }
 
-  const navItems = [
+  const allNavItems = [
     {
       label: "Main Dashboard",
       href: "/dashboard",
@@ -123,14 +125,27 @@ export function SidebarLayout({
       ),
     },
     {
-      label: "Employee Management",
-      href: "/employees",
+      label: "My Profile",
+      href: "/profile",
       iconSvg: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
         </svg>
       ),
     },
+    ...(isSuperAdmin
+      ? [
+          {
+            label: "Employee Management",
+            href: "/employees",
+            iconSvg: (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            ),
+          },
+        ]
+      : []),
     {
       label: "Change Password",
       href: "/change-password",
@@ -141,6 +156,8 @@ export function SidebarLayout({
       ),
     },
   ];
+
+  const navItems = allNavItems;
 
   const urgentCount = urgentTasks.length;
 
@@ -366,14 +383,42 @@ export function SidebarLayout({
             </nav>
           </div>
 
-          <div className="border-t border-slate-200 dark:border-slate-800 pt-4 mt-6 flex items-center justify-between">
-            <ThemeToggle />
-            <button
-              onClick={handleLogout}
-              className="text-xs font-semibold text-red-500 hover:text-red-600 dark:text-red-400 transition-colors"
+          <div className="border-t border-slate-200 dark:border-slate-800 pt-3 mt-6">
+            <Link
+              href="/profile"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`flex items-center gap-3 p-2.5 rounded-xl transition-all ${
+                pathname === "/profile"
+                  ? "bg-brass-500/15 border border-brass-500/30 font-semibold"
+                  : "bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800"
+              }`}
             >
-              Logout
-            </button>
+              {currentUser.avatarUrl ? (
+                <img
+                  src={currentUser.avatarUrl}
+                  alt={currentUser.name}
+                  className="w-10 h-10 rounded-xl object-cover border border-brass-500/40 shrink-0"
+                />
+              ) : (
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-inner shrink-0"
+                  style={{ backgroundColor: currentUser.avatarColor || "#0b7677" }}
+                >
+                  {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : "U"}
+                </div>
+              )}
+
+              <div className="min-w-0 flex-1">
+                <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
+                  {currentUser.name}
+                </h4>
+                <p className="text-[10px] text-brass-600 dark:text-brass-400 truncate">
+                  {currentUser.designation || (currentUser.role === "SUPER_ADMIN" ? "Super Admin" : "Employee")}
+                </p>
+              </div>
+
+              <span className="text-xs text-brass-600 dark:text-brass-400 font-semibold underline">Profile →</span>
+            </Link>
           </div>
         </div>
       </div>
@@ -438,22 +483,52 @@ export function SidebarLayout({
           </nav>
         </div>
 
-        {/* Minimal Footer */}
-        <div className="border-t border-slate-200 dark:border-slate-800/80 pt-3 flex items-center justify-between text-xs">
-          <ThemeToggle />
-          <button
-            onClick={handleLogout}
-            className="font-medium text-slate-500 hover:text-red-500 dark:text-slate-400 dark:hover:text-red-400 transition-colors"
+        {/* User Profile Card at Bottom of Sidebar */}
+        <div className="border-t border-slate-200 dark:border-slate-800/80 pt-3 mt-auto">
+          <Link
+            href="/profile"
+            className={`flex items-center gap-2.5 p-2 rounded-xl transition-all ${
+              pathname === "/profile"
+                ? "bg-brass-500/15 border border-brass-500/30 font-semibold"
+                : "hover:bg-slate-100 dark:hover:bg-slate-800/60"
+            }`}
+            title="View & Edit Profile"
           >
-            Logout
-          </button>
+            {currentUser.avatarUrl ? (
+              <img
+                src={currentUser.avatarUrl}
+                alt={currentUser.name}
+                className="w-9 h-9 rounded-xl object-cover border border-brass-500/40 shrink-0"
+              />
+            ) : (
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-xs shadow-inner shrink-0"
+                style={{ backgroundColor: currentUser.avatarColor || "#0b7677" }}
+              >
+                {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : "U"}
+              </div>
+            )}
+
+            <div className="min-w-0 flex-1">
+              <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
+                {currentUser.name}
+              </h4>
+              <p className="text-[10px] text-brass-600 dark:text-brass-400 truncate">
+                {currentUser.designation || (currentUser.role === "SUPER_ADMIN" ? "Super Admin" : "Employee")}
+              </p>
+            </div>
+
+            <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
         </div>
       </aside>
 
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 md:pl-60 flex flex-col min-h-screen">
         <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 flex-1">
-          {/* Header section inside main content with Notification Bell top right */}
+          {/* Header section inside main content with Notification Bell, Theme Switch, and Logout top right */}
           <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800/80 pb-4">
             <div>
               {title && (
@@ -473,8 +548,25 @@ export function SidebarLayout({
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 justify-start sm:justify-end">
-              {/* Notification Bell in Main Page Header */}
+            <div className="flex flex-wrap items-center gap-2.5 justify-start sm:justify-end">
+              {headerActions}
+
+              {/* Mode Switch (Dark / Light Mode) */}
+              <ThemeToggle />
+
+              {/* Logout Button */}
+              <button
+                onClick={handleLogout}
+                className="px-3 py-1.5 rounded-lg border border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-semibold hover:bg-red-500/20 transition-colors flex items-center gap-1.5"
+                title="Log out of account"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span>Logout</span>
+              </button>
+
+              {/* Notification Bell in Main Page Header - FAR RIGHT */}
               <div className="relative" ref={notifRef}>
                 <button
                   onClick={() => setShowNotifPopover(!showNotifPopover)}
@@ -491,8 +583,6 @@ export function SidebarLayout({
                   )}
                 </button>
               </div>
-
-              {headerActions}
             </div>
           </div>
 
