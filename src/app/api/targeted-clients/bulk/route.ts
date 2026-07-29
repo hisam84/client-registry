@@ -1,0 +1,55 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+
+    if (!Array.isArray(body) || body.length === 0) {
+      return NextResponse.json({ error: "No client data provided." }, { status: 400 });
+    }
+
+    const recordsToCreate = [];
+
+    for (let i = 0; i < body.length; i++) {
+      const item = body[i];
+      const instituteName = item.instituteName || item["Institute Name"] || item["institute_name"];
+
+      if (!instituteName || typeof instituteName !== "string" || !instituteName.trim()) {
+        continue; // Skip invalid rows without institute name
+      }
+
+      let priority = item.priority || item["Priority"] || "Default";
+      if (!["High", "Default", "Low"].includes(priority)) {
+        priority = "Default";
+      }
+
+      recordsToCreate.push({
+        instituteName: String(instituteName).trim(),
+        instituteNameBangla: item.instituteNameBangla || item["Institute Name Bangla"] || item["instituteName (Bangla)"] ? String(item.instituteNameBangla || item["Institute Name Bangla"] || item["instituteName (Bangla)"]).trim() : null,
+        contactPerson: item.contactPerson || item["Contact Person"] || item["contact_person"] ? String(item.contactPerson || item["Contact Person"] || item["contact_person"]).trim() : null,
+        phone: item.phone || item["Phone"] || item["Phone Number"] ? String(item.phone || item["Phone"] || item["Phone Number"]).trim() : null,
+        email: item.email || item["Email"] || item["E-mail"] ? String(item.email || item["Email"] || item["E-mail"]).trim() : null,
+        district: item.district || item["District"] ? String(item.district || item["District"]).trim() : null,
+        subDistrict: item.subDistrict || item["Sub District"] || item["Upazila"] ? String(item.subDistrict || item["Sub District"] || item["Upazila"]).trim() : null,
+        address: item.address || item["Address"] ? String(item.address || item["Address"]).trim() : null,
+        priority: priority,
+        notes: item.notes || item["Notes"] || item["Remarks"] ? String(item.notes || item["Notes"] || item["Remarks"]).trim() : null,
+        isArchived: false,
+      });
+    }
+
+    if (recordsToCreate.length === 0) {
+      return NextResponse.json({ error: "No valid client records found in uploaded file. Check 'instituteName' column." }, { status: 400 });
+    }
+
+    const created = await (prisma as any).targetedClient.createMany({
+      data: recordsToCreate,
+    });
+
+    return NextResponse.json({ count: created.count, message: `Successfully imported ${created.count} targeted clients.` }, { status: 201 });
+  } catch (error: any) {
+    console.error("POST /api/targeted-clients/bulk error:", error);
+    return NextResponse.json({ error: error.message || "Failed to bulk upload targeted clients" }, { status: 500 });
+  }
+}

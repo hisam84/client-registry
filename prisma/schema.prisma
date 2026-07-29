@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  // Vercel's Neon integration (Storage/Marketplace tab) auto-injects these
+  // two env vars when you connect a database to your Vercel project.
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+model Institution {
+  id                      String    @id @default(cuid())
+
+  instituteName           String
+  instituteNameBangla     String?
+  domain                  String?
+  category                String    // "Website" | "Software"
+  instituteType           String    // School/College/Madrasah/University/Polytechnic/Kindergarten/Other
+
+  issueDate               DateTime?
+  expireDate              DateTime?
+  actualExpireDate        DateTime?
+
+  student                 String?
+  condition               String?
+
+  btclUsername            String?
+  btclPassword            String?
+  btclMobileNo            String?
+  btclEmail               String?
+  btclEmailPassword       String?
+
+  instituteHead           String?
+  contact1                String?
+  contact2                String?
+  inChargeTeacher         String?
+  designation             String?
+  inChargeTeacherContact  String?
+
+  subDistrict             String?
+  district                String?
+  address                 String?
+
+  // Arbitrary user-defined fields: { "<fieldKey>": "value", ... }
+  customFields            Json      @default("{}")
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  deletedAt               DateTime?
+
+  tasks                   Task[]
+
+  @@index([instituteType])
+  @@index([category])
+  @@index([subDistrict])
+  @@index([district])
+  @@index([expireDate])
+  @@index([deletedAt])
+}
+
+model CustomFieldDefinition {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  label     String
+  fieldType String   @default("text") // text | number | date
+  createdAt DateTime @default(now())
+}
+
+model SiteSettings {
+  id           String    @id @default("global")
+  password     String
+  adminEmail   String?
+  otpCode      String?
+  otpExpiresAt DateTime?
+}
+
+model TargetedClient {
+  id                  String   @id @default(cuid())
+  instituteName       String
+  instituteNameBangla String?
+  contactPerson       String?
+  phone               String?
+  email               String?
+  district            String?
+  subDistrict         String?
+  address             String?
+  priority            String   @default("Default") // "High" | "Default" | "Low"
+  isArchived          Boolean  @default(false)
+  notes               String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  deletedAt           DateTime?
+
+  @@index([priority])
+  @@index([isArchived])
+  @@index([district])
+  @@index([subDistrict])
+  @@index([deletedAt])
+}
+
+model Task {
+  id              String       @id @default(cuid())
+  title           String
+  description     String?
+  dueDate         DateTime
+  status          String       @default("Pending") // "Pending" | "In Progress" | "Completed" | "Cancelled"
+  priority        String       @default("Medium")  // "High" | "Medium" | "Low"
+  completionNote  String?
+  progress        Int          @default(0)
+
+  institutionId   String?
+  institution     Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
+  institutionName String?
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  deletedAt       DateTime?
+
+  @@index([dueDate])
+  @@index([status])
+  @@index([priority])
+  @@index([institutionId])
+  @@index([deletedAt])
+}
