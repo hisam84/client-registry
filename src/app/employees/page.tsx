@@ -49,11 +49,11 @@ export default function EmployeesPage() {
 
   function handleOpenModal(emp?: Employee | null) {
     setError("");
+    setPassword("");
     if (emp) {
       setEditingEmployee(emp);
       setName(emp.name);
       setEmail(emp.email);
-      setPassword(emp.password || "");
       setRole(emp.role);
       setOrderSerial(emp.orderSerial);
       setDesignation(emp.designation || "");
@@ -63,7 +63,6 @@ export default function EmployeesPage() {
       setEditingEmployee(null);
       setName("");
       setEmail("");
-      setPassword("124578");
       setRole("EMPLOYEE");
       const nextSerial = employees.length > 0 ? Math.max(...employees.map((e) => e.orderSerial || 0)) + 1 : 1;
       setOrderSerial(nextSerial);
@@ -85,16 +84,21 @@ export default function EmployeesPage() {
     setError("");
 
     try {
-      const payload = {
+      const payload: any = {
         name: name.trim(),
         email: email.trim().toLowerCase(),
-        password: password.trim() || "124578",
         role,
         orderSerial: Number(orderSerial) || 1,
         designation: designation.trim() || null,
         phone: phone.trim() || null,
         avatarColor,
       };
+
+      if (password.trim()) {
+        payload.password = password.trim();
+      } else if (!editingEmployee) {
+        payload.password = "124578";
+      }
 
       const url = editingEmployee ? `/api/employees/${editingEmployee.id}` : "/api/employees";
       const method = editingEmployee ? "PUT" : "POST";
@@ -402,11 +406,11 @@ export default function EmployeesPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Input
-                  label="Password"
-                  type="text"
+                  label={editingEmployee ? "Reset / New Password" : "Password"}
+                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Default: 124578"
+                  placeholder={editingEmployee ? "Leave blank to keep current password" : "Default: 124578"}
                 />
               </div>
 

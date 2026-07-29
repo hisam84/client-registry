@@ -58,7 +58,7 @@ export async function PUT(
     const updateData: any = {};
     if (name !== undefined) updateData.name = name.trim();
     if (email !== undefined) updateData.email = email.trim().toLowerCase();
-    if (password !== undefined) updateData.password = password.trim();
+    if (password !== undefined && password.trim() !== "") updateData.password = password.trim();
     if (role !== undefined) updateData.role = role;
     if (orderSerial !== undefined) updateData.orderSerial = Number(orderSerial);
     if (designation !== undefined) updateData.designation = designation ? designation.trim() : null;
@@ -71,7 +71,8 @@ export async function PUT(
       data: updateData
     });
 
-    return NextResponse.json(updated);
+    const { password: _pw, ...safeUpdated } = updated;
+    return NextResponse.json(safeUpdated);
   } catch (error: any) {
     console.error("PUT /api/employees/[id] error:", error);
     return NextResponse.json(

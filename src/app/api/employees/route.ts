@@ -32,7 +32,7 @@ export async function GET(request: Request) {
           inProgress: tasks.filter((t: any) => t.status === "In Progress").length,
         };
       }
-      const { assignedTasks, ...empData } = emp;
+      const { assignedTasks, password: _pw, ...empData } = emp;
       return {
         ...empData,
         taskStats
