@@ -234,22 +234,38 @@ export default function DashboardPage() {
           )}
 
           {/* 1. TOP KPI STAT CARDS */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Card 1: Registered Institutions */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {/* Card 1: Total Institutions */}
             <Link href="/" className="group block">
-              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-brass-500/50 transition-all">
-                <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-                  <span>Total Institutions</span>
-                  <span className="text-brass-600 dark:text-brass-400 font-bold group-hover:underline">
-                    View Ledger →
-                  </span>
+              <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:shadow-md hover:border-brass-500/40 transition-all flex flex-col justify-between h-full">
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-brass-500/10 text-brass-700 dark:text-brass-400">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0h4m-4 0H7" />
+                        </svg>
+                      </div>
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                        Total Institutions
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-brass-600 dark:text-brass-400 font-bold group-hover:translate-x-0.5 transition-transform shrink-0">
+                      View →
+                    </span>
+                  </div>
+
+                  <div className="text-3xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight my-1">
+                    {inst?.total || 0}
+                  </div>
                 </div>
-                <div className="mt-3 flex items-baseline justify-between">
-                  <span className="text-3xl font-bold text-slate-900 dark:text-slate-50 font-mono">
-                    {inst?.total}
+
+                <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-bold text-[11px]">
+                    {inst?.active || 0} Active
                   </span>
-                  <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                    {inst?.active} Active
+                  <span className="text-[11px] text-slate-400 font-mono font-medium">
+                    {((inst?.active || 0) / Math.max(inst?.total || 1, 1) * 100).toFixed(0)}% Active
                   </span>
                 </div>
               </div>
@@ -257,65 +273,101 @@ export default function DashboardPage() {
 
             {/* Card 2: Expiring Soon Alert */}
             <Link href="/?status=expiring_soon" className="group block">
-              <div className="rounded-xl border border-amber-500/30 dark:border-amber-500/30 bg-amber-500/5 dark:bg-amber-500/10 p-5 shadow-sm hover:border-amber-500 transition-all">
-                <div className="flex items-center justify-between text-xs text-amber-700 dark:text-amber-400 font-medium">
-                  <span>Expiring Soon (30d)</span>
-                  <span className="text-amber-600 dark:text-amber-400 font-bold group-hover:underline">
-                    Action Needed →
-                  </span>
-                </div>
-                <div className="mt-3 flex items-baseline justify-between flex-wrap gap-1">
-                  <span className="text-3xl font-bold text-amber-600 dark:text-amber-400 font-mono">
-                    {inst?.expiringSoon}
-                  </span>
-                  <div className="flex items-center gap-1.5 text-xs font-semibold">
-                    <span className="text-red-600 dark:text-red-400" title="Expired by Expire Date">
-                      {inst?.expired} Expired
-                    </span>
-                    <span className="text-slate-300 dark:text-slate-700">|</span>
-                    <span className="text-rose-600 dark:text-rose-400" title="Expired by Actual Expire Date">
-                      {inst?.actualExpired} Actual Expired
+              <div className="rounded-2xl border border-amber-500/30 dark:border-amber-500/30 bg-amber-500/5 dark:bg-amber-500/10 p-5 shadow-sm hover:shadow-md hover:border-amber-500 transition-all flex flex-col justify-between h-full">
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-amber-500/20 text-amber-700 dark:text-amber-400">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <span className="text-xs font-bold text-amber-900 dark:text-amber-300">
+                        Expiring Soon (30d)
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-amber-700 dark:text-amber-400 font-bold group-hover:translate-x-0.5 transition-transform shrink-0">
+                      Action →
                     </span>
                   </div>
+
+                  <div className="text-3xl font-extrabold text-amber-600 dark:text-amber-400 font-mono tracking-tight my-1">
+                    {inst?.expiringSoon || 0}
+                  </div>
+                </div>
+
+                <div className="mt-3 pt-2.5 border-t border-amber-500/20 flex items-center gap-1.5 flex-wrap">
+                  <span className="px-2 py-0.5 rounded-full bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20 font-bold text-[10px]" title="Expired by Expire Date">
+                    {inst?.expired || 0} Expired
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20 font-bold text-[10px]" title="Expired by Actual Expire Date">
+                    {inst?.actualExpired || 0} Actual
+                  </span>
                 </div>
               </div>
             </Link>
 
             {/* Card 3: Targeted Clients Pipeline */}
             <Link href="/targeted-clients" className="group block">
-              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-brass-500/50 transition-all">
-                <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-                  <span>Targeted Clients</span>
-                  <span className="text-brass-600 dark:text-brass-400 font-bold group-hover:underline">
-                    View Pipeline →
-                  </span>
+              <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:shadow-md hover:border-brass-500/40 transition-all flex flex-col justify-between h-full">
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-purple-500/10 text-purple-700 dark:text-purple-400">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                      </div>
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                        Targeted Clients
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-brass-600 dark:text-brass-400 font-bold group-hover:translate-x-0.5 transition-transform shrink-0">
+                      Pipeline →
+                    </span>
+                  </div>
+
+                  <div className="text-3xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight my-1">
+                    {targeted?.active || 0}
+                  </div>
                 </div>
-                <div className="mt-3 flex items-baseline justify-between">
-                  <span className="text-3xl font-bold text-slate-900 dark:text-slate-50 font-mono">
-                    {targeted?.active}
-                  </span>
-                  <span className="text-xs text-rust-600 dark:text-rust-400 font-medium">
-                    {targeted?.highPriority} High Priority
+
+                <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                  <span className="px-2.5 py-0.5 rounded-full bg-rust-500/10 text-rust-700 dark:text-rust-400 border border-rust-500/20 font-bold text-[11px]">
+                    {targeted?.highPriority || 0} High Priority
                   </span>
                 </div>
               </div>
             </Link>
 
-            {/* Card 4: Upcoming Tasks */}
+            {/* Card 4: Scheduled Tasks */}
             <Link href="/tasks" className="group block">
-              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-brass-500/50 transition-all">
-                <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-                  <span>Scheduled Tasks</span>
-                  <span className="text-brass-600 dark:text-brass-400 font-bold group-hover:underline">
-                    Tasks Page →
-                  </span>
+              <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:shadow-md hover:border-brass-500/40 transition-all flex flex-col justify-between h-full">
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-sky-500/10 text-sky-700 dark:text-sky-400">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                      </div>
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                        Scheduled Tasks
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-brass-600 dark:text-brass-400 font-bold group-hover:translate-x-0.5 transition-transform shrink-0">
+                      Tasks →
+                    </span>
+                  </div>
+
+                  <div className="text-3xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight my-1">
+                    {tsk?.upcomingCount || 0}
+                  </div>
                 </div>
-                <div className="mt-3 flex items-baseline justify-between">
-                  <span className="text-3xl font-bold text-slate-900 dark:text-slate-50 font-mono">
-                    {tsk?.upcomingCount}
-                  </span>
-                  <span className="text-xs text-sky-600 dark:text-sky-400 font-medium">
-                    {tsk?.tasksToday} Due Today
+
+                <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                  <span className="px-2.5 py-0.5 rounded-full bg-sky-500/10 text-sky-700 dark:text-sky-400 border border-sky-500/20 font-bold text-[11px]">
+                    {tsk?.tasksToday || 0} Due Today
                   </span>
                 </div>
               </div>
