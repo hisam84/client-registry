@@ -5,6 +5,7 @@ import { SidebarLayout } from "@/components/SidebarLayout";
 import { TaskFormModal } from "@/components/tasks/TaskFormModal";
 import { Button } from "@/components/ui";
 import { useUserSession } from "@/lib/userSession";
+import { ROLE_OPTIONS } from "@/lib/types";
 
 interface DashboardData {
   institutions: {
@@ -171,7 +172,7 @@ export default function DashboardPage() {
                     Welcome Back 👋
                   </span>
                   <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-brass-500/20 text-brass-800 dark:text-brass-300 border border-brass-500/30">
-                    {currentUser.role === "SUPER_ADMIN" ? "Super Admin" : "Employee"}
+                    {ROLE_OPTIONS.find((r) => r.value === currentUser.role)?.label || currentUser.role}
                   </span>
                 </div>
                 <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-0.5">

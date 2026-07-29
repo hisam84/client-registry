@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { useUserSession } from "@/lib/userSession";
 import { Button, Input } from "@/components/ui";
+import { ROLE_OPTIONS } from "@/lib/types";
 
 export default function ProfilePage() {
   const { currentUser, setCurrentUser } = useUserSession();
@@ -182,12 +183,14 @@ export default function ProfilePage() {
               </h2>
               <span
                 className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
-                  currentUser.role === "SUPER_ADMIN"
+                  currentUser.role === "SUPER_ADMIN" || currentUser.role === "ADMIN"
                     ? "bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30"
+                    : currentUser.role === "MANAGER" || currentUser.role === "TEAM_LEAD"
+                    ? "bg-brass-500/15 text-brass-700 dark:text-brass-400 border border-brass-500/30"
                     : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700"
                 }`}
               >
-                {currentUser.role === "SUPER_ADMIN" ? "Super Admin" : "Employee"}
+                {ROLE_OPTIONS.find((r) => r.value === currentUser.role)?.label || currentUser.role}
               </span>
             </div>
             <p className="text-xs text-brass-600 dark:text-brass-400 font-semibold truncate">

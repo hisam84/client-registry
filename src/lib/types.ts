@@ -181,7 +181,26 @@ export const TASK_PRIORITY_COLOR: Record<TaskPriority, string> = {
   Low: "bg-slate-700/40 text-slate-400 border-slate-600/40",
 };
 
-export type EmployeeRole = "SUPER_ADMIN" | "EMPLOYEE";
+export type EmployeeRole =
+  | "SUPER_ADMIN"
+  | "ADMIN"
+  | "MANAGER"
+  | "TEAM_LEAD"
+  | "DEVELOPER"
+  | "SUPPORT"
+  | "MARKETING"
+  | "EMPLOYEE";
+
+export const ROLE_OPTIONS: { value: EmployeeRole; label: string }[] = [
+  { value: "SUPER_ADMIN", label: "Super Admin" },
+  { value: "ADMIN", label: "Admin" },
+  { value: "MANAGER", label: "Manager" },
+  { value: "TEAM_LEAD", label: "Team Lead / Supervisor" },
+  { value: "DEVELOPER", label: "Software Engineer / Developer" },
+  { value: "SUPPORT", label: "Support & IT Officer" },
+  { value: "MARKETING", label: "Executive / Marketing" },
+  { value: "EMPLOYEE", label: "General Employee" },
+];
 
 export interface Employee {
   id: string;
