@@ -409,45 +409,52 @@ export function SidebarLayout({
           </nav>
         </div>
 
-        {/* User Profile Card at Bottom of Sidebar */}
-        <div className="border-t border-slate-200 dark:border-slate-800/80 pt-3 mt-auto">
-          <Link
-            href="/profile"
-            className={`flex items-center gap-2.5 p-2 rounded-xl transition-all ${
-              pathname === "/profile"
-                ? "bg-brass-500/15 border border-brass-500/30 font-semibold"
-                : "hover:bg-slate-100 dark:hover:bg-slate-800/60"
-            }`}
-            title="View & Edit Profile"
-          >
-            {currentUser.avatarUrl ? (
-              <img
-                src={currentUser.avatarUrl}
-                alt={currentUser.name}
-                className="w-9 h-9 rounded-xl object-cover border border-brass-500/40 shrink-0"
-              />
-            ) : (
-              <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-xs shadow-inner shrink-0"
-                style={{ backgroundColor: currentUser.avatarColor || "#0b7677" }}
-              >
-                {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : "U"}
+        {/* User Profile Footer Card with Logout Button */}
+        <div className="p-3 border-t border-slate-200 dark:border-slate-800">
+          <div className="flex items-center justify-between gap-1.5 p-2 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70 hover:border-brass-500/30 transition-all">
+            <Link
+              href="/profile"
+              onClick={() => setNavLoading(true)}
+              className="flex items-center gap-2.5 min-w-0 flex-1 group"
+              title="View & Edit Profile"
+            >
+              {currentUser.avatarUrl ? (
+                <img
+                  src={currentUser.avatarUrl}
+                  alt={currentUser.name}
+                  className="w-9 h-9 rounded-xl object-cover border border-brass-500/40 shrink-0 group-hover:border-brass-500 transition-colors"
+                />
+              ) : (
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-xs shadow-inner shrink-0 group-hover:scale-105 transition-transform"
+                  style={{ backgroundColor: currentUser.avatarColor || "#0b7677" }}
+                >
+                  {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : "U"}
+                </div>
+              )}
+
+              <div className="min-w-0 flex-1">
+                <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate group-hover:text-brass-600 dark:group-hover:text-brass-400 transition-colors">
+                  {currentUser.name}
+                </h4>
+                <p className="text-[10px] text-brass-600 dark:text-brass-400 truncate">
+                  {currentUser.designation || (currentUser.role === "SUPER_ADMIN" ? "Super Admin" : "Employee")}
+                </p>
               </div>
-            )}
+            </Link>
 
-            <div className="min-w-0 flex-1">
-              <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
-                {currentUser.name}
-              </h4>
-              <p className="text-[10px] text-brass-600 dark:text-brass-400 truncate">
-                {currentUser.designation || (currentUser.role === "SUPER_ADMIN" ? "Super Admin" : "Employee")}
-              </p>
-            </div>
-
-            <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
+            {/* Dedicated Logout Button in User Card Footer */}
+            <button
+              onClick={handleLogout}
+              className="p-2 rounded-lg text-red-500/80 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all shrink-0"
+              title="Log out of account"
+              aria-label="Logout"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </button>
+          </div>
         </div>
       </aside>
 
