@@ -23,7 +23,9 @@ export async function GET(req: NextRequest) {
         { assignedById: employeeId }
       ];
     } else if (taskCategory && currentUserId) {
-      if (taskCategory === "self") {
+      if (taskCategory === "my_tasks") {
+        where.assignedToId = currentUserId;
+      } else if (taskCategory === "self") {
         where.assignedToId = currentUserId;
         where.OR = [
           { assignedById: currentUserId },

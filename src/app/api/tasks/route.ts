@@ -70,7 +70,10 @@ export async function GET(req: NextRequest) {
 
     // Category Tabs Filter
     if (taskCategory && currentUserId) {
-      if (taskCategory === "self") {
+      if (taskCategory === "my_tasks") {
+        // All tasks assigned to me
+        where.assignedToId = currentUserId;
+      } else if (taskCategory === "self") {
         // Self assigned: assigned to me AND (assigned by me OR assignedById is null)
         where.assignedToId = currentUserId;
         where.OR = [
