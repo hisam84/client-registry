@@ -425,6 +425,23 @@ export default function TasksPage() {
               Upcoming Only ({metrics.upcomingTasks})
             </button>
 
+            {/* Filter by Employee / User */}
+            <select
+              value={selectedEmployeeFilter}
+              onChange={(e) => {
+                setSelectedEmployeeFilter(e.target.value);
+                if (e.target.value !== "all") setActiveTab("all");
+              }}
+              className="rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none font-semibold"
+            >
+              <option value="all">All Employees</option>
+              {employees.map((emp) => (
+                <option key={emp.id} value={emp.id}>
+                  #{emp.orderSerial} • {emp.name}
+                </option>
+              ))}
+            </select>
+
             <select
               value={statusFilter}
               onChange={(e) => {
@@ -459,10 +476,10 @@ export default function TasksPage() {
                   setPriorityFilter("all");
                   setUpcomingOnly(false);
                   setSelectedEmployeeFilter("all");
+                  setActiveTab(isSuperAdmin ? "all" : "my_tasks");
                   setMainTab("my_tasks");
-                  setActiveTab("my_tasks");
                 }}
-                className="text-xs text-brass-600 dark:text-brass-400 underline hover:opacity-80 font-semibold"
+                className="text-xs text-brass-600 dark:text-brass-400 hover:underline font-semibold ml-1"
               >
                 Reset All Filters
               </button>
