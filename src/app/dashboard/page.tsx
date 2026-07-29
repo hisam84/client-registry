@@ -175,10 +175,10 @@ export default function DashboardPage() {
                   </span>
                 </div>
                 <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-0.5">
-                  স্বাগতম, {currentUser.name}!
+                  Welcome, {currentUser.name}!
                 </h2>
                 <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 max-w-lg">
-                  Imperial IT ক্লায়েন্ট ম্যানেজমেন্ট ড্যাশবোর্ডে আপনাকে স্বাগতম। {currentUser.designation ? `(${currentUser.designation})` : ""}
+                  Welcome to the Imperial IT Client Management Dashboard. {currentUser.designation ? `(${currentUser.designation})` : ""}
                 </p>
               </div>
             </div>
@@ -189,7 +189,7 @@ export default function DashboardPage() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  <span>প্রোফাইল সম্পাদন করুন (Edit Profile)</span>
+                  <span>Edit Profile</span>
                 </button>
               </Link>
             </div>

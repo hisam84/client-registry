@@ -88,18 +88,16 @@ export default function ProfilePage() {
 
       // Update session in localStorage and dispatch change event
       setCurrentUser(updatedUser);
-      setMessage({ type: "success", text: "প্রোফাইল সফলভাবে আপডেট করা হয়েছে! (Profile updated successfully)" });
+      setMessage({ type: "success", text: "Profile updated successfully!" });
     } catch (err: any) {
       setMessage({ type: "error", text: err.message || "Failed to update profile" });
-    } finally {
-      setSaving(false);
-    }
+    } font-semibold;
   }
 
   return (
     <SidebarLayout
-      title="মাই প্রোফাইল (My Profile)"
-      subtitle="নিজের প্রোফাইল এডিট ও প্রোফাইল পিকচার পরিবর্তন করুন"
+      title="My Profile"
+      subtitle="Manage your personal profile details and profile picture"
     >
       <div className="max-w-3xl mx-auto space-y-6">
         {/* TOP USER CARD */}
@@ -170,7 +168,7 @@ export default function ProfilePage() {
               onClick={handleRemoveImage}
               className="text-xs text-red-500 hover:text-red-600 dark:text-red-400 hover:underline shrink-0"
             >
-              ছবি সরান (Remove Photo)
+              Remove Photo
             </button>
           )}
         </div>
@@ -181,7 +179,7 @@ export default function ProfilePage() {
             <svg className="w-5 h-5 text-brass-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
-            <span>নিজের প্রোফাইল এডিট করুন (Edit Personal Info)</span>
+            <span>Edit Personal Information</span>
           </h3>
 
           {message && (
@@ -200,17 +198,17 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Input
-                  label="নাম (Full Name)*"
+                  label="Full Name*"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="আপনার নাম লিখুন"
+                  placeholder="Enter your name"
                   required
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  ইমেইল এড্রেস (Read-only)
+                  Email Address (Read-only)
                 </label>
                 <input
                   type="text"
@@ -224,16 +222,16 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Input
-                  label="পদবী (Designation)"
+                  label="Designation"
                   value={designation}
                   onChange={(e) => setDesignation(e.target.value)}
-                  placeholder="যেমন: Software Engineer"
+                  placeholder="e.g. Senior Software Engineer"
                 />
               </div>
 
               <div>
                 <Input
-                  label="মোবাইল নম্বর (Phone)"
+                  label="Mobile Phone"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="01700000000"
@@ -244,7 +242,7 @@ export default function ProfilePage() {
             {/* Profile Picture Upload Section */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                প্রোফাইল পিকচার (Profile Picture Upload)
+                Profile Picture Upload
               </label>
               <div className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60">
                 {avatarUrl ? (
@@ -278,7 +276,7 @@ export default function ProfilePage() {
             {/* Theme Avatar Color */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                অবতার থিম কালার (Fallback Avatar Theme Color)
+                Fallback Avatar Theme Color
               </label>
               <div className="flex items-center gap-3">
                 {["#0b7677", "#8b5cf6", "#3b82f6", "#f59e0b", "#ef4444", "#10b981"].map((color) => (
@@ -302,7 +300,7 @@ export default function ProfilePage() {
                 disabled={saving}
                 className="bg-brass-500 hover:bg-brass-400 text-slate-950 font-bold px-6 py-2.5 rounded-xl shadow active:scale-95 transition-transform"
               >
-                {saving ? "সংরক্ষণ হচ্ছে..." : "প্রোফাইল সংরক্ষণ করুন (Save Profile)"}
+                {saving ? "Saving..." : "Save Profile"}
               </Button>
             </div>
           </form>

@@ -160,20 +160,20 @@ export default function EmployeesPage() {
             </svg>
           </div>
           <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-            অ্যাক্সেস সংরক্ষিত (Super Admin Only)
+            Access Restricted (Super Admin Only)
           </h2>
           <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
-            ইউজার অন্যান্য ইমপ্লয়ি ম্যানেজ করতে পারবেন না। সাধারণ ইউজার হিসেবে আপনি কেবল নিজের প্রোফাইল এডিট করতে পারবেন।
+            General users are not authorized to manage other employees. You can only view and edit your own personal profile.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Link href="/profile">
               <Button className="bg-brass-500 hover:bg-brass-400 text-slate-950 font-bold">
-                মাই প্রোফাইলে যান (My Profile) →
+                Go to My Profile →
               </Button>
             </Link>
             <Link href="/dashboard">
               <Button variant="outline">
-                ড্যাশবোর্ডে যান (Dashboard)
+                Back to Dashboard
               </Button>
             </Link>
           </div>
