@@ -148,17 +148,17 @@ export default function DashboardPage() {
       ) : (
         <div className="space-y-8">
           {/* WELCOME BANNER FOR ACTIVE USER */}
-          <div className="rounded-2xl border border-brass-500/30 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white p-6 shadow-xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="rounded-2xl border border-brass-500/30 dark:border-brass-500/30 bg-gradient-to-r from-brass-500/10 via-amber-500/10 to-brass-500/5 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-slate-900 dark:text-white p-6 shadow-sm dark:shadow-xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-4 z-10">
               {currentUser.avatarUrl ? (
                 <img
                   src={currentUser.avatarUrl}
                   alt={currentUser.name}
-                  className="w-16 h-16 rounded-2xl object-cover border-2 border-brass-400 shadow-md shrink-0"
+                  className="w-16 h-16 rounded-2xl object-cover border-2 border-brass-500/40 dark:border-brass-400 shadow-md shrink-0"
                 />
               ) : (
                 <div
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-inner border-2 border-brass-400 shrink-0"
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-inner border-2 border-brass-500/40 dark:border-brass-400 shrink-0"
                   style={{ backgroundColor: currentUser.avatarColor || "#0b7677" }}
                 >
                   {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : "U"}
@@ -167,17 +167,17 @@ export default function DashboardPage() {
 
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs uppercase tracking-wider font-semibold text-brass-400">
+                  <span className="text-xs uppercase tracking-wider font-bold text-brass-700 dark:text-brass-400">
                     Welcome Back 👋
                   </span>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-brass-500/20 text-brass-300 border border-brass-500/30">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-brass-500/20 text-brass-800 dark:text-brass-300 border border-brass-500/30">
                     {currentUser.role === "SUPER_ADMIN" ? "Super Admin" : "Employee"}
                   </span>
                 </div>
-                <h2 className="text-2xl font-extrabold text-white mt-0.5">
+                <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-0.5">
                   স্বাগতম, {currentUser.name}!
                 </h2>
-                <p className="text-xs text-slate-300 mt-1 max-w-lg">
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 max-w-lg">
                   Imperial IT ক্লায়েন্ট ম্যানেজমেন্ট ড্যাশবোর্ডে আপনাকে স্বাগতম। {currentUser.designation ? `(${currentUser.designation})` : ""}
                 </p>
               </div>
@@ -185,7 +185,7 @@ export default function DashboardPage() {
 
             <div className="flex items-center gap-3 z-10 shrink-0">
               <Link href="/profile">
-                <button className="px-4 py-2 bg-brass-500 hover:bg-brass-400 text-slate-950 font-bold text-xs rounded-xl shadow transition-transform active:scale-95 flex items-center gap-1.5">
+                <button className="px-4 py-2.5 bg-brass-500 hover:bg-brass-400 text-slate-950 font-bold text-xs rounded-xl shadow transition-transform active:scale-95 flex items-center gap-1.5 border border-brass-600/30">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
