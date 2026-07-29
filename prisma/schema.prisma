@@ -100,6 +100,27 @@ model TargetedClient {
   @@index([deletedAt])
 }
 
+model Employee {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  password     String?
+  role         String    @default("EMPLOYEE") // "SUPER_ADMIN" | "EMPLOYEE"
+  orderSerial  Int       @default(0)
+  designation  String?
+  phone        String?
+  avatarColor  String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  assignedTasks Task[]   @relation("AssignedTasks")
+  createdTasks  Task[]   @relation("CreatedTasks")
+
+  @@index([orderSerial])
+  @@index([deletedAt])
+}
+
 model Task {
   id              String       @id @default(cuid())
   title           String
@@ -114,6 +135,12 @@ model Task {
   institution     Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
   institutionName String?
 
+  assignedToId    String?
+  assignedTo      Employee?    @relation("AssignedTasks", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  assignedById    String?
+  assignedBy      Employee?    @relation("CreatedTasks", fields: [assignedById], references: [id], onDelete: SetNull)
+
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
   deletedAt       DateTime?
@@ -122,5 +149,8 @@ model Task {
   @@index([status])
   @@index([priority])
   @@index([institutionId])
+  @@index([assignedToId])
+  @@index([assignedById])
   @@index([deletedAt])
 }
+

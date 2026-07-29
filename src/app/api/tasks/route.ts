@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// GET /api/tasks?search=&status=&priority=&upcoming=&institutionId=
+// GET /api/tasks?search=&status=&priority=&upcoming=&institutionId=&assignedToId=&assignedById=&taskCategory=&currentUserId=&employeeId=
 export async function GET(req: NextRequest) {
   try {
     const params = req.nextUrl.searchParams;
@@ -13,6 +13,11 @@ export async function GET(req: NextRequest) {
     const priority = params.get("priority");
     const upcoming = params.get("upcoming"); // "true" or "false"
     const institutionId = params.get("institutionId");
+    const assignedToId = params.get("assignedToId");
+    const assignedById = params.get("assignedById");
+    const taskCategory = params.get("taskCategory"); // "self" | "assigned_by_others" | "assigned_to_others" | "unassigned"
+    const currentUserId = params.get("currentUserId");
+    const employeeId = params.get("employeeId"); // Super Admin filter
 
     const where: any = { deletedAt: null };
 
@@ -22,6 +27,8 @@ export async function GET(req: NextRequest) {
         { description: { contains: search, mode: "insensitive" } },
         { institutionName: { contains: search, mode: "insensitive" } },
         { institution: { instituteName: { contains: search, mode: "insensitive" } } },
+        { assignedTo: { name: { contains: search, mode: "insensitive" } } },
+        { assignedBy: { name: { contains: search, mode: "insensitive" } } },
       ];
     }
 
@@ -45,6 +52,45 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // Specific employee filter (Super Admin view)
+    if (employeeId && employeeId !== "all") {
+      where.OR = [
+        { assignedToId: employeeId },
+        { assignedById: employeeId },
+      ];
+    } else if (assignedToId) {
+      if (assignedToId === "unassigned") {
+        where.assignedToId = null;
+      } else {
+        where.assignedToId = assignedToId;
+      }
+    } else if (assignedById) {
+      where.assignedById = assignedById;
+    }
+
+    // Category Tabs Filter
+    if (taskCategory && currentUserId) {
+      if (taskCategory === "self") {
+        // Self assigned: assigned to me AND (assigned by me OR assignedById is null)
+        where.assignedToId = currentUserId;
+        where.OR = [
+          { assignedById: currentUserId },
+          { assignedById: null }
+        ];
+      } else if (taskCategory === "assigned_by_others") {
+        // Assigned to me by someone else
+        where.assignedToId = currentUserId;
+        where.assignedById = { not: currentUserId };
+      } else if (taskCategory === "assigned_to_others") {
+        // Tasks assigned by me to another employee
+        where.assignedById = currentUserId;
+        where.assignedToId = { not: currentUserId };
+      } else if (taskCategory === "unassigned") {
+        // Unassigned tasks
+        where.assignedToId = null;
+      }
+    }
+
     const tasks = await (prisma as any).task.findMany({
       where,
       include: {
@@ -52,6 +98,30 @@ export async function GET(req: NextRequest) {
           select: {
             id: true,
             instituteName: true,
+          },
+        },
+        assignedTo: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            orderSerial: true,
+            designation: true,
+            phone: true,
+            avatarColor: true,
+          },
+        },
+        assignedBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            orderSerial: true,
+            designation: true,
+            phone: true,
+            avatarColor: true,
           },
         },
       },
@@ -71,7 +141,19 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { title, description, dueDate, status, priority, completionNote, progress, institutionId, institutionName } = body;
+    const {
+      title,
+      description,
+      dueDate,
+      status,
+      priority,
+      completionNote,
+      progress,
+      institutionId,
+      institutionName,
+      assignedToId,
+      assignedById,
+    } = body;
 
     if (!title || typeof title !== "string" || !title.trim()) {
       return NextResponse.json({ error: "Task title is required." }, { status: 400 });
@@ -104,12 +186,38 @@ export async function POST(req: NextRequest) {
         progress: progressVal,
         institutionId: institutionId || null,
         institutionName: finalInstName || null,
+        assignedToId: assignedToId || null,
+        assignedById: assignedById || null,
       },
       include: {
         institution: {
           select: {
             id: true,
             instituteName: true,
+          },
+        },
+        assignedTo: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            orderSerial: true,
+            designation: true,
+            phone: true,
+            avatarColor: true,
+          },
+        },
+        assignedBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            orderSerial: true,
+            designation: true,
+            phone: true,
+            avatarColor: true,
           },
         },
       },

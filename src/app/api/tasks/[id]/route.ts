@@ -12,6 +12,30 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
             instituteName: true,
           },
         },
+        assignedTo: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            orderSerial: true,
+            designation: true,
+            phone: true,
+            avatarColor: true,
+          },
+        },
+        assignedBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            orderSerial: true,
+            designation: true,
+            phone: true,
+            avatarColor: true,
+          },
+        },
       },
     });
 
@@ -28,7 +52,19 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const body = await req.json();
-    const { title, description, dueDate, status, priority, completionNote, progress, institutionId, institutionName } = body;
+    const {
+      title,
+      description,
+      dueDate,
+      status,
+      priority,
+      completionNote,
+      progress,
+      institutionId,
+      institutionName,
+      assignedToId,
+      assignedById,
+    } = body;
 
     const data: any = {};
     if (title !== undefined) data.title = title.trim();
@@ -47,6 +83,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (institutionId !== undefined) data.institutionId = institutionId || null;
     if (institutionName !== undefined) data.institutionName = institutionName || null;
 
+    if (assignedToId !== undefined) data.assignedToId = assignedToId || null;
+    if (assignedById !== undefined) data.assignedById = assignedById || null;
+
     if (institutionId && !institutionName) {
       const inst = await prisma.institution.findUnique({
         where: { id: institutionId },
@@ -63,6 +102,30 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
           select: {
             id: true,
             instituteName: true,
+          },
+        },
+        assignedTo: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            orderSerial: true,
+            designation: true,
+            phone: true,
+            avatarColor: true,
+          },
+        },
+        assignedBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            orderSerial: true,
+            designation: true,
+            phone: true,
+            avatarColor: true,
           },
         },
       },

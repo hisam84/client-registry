@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { TaskItem, TASK_PRIORITY_COLOR, TASK_STATUS_COLOR } from "@/lib/types";
+import { useUserSession } from "@/lib/userSession";
 import { StatusNoteModal } from "./StatusNoteModal";
 import { RescheduleModal } from "./RescheduleModal";
 
@@ -19,8 +20,34 @@ export function UpcomingTasksList({
   onToggleComplete,
   onRefresh,
 }: UpcomingTasksListProps) {
+  const { currentUser } = useUserSession();
   const [noteModalTask, setNoteModalTask] = useState<TaskItem | null>(null);
   const [rescheduleModalTask, setRescheduleModalTask] = useState<TaskItem | null>(null);
+  const [claimingTaskId, setClaimingTaskId] = useState<string | null>(null);
+
+  async function handleClaimTask(task: TaskItem) {
+    if (currentUser.id === "super-admin") {
+      alert("Please select a specific employee from the header account switcher to claim tasks for an employee.");
+      return;
+    }
+    setClaimingTaskId(task.id);
+    try {
+      const res = await fetch(`/api/tasks/${task.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          assignedToId: currentUser.id,
+        }),
+      });
+      if (res.ok && onRefresh) {
+        onRefresh();
+      }
+    } catch (err) {
+      console.error("Failed to claim task:", err);
+    } finally {
+      setClaimingTaskId(null);
+    }
+  }
 
   function getRelativeTimeBadge(dueDateStr: string, status: string) {
     if (status === "Completed") {
@@ -90,6 +117,12 @@ export function UpcomingTasksList({
         const due = new Date(task.dueDate);
         const isOverdue = !isCompleted && due.getTime() < Date.now();
 
+        const assignedEmp = task.assignedTo;
+        const assignerEmp = task.assignedBy;
+        const isUnassigned = !task.assignedToId;
+        const isAssignedToMe = task.assignedToId === currentUser.id;
+        const isAssignedByMe = task.assignedById === currentUser.id;
+
         return (
           <div
             key={task.id}
@@ -101,7 +134,7 @@ export function UpcomingTasksList({
                 : "border-slate-200 dark:border-slate-800 hover:border-brass-500/40 shadow-sm"
             }`}
           >
-            {/* Top Container: Checkbox + Title/Pill on left, Action buttons on right (responsive layout) */}
+            {/* Top Container: Checkbox + Title/Pill on left, Action buttons on right */}
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2.5 sm:gap-3">
               
               {/* Left Content Area */}
@@ -186,8 +219,33 @@ export function UpcomingTasksList({
                     </div>
                   )}
 
-                  {/* Meta Badges (Mobile Responsive Flex Row) */}
+                  {/* Employee Assignment Badges & Meta Row */}
                   <div className="mt-2.5 flex flex-wrap items-center gap-1.5 sm:gap-2">
+                    {/* Employee Assignee Badge */}
+                    {isUnassigned ? (
+                      <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 whitespace-nowrap flex items-center gap-1">
+                        <span>❓ Unassigned</span>
+                      </span>
+                    ) : (
+                      <span
+                        className={`px-2 py-0.5 rounded text-[11px] font-bold border whitespace-nowrap flex items-center gap-1 ${
+                          isAssignedToMe
+                            ? "bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30"
+                            : "bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30"
+                        }`}
+                      >
+                        <span>👤 Assigned:</span>
+                        <span>#{assignedEmp?.orderSerial || 0} {assignedEmp?.name || "Employee"}</span>
+                      </span>
+                    )}
+
+                    {/* Assigner Info if available */}
+                    {assignerEmp && assignerEmp.id !== task.assignedToId && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 whitespace-nowrap">
+                        By: {assignerEmp.name}
+                      </span>
+                    )}
+
                     {getRelativeTimeBadge(task.dueDate, task.status)}
 
                     <span
@@ -205,16 +263,25 @@ export function UpcomingTasksList({
                     >
                       {task.status}
                     </span>
-
-                    <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-brass-500/15 text-brass-700 dark:text-brass-300 border border-brass-500/30 whitespace-nowrap">
-                      {task.progress ?? (isCompleted ? 100 : 0)}% Progress
-                    </span>
                   </div>
                 </div>
               </div>
 
-              {/* Action Buttons (Clean Flex Row for Mobile & Desktop) */}
+              {/* Action Buttons */}
               <div className="flex flex-wrap items-center gap-1.5 pt-2 sm:pt-0 shrink-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
+                {/* Claim / Self Assign Task Button if unassigned or assigned to someone else */}
+                {(isUnassigned || (!isAssignedToMe && currentUser.id !== "super-admin")) && (
+                  <button
+                    onClick={() => handleClaimTask(task)}
+                    disabled={claimingTaskId === task.id}
+                    className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-brass-500/20 text-brass-700 dark:text-brass-300 border border-brass-500/40 hover:bg-brass-500/30 transition-colors whitespace-nowrap flex items-center gap-1"
+                    title="Self-assign this task to your account"
+                  >
+                    <span>🎯</span>
+                    <span>{claimingTaskId === task.id ? "Assigning..." : "Assign to Me (নিজে নিন)"}</span>
+                  </button>
+                )}
+
                 {/* Reschedule Button */}
                 <button
                   onClick={() => setRescheduleModalTask(task)}

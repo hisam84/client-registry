@@ -181,6 +181,29 @@ export const TASK_PRIORITY_COLOR: Record<TaskPriority, string> = {
   Low: "bg-slate-700/40 text-slate-400 border-slate-600/40",
 };
 
+export type EmployeeRole = "SUPER_ADMIN" | "EMPLOYEE";
+
+export interface Employee {
+  id: string;
+  name: string;
+  email: string;
+  password?: string | null;
+  role: EmployeeRole;
+  orderSerial: number;
+  designation?: string | null;
+  phone?: string | null;
+  avatarColor?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  deletedAt?: string | null;
+  taskStats?: {
+    total: number;
+    completed: number;
+    pending: number;
+    inProgress: number;
+  };
+}
+
 export interface TaskItem {
   id: string;
   title: string;
@@ -196,6 +219,10 @@ export interface TaskItem {
     id: string;
     instituteName: string;
   } | null;
+  assignedToId?: string | null;
+  assignedTo?: Employee | null;
+  assignedById?: string | null;
+  assignedBy?: Employee | null;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;

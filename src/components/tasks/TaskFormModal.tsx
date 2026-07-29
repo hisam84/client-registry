@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { CustomInstituteSelect } from "@/components/CustomInstituteSelect";
-import { Institution, TaskItem, TaskPriority, TaskStatus } from "@/lib/types";
+import { Employee, Institution, TaskItem, TaskPriority, TaskStatus } from "@/lib/types";
 import { Button, Input, Modal } from "@/components/ui";
+import { useUserSession } from "@/lib/userSession";
 
 interface TaskFormModalProps {
   initialTask?: TaskItem | null;
@@ -31,6 +32,7 @@ export function TaskFormModal({
   onClose,
   onSaved,
 }: TaskFormModalProps) {
+  const { currentUser } = useUserSession();
   const [title, setTitle] = useState(initialTask?.title || "");
   const [description, setDescription] = useState(initialTask?.description || "");
   
@@ -51,25 +53,37 @@ export function TaskFormModal({
     initialTask?.institutionName || prefilledInstitutionName || ""
   );
 
+  // Employee Assignment State
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [assignedToId, setAssignedToId] = useState<string>(
+    initialTask?.assignedToId !== undefined
+      ? initialTask.assignedToId || ""
+      : currentUser.id !== "super-admin" ? currentUser.id : ""
+  );
+
   const [loadingInst, setLoadingInst] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    async function loadInstitutions() {
+    async function loadData() {
       try {
-        const res = await fetch("/api/institutions");
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          setInstitutions(data);
-        }
+        const [instRes, empRes] = await Promise.all([
+          fetch("/api/institutions"),
+          fetch("/api/employees"),
+        ]);
+        const instData = await instRes.json();
+        const empData = await empRes.json();
+
+        if (Array.isArray(instData)) setInstitutions(instData);
+        if (Array.isArray(empData)) setEmployees(empData);
       } catch (err) {
-        console.error("Failed to load institutions:", err);
+        console.error("Failed to load initial data for TaskFormModal:", err);
       } finally {
         setLoadingInst(false);
       }
     }
-    loadInstitutions();
+    loadData();
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -97,6 +111,8 @@ export function TaskFormModal({
         progress,
         institutionId: selectedInstId || null,
         institutionName: customInstName.trim() || null,
+        assignedToId: assignedToId || null,
+        assignedById: initialTask?.assignedById || (currentUser.id !== "super-admin" ? currentUser.id : null),
       };
 
       const url = initialTask ? `/api/tasks/${initialTask.id}` : "/api/tasks";
@@ -125,7 +141,7 @@ export function TaskFormModal({
   return (
     <Modal
       onClose={onClose}
-      title={initialTask ? "Edit Task" : "Add Task"}
+      title={initialTask ? "Edit Task (টাস্ক এডিট)" : "Add Task (নতুন টাস্ক ক্রিয়েট)"}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
@@ -134,10 +150,47 @@ export function TaskFormModal({
           </div>
         )}
 
+        {/* Employee Assignment Dropdown */}
+        <div className="bg-brass-500/5 dark:bg-brass-500/10 p-3 rounded-xl border border-brass-500/20">
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+              <span>👤 Assign Employee (ইমপ্লয়ী এসাইন করুন)</span>
+            </label>
+            <button
+              type="button"
+              onClick={() => setAssignedToId(currentUser.id !== "super-admin" ? currentUser.id : "")}
+              className="text-[11px] font-semibold text-brass-600 dark:text-brass-400 hover:underline"
+            >
+              + Assign to Myself (নিজের নামে)
+            </button>
+          </div>
+
+          <select
+            value={assignedToId}
+            onChange={(e) => setAssignedToId(e.target.value)}
+            className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brass-500"
+          >
+            <option value="">❓ Unassigned (কারো নামে এসাইন নয়)</option>
+
+            {currentUser.id === "super-admin" && (
+              <option value="super-admin">🛡️ Super Admin (Self)</option>
+            )}
+
+            {employees.map((emp) => (
+              <option key={emp.id} value={emp.id}>
+                #{emp.orderSerial} • {emp.name} ({emp.designation || emp.role})
+              </option>
+            ))}
+          </select>
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
+            * ইমপ্লয়ী এসাইন না করলেও টাস্কটি ক্রিয়েট করা যাবে।
+          </p>
+        </div>
+
         {/* Institution Select */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            Institution / Organization
+            Institution / Organization (প্রতিষ্ঠান)
           </label>
           {loadingInst ? (
             <div className="text-xs text-slate-400">Loading institutions list...</div>
@@ -158,7 +211,7 @@ export function TaskFormModal({
         {/* Task Title */}
         <div>
           <Input
-            label="Task Title*"
+            label="Task Title (টাস্কের শিরোনাম)*"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g., Domain Renewal Followup"
@@ -169,7 +222,7 @@ export function TaskFormModal({
         {/* Date and Time Selection */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            Scheduled Date & Time*
+            Scheduled Date & Time (তারিখ ও সময়)*
           </label>
           <input
             type="datetime-local"
@@ -184,7 +237,7 @@ export function TaskFormModal({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Priority
+              Priority (গুরুত্ব)
             </label>
             <select
               value={priority}
@@ -199,7 +252,7 @@ export function TaskFormModal({
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Status
+              Status (স্ট্যাটাস)
             </label>
             <select
               value={status}
@@ -280,7 +333,7 @@ export function TaskFormModal({
         {/* Task Details */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            Task Details & Instructions
+            Task Details & Instructions (টাস্কের বিবরণ)
           </label>
           <textarea
             value={description}
@@ -294,7 +347,7 @@ export function TaskFormModal({
         {/* Completion / Status Note or Reason */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            Outcome / Completion Reason & Remarks (কমপ্লিট / আনকমপ্লিট বা ক্যানসেল হওয়ার কারণ/নোট)
+            Outcome / Completion Reason & Remarks (কমপ্লিট / আনকমপ্লিট নোট)
           </label>
           <textarea
             value={completionNote}

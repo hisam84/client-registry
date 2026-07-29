@@ -4,14 +4,44 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const params = req.nextUrl.searchParams;
+    const employeeId = params.get("employeeId");
+    const currentUserId = params.get("currentUserId");
+    const taskCategory = params.get("taskCategory");
+
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
 
+    const where: any = { deletedAt: null };
+
+    if (employeeId && employeeId !== "all") {
+      where.OR = [
+        { assignedToId: employeeId },
+        { assignedById: employeeId }
+      ];
+    } else if (taskCategory && currentUserId) {
+      if (taskCategory === "self") {
+        where.assignedToId = currentUserId;
+        where.OR = [
+          { assignedById: currentUserId },
+          { assignedById: null }
+        ];
+      } else if (taskCategory === "assigned_by_others") {
+        where.assignedToId = currentUserId;
+        where.assignedById = { not: currentUserId };
+      } else if (taskCategory === "assigned_to_others") {
+        where.assignedById = currentUserId;
+        where.assignedToId = { not: currentUserId };
+      } else if (taskCategory === "unassigned") {
+        where.assignedToId = null;
+      }
+    }
+
     const allTasks: any[] = await (prisma as any).task.findMany({
-      where: { deletedAt: null },
+      where,
       include: {
         institution: {
           select: {
@@ -19,6 +49,12 @@ export async function GET() {
             instituteName: true,
           },
         },
+        assignedTo: {
+          select: { id: true, name: true }
+        },
+        assignedBy: {
+          select: { id: true, name: true }
+        }
       },
       orderBy: { dueDate: "asc" },
     });
@@ -28,6 +64,7 @@ export async function GET() {
     const pendingTasks = allTasks.filter((t) => t.status === "Pending").length;
     const inProgressTasks = allTasks.filter((t) => t.status === "In Progress").length;
     const cancelledTasks = allTasks.filter((t) => t.status === "Cancelled").length;
+    const unassignedTasks = allTasks.filter((t) => !t.assignedToId).length;
 
     const overdueTasks = allTasks.filter(
       (t) => new Date(t.dueDate) < startOfToday && t.status !== "Completed" && t.status !== "Cancelled"
@@ -68,6 +105,7 @@ export async function GET() {
       pendingTasks,
       inProgressTasks,
       cancelledTasks,
+      unassignedTasks,
       overdueTasks,
       tasksToday,
       upcomingTasks,

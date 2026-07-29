@@ -1,8 +1,10 @@
 "use client";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Button } from "@/components/ui";
+import { Employee } from "@/lib/types";
+import { SUPER_ADMIN_USER, useUserSession } from "@/lib/userSession";
 
 interface HeaderNavProps {
   onAddTaskClick?: () => void;
@@ -14,6 +16,23 @@ interface HeaderNavProps {
 export function HeaderNav({ onAddTaskClick, title, subtitle, totalCountText }: HeaderNavProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { currentUser, setCurrentUser } = useUserSession();
+  const [employees, setEmployees] = useState<Employee[]>([]);
+
+  useEffect(() => {
+    async function fetchEmployees() {
+      try {
+        const res = await fetch("/api/employees");
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) setEmployees(data);
+        }
+      } catch (err) {
+        console.error("Failed to load employees for switcher:", err);
+      }
+    }
+    fetchEmployees();
+  }, []);
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -24,6 +43,7 @@ export function HeaderNav({ onAddTaskClick, title, subtitle, totalCountText }: H
   const isInstitutions = pathname === "/";
   const isTargeted = pathname.startsWith("/targeted-clients");
   const isTasks = pathname.startsWith("/tasks");
+  const isEmployees = pathname.startsWith("/employees");
 
   return (
     <header className="mb-8 flex flex-col justify-between gap-4 border-b border-slate-200 dark:border-slate-800/80 pb-6 sm:flex-row sm:items-end">
@@ -75,6 +95,16 @@ export function HeaderNav({ onAddTaskClick, title, subtitle, totalCountText }: H
           >
             📋 Tasks & Dashboard
           </Link>
+          <Link
+            href="/employees"
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              isEmployees
+                ? "bg-brass-500/15 text-brass-600 dark:text-brass-400 border border-brass-500/30"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
+          >
+            👥 Employees & Admin
+          </Link>
 
           <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">|</span>
 
@@ -95,9 +125,37 @@ export function HeaderNav({ onAddTaskClick, title, subtitle, totalCountText }: H
           </div>
         </div>
 
-        {/* Action Button: Top + Add Task */}
-        {onAddTaskClick && (
-          <div className="flex gap-2">
+        {/* User Account Switcher & Add Task Button */}
+        <div className="flex items-center gap-3">
+          {/* Active User Switcher */}
+          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs">
+            <span className="text-slate-400 font-medium">👤 Active Account:</span>
+            <select
+              value={currentUser.id}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === SUPER_ADMIN_USER.id) {
+                  setCurrentUser(SUPER_ADMIN_USER);
+                } else {
+                  const emp = employees.find((x) => x.id === val);
+                  if (emp) setCurrentUser(emp);
+                }
+              }}
+              className="bg-transparent text-slate-900 dark:text-slate-100 font-semibold focus:outline-none cursor-pointer"
+            >
+              <option value={SUPER_ADMIN_USER.id} className="dark:bg-slate-900">
+                🛡️ Super Admin ({SUPER_ADMIN_USER.name})
+              </option>
+
+              {employees.map((emp) => (
+                <option key={emp.id} value={emp.id} className="dark:bg-slate-900">
+                  #{emp.orderSerial} {emp.name} ({emp.designation || emp.role})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {onAddTaskClick && (
             <button
               onClick={onAddTaskClick}
               className="px-4 py-2 bg-gradient-to-r from-brass-600 to-amber-600 hover:from-brass-500 hover:to-amber-500 text-white font-medium text-xs sm:text-sm rounded-lg shadow hover:shadow-md transition-all flex items-center gap-1.5 active:scale-95"
@@ -108,8 +166,8 @@ export function HeaderNav({ onAddTaskClick, title, subtitle, totalCountText }: H
               <span>+ Add Task</span>
               <span className="text-[11px] opacity-80 font-normal"> (টাস্ক যোগ করুন)</span>
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </header>
   );
