@@ -50,8 +50,34 @@ export function useUserSession() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setCurrentUser(getStoredUser());
+    const initial = getStoredUser();
+    setCurrentUser(initial);
     setMounted(true);
+
+    const syncProfileFromDB = async () => {
+      try {
+        const stored = getStoredUser();
+        const res = await fetch("/api/employees");
+        if (res.ok) {
+          const list = await res.json();
+          if (Array.isArray(list)) {
+            let matched = list.find((e: Employee) => e.id === stored.id || e.email === stored.email);
+            if (!matched && (stored.id === "super-admin" || stored.role === "SUPER_ADMIN")) {
+              matched = list.find((e: Employee) => e.role === "SUPER_ADMIN" || e.email === "admin@imperialit.com");
+            }
+            if (matched) {
+              const updated = { ...stored, ...matched };
+              setCurrentUser(updated);
+              setStoredUser(updated);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to sync profile from DB:", err);
+      }
+    };
+
+    syncProfileFromDB();
 
     const handleStorage = () => {
       setCurrentUser(getStoredUser());
