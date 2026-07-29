@@ -118,7 +118,20 @@ export default function TasksPage() {
 
       const res = await fetch(`/api/tasks?${params.toString()}`, { cache: "no-store" });
       const data = await res.json();
-      setTasks(Array.isArray(data) ? data : []);
+      if (Array.isArray(data)) {
+        const sorted = [...data].sort((a: TaskItem, b: TaskItem) => {
+          const aDone = a.status === "Completed" || a.status === "Cancelled";
+          const bDone = b.status === "Completed" || b.status === "Cancelled";
+
+          if (aDone && !bDone) return 1;
+          if (!aDone && bDone) return -1;
+
+          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+        });
+        setTasks(sorted);
+      } else {
+        setTasks([]);
+      }
     } catch (err) {
       console.error("Failed to load tasks:", err);
     } finally {

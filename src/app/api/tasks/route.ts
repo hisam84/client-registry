@@ -133,6 +133,17 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    // Sort tasks so active/pending tasks appear first by due date, and completed/cancelled tasks are pushed to the very bottom!
+    tasks.sort((a: any, b: any) => {
+      const aDone = a.status === "Completed" || a.status === "Cancelled";
+      const bDone = b.status === "Completed" || b.status === "Cancelled";
+
+      if (aDone && !bDone) return 1;
+      if (!aDone && bDone) return -1;
+
+      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+    });
+
     return NextResponse.json(tasks);
   } catch (error: any) {
     console.error("GET /api/tasks error:", error);
