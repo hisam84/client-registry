@@ -20,9 +20,22 @@ export default function TasksPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [selectedEmployeeFilter, setSelectedEmployeeFilter] = useState<string>("all");
 
+  // Check if current user is Super Admin
+  const isSuperAdmin = currentUser.role === "SUPER_ADMIN" || currentUser.id === "super-admin";
+
   // Tab State: Main Tab (My Tasks vs All Tasks) and Sub Tab
   const [mainTab, setMainTab] = useState<MainTab>("my_tasks");
   const [activeTab, setActiveTab] = useState<TaskCategoryTab>("my_tasks");
+
+  useEffect(() => {
+    if (isSuperAdmin) {
+      setMainTab("all_tasks");
+      setActiveTab("all");
+    } else {
+      setMainTab("my_tasks");
+      setActiveTab("my_tasks");
+    }
+  }, [currentUser.id, currentUser.role, isSuperAdmin]);
 
   // Search & Filters
   const [search, setSearch] = useState("");
@@ -238,48 +251,50 @@ export default function TasksPage() {
         </div>
       </div>
 
-      {/* 2-LEVEL TASK CATEGORY NAVIGATION */}
+      {/* TASK CATEGORY NAVIGATION */}
       {selectedEmployeeFilter === "all" && (
         <div className="mb-6 space-y-3">
-          {/* Level 1: Main Tabs (My Tasks vs All Tasks) */}
-          <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
-            <button
-              onClick={() => {
-                setMainTab("my_tasks");
-                setActiveTab("my_tasks");
-              }}
-              className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 ${
-                mainTab === "my_tasks"
-                  ? "bg-slate-900 dark:bg-brass-500 text-white dark:text-slate-950 shadow-md scale-105"
-                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
-              }`}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <span>My Tasks</span>
-            </button>
+          {/* Level 1: Main Tabs (My Tasks vs All Tasks) - Only for regular employees */}
+          {!isSuperAdmin && (
+            <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+              <button
+                onClick={() => {
+                  setMainTab("my_tasks");
+                  setActiveTab("my_tasks");
+                }}
+                className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 ${
+                  mainTab === "my_tasks"
+                    ? "bg-slate-900 dark:bg-brass-500 text-white dark:text-slate-950 shadow-md scale-105"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span>My Tasks</span>
+              </button>
 
-            <button
-              onClick={() => {
-                setMainTab("all_tasks");
-                setActiveTab("all");
-              }}
-              className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 ${
-                mainTab === "all_tasks"
-                  ? "bg-slate-900 dark:bg-brass-500 text-white dark:text-slate-950 shadow-md scale-105"
-                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
-              }`}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>All Tasks</span>
-            </button>
-          </div>
+              <button
+                onClick={() => {
+                  setMainTab("all_tasks");
+                  setActiveTab("all");
+                }}
+                className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 ${
+                  mainTab === "all_tasks"
+                    ? "bg-slate-900 dark:bg-brass-500 text-white dark:text-slate-950 shadow-md scale-105"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>All Tasks</span>
+              </button>
+            </div>
+          )}
 
           {/* Level 2 Sub-Tabs */}
-          {mainTab === "my_tasks" ? (
+          {!isSuperAdmin && mainTab === "my_tasks" ? (
             <div className="flex flex-wrap items-center gap-2 pt-1">
               {/* All My Tasks */}
               <button
