@@ -112,7 +112,7 @@ export function TaskFormModal({
         institutionId: selectedInstId || null,
         institutionName: customInstName.trim() || null,
         assignedToId: assignedToId || null,
-        assignedById: initialTask?.assignedById || (currentUser.id !== "super-admin" ? currentUser.id : null),
+        assignedById: initialTask?.assignedById || currentUser.id,
       };
 
       const url = initialTask ? `/api/tasks/${initialTask.id}` : "/api/tasks";

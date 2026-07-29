@@ -242,16 +242,39 @@ export function UpcomingTasksList({
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
-                        <span>Assigned: #{assignedEmp?.orderSerial || 0} {assignedEmp?.name || "Employee"}</span>
+                        <span>Assigned To: #{assignedEmp?.orderSerial || 0} {assignedEmp?.name || "Employee"}</span>
                       </span>
                     )}
 
-                    {/* Assigner Info if available */}
-                    {assignerEmp && assignerEmp.id !== task.assignedToId && (
-                      <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 whitespace-nowrap">
-                        By: {assignerEmp.name}
-                      </span>
-                    )}
+                    {/* Assigner Info Badge - Explicitly stating WHO assigned this task */}
+                    {(() => {
+                      let assignerName = "";
+                      if (assignerEmp) {
+                        assignerName = `#${assignerEmp.orderSerial || 0} ${assignerEmp.name}`;
+                      } else if (task.assignedById === "super-admin") {
+                        assignerName = "Super Admin";
+                      }
+
+                      if (assignerName) {
+                        const isSelf = task.assignedById === task.assignedToId;
+                        return (
+                          <span
+                            className={`px-2 py-0.5 rounded text-[11px] font-bold border whitespace-nowrap flex items-center gap-1 ${
+                              isSelf
+                                ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+                                : "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                            }`}
+                            title={`Task Assigner: ${assignerName}`}
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                            <span>{isSelf ? "Self-Assigned" : `Assigned By: ${assignerName}`}</span>
+                          </span>
+                        );
+                      }
+                      return null;
+                    })()}
 
                     {getRelativeTimeBadge(task.dueDate, task.status)}
 
