@@ -26,12 +26,19 @@ const mono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "Imperial IT | Client Registry",
   description: "The complete IT solution - Institution client database and management console",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/icon.svg" />
         <script
           dangerouslySetInnerHTML={{
             __html: `

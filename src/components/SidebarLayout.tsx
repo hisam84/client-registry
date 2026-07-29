@@ -161,20 +161,22 @@ export function SidebarLayout({
 
         <div className="flex items-center gap-2">
           {/* Mobile Notification Bell */}
-          <button
-            onClick={() => setShowNotifPopover(!showNotifPopover)}
-            className="relative p-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 transition-colors"
-            title="Task Notifications"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-            {urgentCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white animate-pulse">
-                {urgentCount}
-              </span>
-            )}
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setShowNotifPopover(!showNotifPopover)}
+              className="relative p-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 transition-colors"
+              title="Task Notifications"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              {urgentCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white animate-pulse">
+                  {urgentCount}
+                </span>
+              )}
+            </button>
+          </div>
 
           {onAddTaskClick && (
             <button
@@ -186,6 +188,93 @@ export function SidebarLayout({
           )}
         </div>
       </div>
+
+      {/* GLOBAL RESPONSIVE NOTIFICATION POPOVER DRAWER (Mobile Fixed & Desktop Absolute) */}
+      {showNotifPopover && (
+        <div
+          ref={notifRef}
+          className="fixed left-3 right-3 sm:left-auto sm:right-6 top-14 sm:top-16 z-50 w-auto sm:w-80 max-w-md rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-2xl backdrop-blur-md"
+        >
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2.5 mb-3">
+            <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+              <span>Urgent Task Alerts</span>
+              {urgentCount > 0 && (
+                <span className="bg-red-500/10 text-red-600 dark:text-red-400 text-[10px] px-1.5 py-0.5 rounded font-mono">
+                  {urgentCount}
+                </span>
+              )}
+            </h3>
+            <button
+              onClick={() => setShowNotifPopover(false)}
+              className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"
+            >
+              ✕
+            </button>
+          </div>
+
+          {urgentCount === 0 ? (
+            <div className="py-6 text-center text-xs text-slate-400">
+              No urgent tasks due within 24 hours.
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+              {urgentTasks.map((t) => {
+                const due = new Date(t.dueDate);
+                const now = new Date();
+                const diffMs = due.getTime() - now.getTime();
+                const isOverdue = diffMs < 0;
+                const instName = t.institution?.instituteName || t.institutionName || "General Task";
+
+                return (
+                  <div
+                    key={t.id}
+                    className="p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/70 flex items-start justify-between gap-2"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] font-semibold text-slate-900 dark:text-slate-100 truncate">
+                          {t.title}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-brass-600 dark:text-brass-400 block truncate mt-0.5">
+                        {instName}
+                      </span>
+                      <span
+                        className={`text-[10px] font-medium block mt-1 ${
+                          isOverdue
+                            ? "text-red-500 font-bold"
+                            : "text-amber-600 dark:text-amber-400"
+                        }`}
+                      >
+                        {isOverdue ? "Overdue" : "Due soon"}:{" "}
+                        {due.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => handleQuickComplete(t.id)}
+                      className="px-2 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-semibold rounded hover:bg-emerald-500/20 transition-colors shrink-0"
+                      title="Mark task completed"
+                    >
+                      Complete
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="mt-3 pt-2 border-t border-slate-200 dark:border-slate-800 text-center">
+            <Link
+              href="/tasks"
+              onClick={() => setShowNotifPopover(false)}
+              className="text-[11px] font-semibold text-brass-600 dark:text-brass-400 hover:underline"
+            >
+              Go to Tasks & Schedule →
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* MOBILE DRAWER OVERLAY & BACKDROP WITH SLIDE ANIMATION */}
       <div className={`fixed inset-0 z-50 flex md:hidden transition-all duration-300 ${mobileMenuOpen ? "visible" : "invisible pointer-events-none"}`}>
@@ -383,90 +472,6 @@ export function SidebarLayout({
                     </span>
                   )}
                 </button>
-
-                {/* NOTIFICATION POPOVER DRAWER IN MAIN PAGE HEADER */}
-                {showNotifPopover && (
-                  <div className="absolute right-0 top-11 z-50 w-80 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-2xl backdrop-blur-md">
-                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2.5 mb-3">
-                      <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                        <span>Urgent Task Alerts</span>
-                        {urgentCount > 0 && (
-                          <span className="bg-red-500/10 text-red-600 dark:text-red-400 text-[10px] px-1.5 py-0.5 rounded font-mono">
-                            {urgentCount}
-                          </span>
-                        )}
-                      </h3>
-                      <button
-                        onClick={() => setShowNotifPopover(false)}
-                        className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                      >
-                        ✕
-                      </button>
-                    </div>
-
-                    {urgentCount === 0 ? (
-                      <div className="py-6 text-center text-xs text-slate-400">
-                        No urgent tasks due within 24 hours.
-                      </div>
-                    ) : (
-                      <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                        {urgentTasks.map((t) => {
-                          const due = new Date(t.dueDate);
-                          const now = new Date();
-                          const diffMs = due.getTime() - now.getTime();
-                          const isOverdue = diffMs < 0;
-                          const instName = t.institution?.instituteName || t.institutionName || "General Task";
-
-                          return (
-                            <div
-                              key={t.id}
-                              className="p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/70 flex items-start justify-between gap-2"
-                            >
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="text-[11px] font-semibold text-slate-900 dark:text-slate-100 truncate">
-                                    {t.title}
-                                  </span>
-                                </div>
-                                <span className="text-[10px] text-brass-600 dark:text-brass-400 block truncate mt-0.5">
-                                  {instName}
-                                </span>
-                                <span
-                                  className={`text-[10px] font-medium block mt-1 ${
-                                    isOverdue
-                                      ? "text-red-500 font-bold"
-                                      : "text-amber-600 dark:text-amber-400"
-                                  }`}
-                                >
-                                  {isOverdue ? "Overdue" : "Due soon"}:{" "}
-                                  {due.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                                </span>
-                              </div>
-
-                              <button
-                                onClick={() => handleQuickComplete(t.id)}
-                                className="px-2 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-semibold rounded hover:bg-emerald-500/20 transition-colors shrink-0"
-                                title="Mark task completed"
-                              >
-                                Complete
-                              </button>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    <div className="mt-3 pt-2 border-t border-slate-200 dark:border-slate-800 text-center">
-                      <Link
-                        href="/tasks"
-                        onClick={() => setShowNotifPopover(false)}
-                        className="text-[11px] font-semibold text-brass-600 dark:text-brass-400 hover:underline"
-                      >
-                        Go to Tasks & Schedule →
-                      </Link>
-                    </div>
-                  </div>
-                )}
               </div>
 
               {headerActions}
