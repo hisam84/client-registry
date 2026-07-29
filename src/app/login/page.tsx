@@ -46,7 +46,7 @@ export default function LoginPage() {
         if (data.user) {
           setStoredUser(data.user);
         }
-        router.push("/tasks");
+        router.push("/dashboard");
         router.refresh();
       } else {
         setError(data.message || "Invalid username or password");

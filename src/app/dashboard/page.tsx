@@ -11,6 +11,7 @@ interface DashboardData {
     active: number;
     expiringSoon: number;
     expired: number;
+    actualExpired: number;
     noExpiry: number;
     categories: Record<string, number>;
     types: Record<string, number>;
@@ -209,13 +210,19 @@ export default function DashboardPage() {
                     Action Needed →
                   </span>
                 </div>
-                <div className="mt-3 flex items-baseline justify-between">
+                <div className="mt-3 flex items-baseline justify-between flex-wrap gap-1">
                   <span className="text-3xl font-bold text-amber-600 dark:text-amber-400 font-mono">
                     {inst?.expiringSoon}
                   </span>
-                  <span className="text-xs text-red-600 dark:text-red-400 font-medium">
-                    {inst?.expired} Expired
-                  </span>
+                  <div className="flex items-center gap-1.5 text-xs font-semibold">
+                    <span className="text-red-600 dark:text-red-400" title="Expired by Expire Date">
+                      {inst?.expired} Expired
+                    </span>
+                    <span className="text-slate-300 dark:text-slate-700">|</span>
+                    <span className="text-rose-600 dark:text-rose-400" title="Expired by Actual Expire Date">
+                      {inst?.actualExpired} Actual Expired
+                    </span>
+                  </div>
                 </div>
               </div>
             </Link>
@@ -329,24 +336,29 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2 text-xs">
+                <div className="space-y-1.5 text-xs">
                   <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                     <span className="text-slate-600 dark:text-slate-300">Active:</span>
                     <strong className="text-slate-900 dark:text-slate-100">{inst?.active}</strong>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-amber-500"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
                     <span className="text-slate-600 dark:text-slate-300">Expiring Soon:</span>
                     <strong className="text-amber-600 dark:text-amber-400">{inst?.expiringSoon}</strong>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-red-500"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500"></span>
                     <span className="text-slate-600 dark:text-slate-300">Expired:</span>
                     <strong className="text-red-600 dark:text-red-400">{inst?.expired}</strong>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-slate-400"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-600"></span>
+                    <span className="text-slate-600 dark:text-slate-300">Actual Expired:</span>
+                    <strong className="text-rose-600 dark:text-rose-400">{inst?.actualExpired}</strong>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
                     <span className="text-slate-600 dark:text-slate-300">No Expiry:</span>
                     <strong className="text-slate-700 dark:text-slate-300">{inst?.noExpiry}</strong>
                   </div>

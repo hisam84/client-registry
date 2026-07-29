@@ -15,6 +15,7 @@ export async function GET() {
         category: true,
         instituteType: true,
         expireDate: true,
+        actualExpireDate: true,
         district: true,
         subDistrict: true,
       },
@@ -23,6 +24,7 @@ export async function GET() {
     let instActive = 0;
     let instExpiringSoon = 0;
     let instExpired = 0;
+    let instActualExpired = 0;
     let instNoExpiry = 0;
 
     const categoryCounts: Record<string, number> = {
@@ -56,7 +58,15 @@ export async function GET() {
         categoryCounts["Other"]++;
       }
 
-      // Status count
+      // Check Actual Expire Date
+      if (inst.actualExpireDate) {
+        const actExp = new Date(inst.actualExpireDate);
+        if (actExp.getTime() < now.getTime()) {
+          instActualExpired++;
+        }
+      }
+
+      // Status count based on Expire Date
       if (!inst.expireDate) {
         instNoExpiry++;
       } else {
@@ -140,6 +150,7 @@ export async function GET() {
         active: instActive,
         expiringSoon: instExpiringSoon,
         expired: instExpired,
+        actualExpired: instActualExpired,
         noExpiry: instNoExpiry,
         categories: categoryCounts,
         types: typeCounts,
