@@ -91,7 +91,9 @@ export default function ProfilePage() {
       setMessage({ type: "success", text: "Profile updated successfully!" });
     } catch (err: any) {
       setMessage({ type: "error", text: err.message || "Failed to update profile" });
-    } font-semibold;
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
