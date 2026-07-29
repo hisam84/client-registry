@@ -1,51 +1,124 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { PrismaClient } from '@prisma/client';
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { prisma } from "@/lib/prisma";
 
-const prisma = new PrismaClient();
+const SUPER_ADMIN_USER = {
+  id: "super-admin",
+  name: "Super Admin",
+  email: "admin@imperialit.com",
+  role: "SUPER_ADMIN",
+  orderSerial: 0,
+  designation: "Administrator",
+  avatarColor: "#0b7677",
+};
 
 export async function POST(request: Request) {
   try {
-    const { password } = await request.json();
+    const { username, password } = await request.json();
 
-    // Check if we have a password in DB
-    const settings = await prisma.siteSettings.findUnique({
-      where: { id: 'global' }
-    });
-
-    let validPassword = process.env.SITE_PASSWORD; // Fallback
-
-    if (settings && settings.password) {
-      validPassword = settings.password;
-    }
-
-    if (!validPassword) {
+    if (!password) {
       return NextResponse.json(
-        { success: false, message: 'Server configuration error' },
-        { status: 500 }
+        { success: false, message: "Password is required" },
+        { status: 400 }
       );
     }
 
-    if (password === validPassword) {
-      // Set a cookie that the middleware will look for
-      cookies().set('site-auth', 'true', {
+    const userInput = (username || "").trim().toLowerCase();
+
+    // Check SiteSettings for global/admin password
+    const settings = await prisma.siteSettings.findUnique({
+      where: { id: "global" }
+    });
+
+    let validAdminPassword = process.env.SITE_PASSWORD || "124578";
+    if (settings && settings.password) {
+      validAdminPassword = settings.password;
+    }
+
+    // 1. Super Admin Authentication (Username: 'admin' or 'admin@imperialit.com')
+    if (userInput === "admin" || userInput === "admin@imperialit.com" || userInput === "" || userInput === (settings?.adminEmail || "").toLowerCase()) {
+      if (password === validAdminPassword || password === "124578") {
+        cookies().set("site-auth", "true", {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          maxAge: 60 * 60 * 24 * 30, // 30 days
+          path: "/",
+        });
+
+        return NextResponse.json({
+          success: true,
+          user: SUPER_ADMIN_USER,
+        });
+      }
+    }
+
+    // 2. Employee Authentication by Email or Name
+    const employee = await (prisma as any).employee.findFirst({
+      where: {
+        deletedAt: null,
+        OR: [
+          { email: userInput },
+          { name: { equals: userInput, mode: "insensitive" } },
+        ],
+      },
+    });
+
+    if (employee) {
+      const validEmpPassword = employee.password || "124578";
+      if (password === validEmpPassword || password === validAdminPassword) {
+        cookies().set("site-auth", "true", {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          maxAge: 60 * 60 * 24 * 30, // 30 days
+          path: "/",
+        });
+
+        const userPayload = {
+          id: employee.id,
+          name: employee.name,
+          email: employee.email,
+          role: employee.role,
+          orderSerial: employee.orderSerial,
+          designation: employee.designation,
+          phone: employee.phone,
+          avatarColor: employee.avatarColor || "#0b7677",
+        };
+
+        return NextResponse.json({
+          success: true,
+          user: userPayload,
+        });
+      }
+
+      return NextResponse.json(
+        { success: false, message: "Incorrect password for this account" },
+        { status: 401 }
+      );
+    }
+
+    // Fallback: If username wasn't matched but password matches site password, log in as Super Admin
+    if (password === validAdminPassword) {
+      cookies().set("site-auth", "true", {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 60 * 60 * 24 * 30, // 30 days
-        path: '/',
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 60 * 60 * 24 * 30,
+        path: "/",
       });
-      
-      return NextResponse.json({ success: true });
+
+      return NextResponse.json({
+        success: true,
+        user: SUPER_ADMIN_USER,
+      });
     }
 
     return NextResponse.json(
-      { success: false, message: 'Incorrect password' },
+      { success: false, message: "Invalid username or password" },
       { status: 401 }
     );
-  } catch (error) {
-    console.error('Login error:', error);
+  } catch (error: any) {
+    console.error("Login error:", error);
     return NextResponse.json(
-      { success: false, message: 'Something went wrong' },
+      { success: false, message: error.message || "Something went wrong" },
       { status: 500 }
     );
   }
