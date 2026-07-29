@@ -67,43 +67,55 @@ export function HeaderNav({ onAddTaskClick, title, subtitle, totalCountText }: H
         <div className="flex flex-wrap gap-2 sm:gap-3 text-sm items-center">
           <Link
             href="/"
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
               isInstitutions
                 ? "bg-brass-500/15 text-brass-600 dark:text-brass-400 border border-brass-500/30"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
           >
-            🏛️ Institutions
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0V5" />
+            </svg>
+            <span>Institutions</span>
           </Link>
           <Link
             href="/targeted-clients"
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
               isTargeted
                 ? "bg-brass-500/15 text-brass-600 dark:text-brass-400 border border-brass-500/30"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
           >
-            🎯 Targeted Clients
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span>Targeted Clients</span>
           </Link>
           <Link
             href="/tasks"
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
               isTasks
                 ? "bg-brass-500/15 text-brass-600 dark:text-brass-400 border border-brass-500/30"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
           >
-            📋 Tasks & Dashboard
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+            <span>Tasks & Dashboard</span>
           </Link>
           <Link
             href="/employees"
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
               isEmployees
                 ? "bg-brass-500/15 text-brass-600 dark:text-brass-400 border border-brass-500/30"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
           >
-            👥 Employees & Admin
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <span>Employees & Admin</span>
           </Link>
 
           <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">|</span>
@@ -129,7 +141,10 @@ export function HeaderNav({ onAddTaskClick, title, subtitle, totalCountText }: H
         <div className="flex items-center gap-3">
           {/* Active User Switcher */}
           <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs">
-            <span className="text-slate-400 font-medium">👤 Active Account:</span>
+            <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span className="text-slate-400 font-medium">Active Account:</span>
             <select
               value={currentUser.id}
               onChange={(e) => {
@@ -144,7 +159,7 @@ export function HeaderNav({ onAddTaskClick, title, subtitle, totalCountText }: H
               className="bg-transparent text-slate-900 dark:text-slate-100 font-semibold focus:outline-none cursor-pointer"
             >
               <option value={SUPER_ADMIN_USER.id} className="dark:bg-slate-900">
-                🛡️ Super Admin ({SUPER_ADMIN_USER.name})
+                Super Admin ({SUPER_ADMIN_USER.name})
               </option>
 
               {employees.map((emp) => (

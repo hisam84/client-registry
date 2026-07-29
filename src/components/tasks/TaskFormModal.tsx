@@ -154,7 +154,10 @@ export function TaskFormModal({
         <div className="bg-brass-500/5 dark:bg-brass-500/10 p-3 rounded-xl border border-brass-500/20">
           <div className="flex items-center justify-between mb-1.5">
             <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-              <span>👤 Assign Employee</span>
+              <svg className="w-4 h-4 text-brass-600 dark:text-brass-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span>Assign Employee</span>
             </label>
             <button
               type="button"
@@ -170,10 +173,10 @@ export function TaskFormModal({
             onChange={(e) => setAssignedToId(e.target.value)}
             className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brass-500"
           >
-            <option value="">❓ Unassigned</option>
+            <option value="">Unassigned</option>
 
             {currentUser.id === "super-admin" && (
-              <option value="super-admin">🛡️ Super Admin (Self)</option>
+              <option value="super-admin">Super Admin (Self)</option>
             )}
 
             {employees.map((emp) => (
