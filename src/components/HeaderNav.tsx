@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Employee } from "@/lib/types";
-import { SUPER_ADMIN_USER, useUserSession } from "@/lib/userSession";
+import { SUPER_ADMIN_USER, useUserSession, clearStoredUser } from "@/lib/userSession";
 
 interface HeaderNavProps {
   onAddTaskClick?: () => void;
@@ -36,6 +36,7 @@ export function HeaderNav({ onAddTaskClick, title, subtitle, totalCountText }: H
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
+    clearStoredUser();
     router.push("/login");
     router.refresh();
   }

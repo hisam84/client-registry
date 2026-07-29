@@ -35,6 +35,16 @@ export function setStoredUser(user: Employee) {
   }
 }
 
+export function clearStoredUser() {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem("imperial_active_user");
+    window.dispatchEvent(new Event("user-session-changed"));
+  } catch (err) {
+    console.error("Failed to clear stored user:", err);
+  }
+}
+
 export function useUserSession() {
   const [currentUser, setCurrentUser] = useState<Employee>(SUPER_ADMIN_USER);
   const [mounted, setMounted] = useState(false);

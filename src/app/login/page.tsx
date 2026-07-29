@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { setStoredUser } from "@/lib/userSession";
@@ -12,6 +12,12 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  // Clear any autofilled inputs on mount
+  useEffect(() => {
+    setUsername("");
+    setPassword("");
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,9 +60,17 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-950 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-6 p-8 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-gray-100 dark:border-slate-800">
+      <div className="max-w-md w-full space-y-6 p-8 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-800">
         <div className="text-center flex flex-col items-center">
-          <img src="/pad.png" alt="Imperial IT Logo" className="w-16 h-16 object-contain mb-3 drop-shadow" />
+          {/* Imperial IT High-Res Vector SVG Logo */}
+          <div className="w-16 h-16 rounded-2xl bg-slate-950 border-2 border-brass-500/80 flex items-center justify-center shadow-lg mb-3 shrink-0">
+            <svg className="w-10 h-10 text-brass-400" viewBox="0 0 100 100" fill="none" stroke="currentColor">
+              <rect width="100" height="100" rx="22" fill="#0f172a"/>
+              <circle cx="50" cy="50" r="42" fill="none" stroke="#d97706" strokeWidth="5"/>
+              <text x="50%" y="64%" textAnchor="middle" fill="#fbbf24" fontFamily="system-ui, sans-serif" fontWeight="900" fontSize="44">IT</text>
+            </svg>
+          </div>
+
           <h2 className="text-center text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
             Imperial IT
           </h2>
@@ -68,7 +82,12 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+        {/* Form with Anti-Autofill protection */}
+        <form className="mt-6 space-y-4" onSubmit={handleSubmit} autoComplete="off">
+          {/* Dummy hidden inputs to hijack browser autofill engines */}
+          <input type="text" name="fake_username" id="fake_username" className="hidden" aria-hidden="true" autoComplete="off" tabIndex={-1} />
+          <input type="password" name="fake_password" id="fake_password" className="hidden" aria-hidden="true" autoComplete="off" tabIndex={-1} />
+
           {/* Username Field */}
           <div>
             <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
@@ -77,16 +96,16 @@ export default function LoginPage() {
             <div className="relative flex items-center">
               <input
                 type="text"
+                name="app_user_login"
+                id="app_user_login"
                 required
-                className="appearance-none rounded-md relative block w-full px-3 py-2.5 border border-gray-300 dark:border-slate-700 placeholder-gray-400 text-gray-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brass-400 focus:border-brass-400 text-sm font-medium"
-                placeholder="e.g. admin or employee email"
+                autoComplete="off"
+                className="appearance-none rounded-lg relative block w-full px-3 py-2.5 border border-gray-300 dark:border-slate-700 placeholder-gray-400 text-gray-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brass-400 focus:border-brass-400 text-sm font-medium"
+                placeholder="Enter Username or Email"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
               />
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">
-              * Super Admin Username: <code className="text-brass-500 font-bold">admin</code>
-            </p>
           </div>
 
           {/* Password Field */}
@@ -97,8 +116,11 @@ export default function LoginPage() {
             <div className="relative flex items-center">
               <input
                 type={showPassword ? "text" : "password"}
+                name="app_user_pass"
+                id="app_user_pass"
                 required
-                className="appearance-none rounded-md relative block w-full px-3 py-2.5 pr-10 border border-gray-300 dark:border-slate-700 placeholder-gray-400 text-gray-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brass-400 focus:border-brass-400 text-sm"
+                autoComplete="new-password"
+                className="appearance-none rounded-lg relative block w-full px-3 py-2.5 pr-10 border border-gray-300 dark:border-slate-700 placeholder-gray-400 text-gray-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brass-400 focus:border-brass-400 text-sm"
                 placeholder="Enter Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -124,7 +146,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-slate-950 bg-brass-500 hover:bg-brass-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brass-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 shadow-md"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-slate-950 bg-brass-500 hover:bg-brass-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brass-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 shadow-md active:scale-95"
             >
               {loading ? "Authenticating..." : "Log in"}
             </button>
