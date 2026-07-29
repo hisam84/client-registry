@@ -41,8 +41,9 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-950 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 p-8 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-gray-100 dark:border-slate-800">
-        <div>
-          <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+        <div className="text-center flex flex-col items-center">
+          <img src="/pad.png" alt="Imperial IT Logo" className="w-16 h-16 object-contain mb-3 drop-shadow" />
+          <h2 className="text-center text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
             Imperial IT
           </h2>
           <p className="mt-1 text-center text-xs font-medium italic text-brass-400">

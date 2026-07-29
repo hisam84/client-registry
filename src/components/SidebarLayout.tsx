@@ -149,13 +149,16 @@ export function SidebarLayout({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <div>
-            <span className="text-xs font-bold uppercase tracking-[0.2em] text-brass-600 dark:text-brass-400">
-              Imperial IT
-            </span>
-            <h2 className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate max-w-[130px]">
-              {title || "Client Registry"}
-            </h2>
+          <div className="flex items-center gap-2.5">
+            <img src="/pad.png" alt="Imperial IT Logo" className="w-7 h-7 object-contain rounded-md" />
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brass-600 dark:text-brass-400 block leading-none">
+                Imperial IT
+              </span>
+              <h2 className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate max-w-[130px] leading-tight">
+                {title || "Client Registry"}
+              </h2>
+            </div>
           </div>
         </div>
 
@@ -292,12 +295,15 @@ export function SidebarLayout({
         >
           <div>
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4 mb-5">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-[0.2em] text-brass-600 dark:text-brass-400">
-                  Imperial IT
-                </span>
-                <div className="text-xs font-medium text-slate-500 dark:text-slate-400 italic">
-                  The complete IT solution
+              <div className="flex items-center gap-2.5">
+                <img src="/pad.png" alt="Imperial IT Logo" className="w-8 h-8 object-contain rounded-md" />
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-brass-600 dark:text-brass-400 block">
+                    Imperial IT
+                  </span>
+                  <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 italic">
+                    The complete IT solution
+                  </div>
                 </div>
               </div>
               <button
@@ -367,16 +373,19 @@ export function SidebarLayout({
       <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 z-30 border-r border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-900/95 p-4 justify-between backdrop-blur-md">
         <div>
           {/* Logo & Brand Header */}
-          <div className="border-b border-slate-200 dark:border-slate-800/80 pb-4 mb-5">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brass-600 dark:text-brass-400 block">
-              Imperial IT
-            </span>
-            <h2 className="font-display text-lg text-slate-900 dark:text-slate-50 font-semibold leading-tight mt-0.5">
-              Client Registry
-            </h2>
-            <p className="text-[11px] text-slate-400 dark:text-slate-500 italic mt-0.5">
-              The complete IT solution
-            </p>
+          <div className="border-b border-slate-200 dark:border-slate-800/80 pb-4 mb-5 flex items-center gap-3">
+            <img src="/pad.png" alt="Imperial IT Logo" className="w-10 h-10 object-contain rounded-lg shadow-sm border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-900 p-1 shrink-0" />
+            <div className="min-w-0">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brass-600 dark:text-brass-400 block truncate">
+                Imperial IT
+              </span>
+              <h2 className="font-display text-base text-slate-900 dark:text-slate-50 font-bold leading-tight mt-0.5 truncate">
+                Client Registry
+              </h2>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 italic mt-0.5 truncate">
+                The complete IT solution
+              </p>
+            </div>
           </div>
 
           {/* Action Button: + Add Task with High Contrast in Light & Dark Mode */}
