@@ -11,8 +11,41 @@ export async function PUT(
     const body = await request.json();
     const { name, email, password, role, orderSerial, designation, phone, avatarColor, avatarUrl } = body;
 
+    let targetId = id;
+
+    if (id === "super-admin") {
+      let adminEmp = await (prisma as any).employee.findFirst({
+        where: {
+          OR: [
+            { id: "super-admin" },
+            { role: "SUPER_ADMIN" },
+            { email: "admin@imperialit.com" }
+          ],
+          deletedAt: null
+        }
+      });
+
+      if (!adminEmp) {
+        adminEmp = await (prisma as any).employee.create({
+          data: {
+            id: "super-admin",
+            name: name?.trim() || "Super Admin",
+            email: email?.trim().toLowerCase() || "admin@imperialit.com",
+            role: "SUPER_ADMIN",
+            orderSerial: 0,
+            designation: designation?.trim() || "Administrator",
+            phone: phone?.trim() || null,
+            avatarColor: avatarColor || "#0b7677",
+            avatarUrl: avatarUrl || null,
+          }
+        });
+        return NextResponse.json(adminEmp);
+      }
+      targetId = adminEmp.id;
+    }
+
     const existing = await (prisma as any).employee.findUnique({
-      where: { id }
+      where: { id: targetId }
     });
 
     if (!existing || existing.deletedAt) {
@@ -34,7 +67,7 @@ export async function PUT(
     if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
 
     const updated = await (prisma as any).employee.update({
-      where: { id },
+      where: { id: targetId },
       data: updateData
     });
 

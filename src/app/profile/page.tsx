@@ -30,14 +30,45 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 3 * 1024 * 1024) {
-      setMessage({ type: "error", text: "Image file size should be less than 3MB" });
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage({ type: "error", text: "Image file size should be less than 5MB" });
       return;
     }
 
     const reader = new FileReader();
     reader.onloadend = () => {
-      setAvatarUrl(reader.result as string);
+      const dataUrl = reader.result as string;
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const maxDim = 256;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedBase64 = canvas.toDataURL("image/jpeg", 0.85);
+          setAvatarUrl(compressedBase64);
+        } else {
+          setAvatarUrl(dataUrl);
+        }
+      };
+      img.src = dataUrl;
     };
     reader.readAsDataURL(file);
   }
@@ -56,39 +87,42 @@ export default function ProfilePage() {
     setSaving(true);
     setMessage(null);
 
-    const updatedUser = {
-      ...currentUser,
-      name: name.trim(),
-      designation: designation.trim() || null,
-      phone: phone.trim() || null,
-      avatarColor: avatarColor,
-      avatarUrl: avatarUrl,
-    };
+    const targetId = currentUser.id || "super-admin";
 
     try {
-      // If it's a persisted employee in database
-      if (currentUser.id && currentUser.id !== "super-admin") {
-        const res = await fetch(`/api/employees/${currentUser.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: name.trim(),
-            designation: designation.trim() || null,
-            phone: phone.trim() || null,
-            avatarColor: avatarColor,
-            avatarUrl: avatarUrl,
-          }),
-        });
+      // Send PUT request to API to save profile picture & details to database
+      const res = await fetch(`/api/employees/${targetId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          designation: designation.trim() || null,
+          phone: phone.trim() || null,
+          avatarColor: avatarColor,
+          avatarUrl: avatarUrl,
+        }),
+      });
 
-        if (!res.ok) {
-          const errData = await res.json();
-          throw new Error(errData.error || "Failed to update profile");
-        }
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || "Failed to update profile");
       }
 
-      // Update session in localStorage and dispatch change event
+      const savedUser = await res.json();
+
+      const updatedUser = {
+        ...currentUser,
+        ...savedUser,
+        name: name.trim(),
+        designation: designation.trim() || null,
+        phone: phone.trim() || null,
+        avatarColor: avatarColor,
+        avatarUrl: avatarUrl,
+      };
+
+      // Update active session in localStorage & notify components
       setCurrentUser(updatedUser);
-      setMessage({ type: "success", text: "Profile updated successfully!" });
+      setMessage({ type: "success", text: "Profile & photo saved to database successfully!" });
     } catch (err: any) {
       setMessage({ type: "error", text: err.message || "Failed to update profile" });
     } finally {
