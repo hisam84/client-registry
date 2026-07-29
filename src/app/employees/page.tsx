@@ -193,31 +193,34 @@ export default function EmployeesPage() {
       totalCountText={`${employees.length} Active Employees`}
     >
       {/* Top Banner & Control Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 p-5 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 text-white shadow-lg">
-        <div>
-          <h2 className="text-lg font-bold flex items-center gap-2">
-            <svg className="w-5 h-5 text-brass-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 p-5 rounded-2xl border border-brass-500/30 dark:border-brass-500/30 bg-gradient-to-r from-brass-500/10 via-amber-500/10 to-brass-500/5 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-slate-900 dark:text-white shadow-sm dark:shadow-xl relative overflow-hidden">
+        <div className="z-10">
+          <h2 className="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+            <svg className="w-5 h-5 text-brass-700 dark:text-brass-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
             <span>Employee Order Serial & Team Roster</span>
-            <span className="text-xs font-mono bg-brass-500 text-slate-950 px-2 py-0.5 rounded font-bold">
+            <span className="text-xs font-mono bg-brass-500/20 text-brass-800 dark:text-brass-300 border border-brass-500/30 px-2 py-0.5 rounded font-bold">
               {employees.length} Members
             </span>
           </h2>
-          <p className="text-xs text-slate-300 mt-1 max-w-xl">
+          <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 max-w-xl">
             Employees will be ordered by their Order Serial number across dropdowns and dashboards. Admin can update order serials anytime.
           </p>
         </div>
 
         <button
           onClick={() => handleOpenModal(null)}
-          className="px-4 py-2.5 bg-brass-500 hover:bg-brass-400 text-slate-950 font-bold text-xs sm:text-sm rounded-xl shadow transition-all flex items-center gap-1.5 shrink-0 active:scale-95"
+          className="px-4 py-2.5 bg-brass-500 hover:bg-brass-400 text-slate-950 font-bold text-xs sm:text-sm rounded-xl shadow transition-all flex items-center gap-1.5 shrink-0 active:scale-95 z-10 border border-brass-600/30"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
           </svg>
           <span>+ Add Employee</span>
         </button>
+
+        {/* Background Accent Glow */}
+        <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-brass-500/10 rounded-full blur-2xl pointer-events-none" />
       </div>
 
       {/* Employee List Grid */}
