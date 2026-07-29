@@ -31,7 +31,14 @@ export function SidebarLayout({
   const pathname = usePathname();
   const router = useRouter();
 
+  const [navLoading, setNavLoading] = useState(false);
+
+  useEffect(() => {
+    setNavLoading(false);
+  }, [pathname]);
+
   async function handleLogout() {
+    setNavLoading(true);
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");
     router.refresh();
@@ -162,7 +169,12 @@ export function SidebarLayout({
   const urgentCount = urgentTasks.length;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col md:flex-row transition-colors">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col md:flex-row transition-colors relative">
+      {/* GLOBAL TOP LOADING PROGRESS BAR */}
+      {navLoading && (
+        <div className="fixed top-0 left-0 right-0 z-[100] h-1 bg-gradient-to-r from-brass-500 via-amber-400 to-brass-600 animate-pulse shadow-md" />
+      )}
+
       {/* MOBILE TOP BAR (md:hidden) */}
       <div className="sticky top-0 z-40 flex items-center justify-between border-b border-slate-200 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 px-4 py-3 backdrop-blur-md md:hidden">
         <div className="flex items-center gap-3">
@@ -217,93 +229,6 @@ export function SidebarLayout({
           )}
         </div>
       </div>
-
-      {/* GLOBAL RESPONSIVE NOTIFICATION POPOVER DRAWER (Mobile Fixed & Desktop Absolute) */}
-      {showNotifPopover && (
-        <div
-          ref={notifRef}
-          className="fixed left-3 right-3 sm:left-auto sm:right-6 top-14 sm:top-16 z-50 w-auto sm:w-80 max-w-md rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-2xl backdrop-blur-md"
-        >
-          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2.5 mb-3">
-            <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-              <span>Urgent Task Alerts</span>
-              {urgentCount > 0 && (
-                <span className="bg-red-500/10 text-red-600 dark:text-red-400 text-[10px] px-1.5 py-0.5 rounded font-mono">
-                  {urgentCount}
-                </span>
-              )}
-            </h3>
-            <button
-              onClick={() => setShowNotifPopover(false)}
-              className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"
-            >
-              ✕
-            </button>
-          </div>
-
-          {urgentCount === 0 ? (
-            <div className="py-6 text-center text-xs text-slate-400">
-              No urgent tasks due within 24 hours.
-            </div>
-          ) : (
-            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-              {urgentTasks.map((t) => {
-                const due = new Date(t.dueDate);
-                const now = new Date();
-                const diffMs = due.getTime() - now.getTime();
-                const isOverdue = diffMs < 0;
-                const instName = t.institution?.instituteName || t.institutionName || "General Task";
-
-                return (
-                  <div
-                    key={t.id}
-                    className="p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/70 flex items-start justify-between gap-2"
-                  >
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[11px] font-semibold text-slate-900 dark:text-slate-100 truncate">
-                          {t.title}
-                        </span>
-                      </div>
-                      <span className="text-[10px] text-brass-600 dark:text-brass-400 block truncate mt-0.5">
-                        {instName}
-                      </span>
-                      <span
-                        className={`text-[10px] font-medium block mt-1 ${
-                          isOverdue
-                            ? "text-red-500 font-bold"
-                            : "text-amber-600 dark:text-amber-400"
-                        }`}
-                      >
-                        {isOverdue ? "Overdue" : "Due soon"}:{" "}
-                        {due.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={() => handleQuickComplete(t.id)}
-                      className="px-2 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-semibold rounded hover:bg-emerald-500/20 transition-colors shrink-0"
-                      title="Mark task completed"
-                    >
-                      Complete
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          <div className="mt-3 pt-2 border-t border-slate-200 dark:border-slate-800 text-center">
-            <Link
-              href="/tasks"
-              onClick={() => setShowNotifPopover(false)}
-              className="text-[11px] font-semibold text-brass-600 dark:text-brass-400 hover:underline"
-            >
-              Go to Tasks & Schedule →
-            </Link>
-          </div>
-        </div>
-      )}
 
       {/* MOBILE DRAWER OVERLAY & BACKDROP WITH SLIDE ANIMATION */}
       <div className={`fixed inset-0 z-50 flex md:hidden transition-all duration-300 ${mobileMenuOpen ? "visible" : "invisible pointer-events-none"}`}>
@@ -469,6 +394,7 @@ export function SidebarLayout({
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={() => setNavLoading(true)}
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                     isActive
                       ? "bg-brass-500/15 text-brass-700 dark:text-brass-400 border border-brass-500/30 font-semibold shadow-xs"
@@ -569,7 +495,7 @@ export function SidebarLayout({
               {/* Notification Bell in Main Page Header - FAR RIGHT */}
               <div className="relative" ref={notifRef}>
                 <button
-                  onClick={() => setShowNotifPopover(!showNotifPopover)}
+                  onClick={() => setShowNotifPopover((prev) => !prev)}
                   className="relative p-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-colors shadow-xs"
                   title="Task Deadline Alerts"
                 >
@@ -582,6 +508,91 @@ export function SidebarLayout({
                     </span>
                   )}
                 </button>
+
+                {/* NOTIFICATION POPOVER DROPDOWN - DIRECTLY ALIGNED UNDER BELL ICON */}
+                {showNotifPopover && (
+                  <div className="absolute right-0 top-full mt-2 z-50 w-[320px] sm:w-[360px] rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 p-4 shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-150">
+                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2.5 mb-3">
+                      <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                        <span>Urgent Task Alerts</span>
+                        {urgentCount > 0 && (
+                          <span className="bg-red-500/10 text-red-600 dark:text-red-400 text-[10px] px-1.5 py-0.5 rounded font-mono font-bold">
+                            {urgentCount}
+                          </span>
+                        )}
+                      </h3>
+                      <button
+                        onClick={() => setShowNotifPopover(false)}
+                        className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-md"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    {urgentCount === 0 ? (
+                      <div className="py-6 text-center text-xs text-slate-400">
+                        No urgent tasks due within 24 hours.
+                      </div>
+                    ) : (
+                      <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                        {urgentTasks.map((t) => {
+                          const due = new Date(t.dueDate);
+                          const now = new Date();
+                          const diffMs = due.getTime() - now.getTime();
+                          const isOverdue = diffMs < 0;
+                          const instName = t.institution?.instituteName || t.institutionName || "General Task";
+
+                          return (
+                            <div
+                              key={t.id}
+                              className="p-3 rounded-xl border border-slate-100 dark:border-slate-800/80 bg-slate-50/80 dark:bg-slate-950/80 flex items-start justify-between gap-2 shadow-xs"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
+                                    {t.title}
+                                  </span>
+                                </div>
+                                <span className="text-[11px] text-brass-600 dark:text-brass-400 font-medium block truncate mt-0.5">
+                                  {instName}
+                                </span>
+                                <span
+                                  className={`text-[10px] font-semibold block mt-1 ${
+                                    isOverdue
+                                      ? "text-red-500 font-bold"
+                                      : "text-amber-600 dark:text-amber-400"
+                                  }`}
+                                >
+                                  {isOverdue ? "Overdue" : "Due soon"}:{" "}
+                                  {due.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                </span>
+                              </div>
+
+                              <button
+                                onClick={() => handleQuickComplete(t.id)}
+                                className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold rounded-lg hover:bg-emerald-500/20 transition-colors shrink-0"
+                                title="Mark task completed"
+                              >
+                                Complete
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    <div className="mt-3 pt-2 border-t border-slate-200 dark:border-slate-800 text-center">
+                      <Link
+                        href="/tasks"
+                        onClick={() => setShowNotifPopover(false)}
+                        className="text-xs font-bold text-brass-600 dark:text-brass-400 hover:underline inline-flex items-center gap-1"
+                      >
+                        <span>Go to Tasks & Schedule</span>
+                        <span>→</span>
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
