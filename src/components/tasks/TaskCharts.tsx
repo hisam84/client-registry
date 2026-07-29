@@ -205,7 +205,7 @@ export function TaskCharts({ metrics }: TaskChartsProps) {
           <div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-              <span>Upcoming 7 Days Workload (আগামী ৭ দিনের ওয়ার্কলোড)</span>
+              <span>Upcoming 7 Days Workload</span>
             </h3>
             <p className="text-[11px] text-slate-500 dark:text-slate-400">
               Scheduled tasks across the next 7 calendar days

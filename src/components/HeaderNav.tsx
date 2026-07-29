@@ -164,7 +164,6 @@ export function HeaderNav({ onAddTaskClick, title, subtitle, totalCountText }: H
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
               </svg>
               <span>+ Add Task</span>
-              <span className="text-[11px] opacity-80 font-normal"> (টাস্ক যোগ করুন)</span>
             </button>
           )}
         </div>

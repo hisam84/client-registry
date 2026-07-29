@@ -153,7 +153,7 @@ export default function DashboardPage() {
                 </svg>
                 <div>
                   <h4 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
-                    Task Deadline Alert (জরুরি কাজ সংক্রান্ত নোটিফিকেশন)
+                    Task Deadline Alert
                   </h4>
                   <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                     {tsk?.overdue ? (

@@ -278,7 +278,7 @@ export function UpcomingTasksList({
                     title="Self-assign this task to your account"
                   >
                     <span>🎯</span>
-                    <span>{claimingTaskId === task.id ? "Assigning..." : "Assign to Me (নিজে নিন)"}</span>
+                    <span>{claimingTaskId === task.id ? "Assigning..." : "Assign to Me"}</span>
                   </button>
                 )}
 

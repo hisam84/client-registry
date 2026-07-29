@@ -95,7 +95,7 @@ export function StatusNoteModal({
         {/* Progress % */}
         <div>
           <div className="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            <span>Completion Progress (% সম্পন্ন)</span>
+            <span>Completion Progress (%)</span>
             <span className="font-mono text-brass-600 dark:text-brass-400 font-bold">{progress}%</span>
           </div>
           <div className="flex items-center gap-3">
@@ -151,7 +151,7 @@ export function StatusNoteModal({
 
         <div>
           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            Reason / Outcome Remarks (কমপ্লিট বা কমপ্লিট না হওয়ার কারণ)
+            Reason / Outcome Remarks
           </label>
           <textarea
             rows={3}

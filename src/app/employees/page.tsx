@@ -160,7 +160,7 @@ export default function EmployeesPage() {
             </span>
           </h2>
           <p className="text-xs text-slate-300 mt-1 max-w-xl">
-            ইমপ্লয়ীদের অর্ডার সিরিয়াল (Order Serial) অনুযায়ী ড্রপডাউন এবং ড্যাশবোর্ডে সাজানো থাকবে। এডমিন যেকোনো সময় সিরিয়াল পরিবর্তন করতে পারবেন।
+            Employees will be ordered by their Order Serial number across dropdowns and dashboards. Admin can update order serials anytime.
           </p>
         </div>
 
@@ -171,7 +171,7 @@ export default function EmployeesPage() {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
           </svg>
-          <span>+ Add Employee (ইমপ্লয়ী যোগ করুন)</span>
+          <span>+ Add Employee</span>
         </button>
       </div>
 
@@ -298,7 +298,7 @@ export default function EmployeesPage() {
       {showModal && (
         <Modal
           onClose={() => setShowModal(false)}
-          title={editingEmployee ? "Edit Employee (ইমপ্লয়ী এডিট)" : "Add New Employee (নতুন ইমপ্লয়ী)"}
+          title={editingEmployee ? "Edit Employee" : "Add New Employee"}
         >
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
@@ -320,7 +320,7 @@ export default function EmployeesPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Order Serial (ক্রম নম্বর)*
+                  Order Serial*
                 </label>
                 <input
                   type="number"
@@ -347,7 +347,7 @@ export default function EmployeesPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Input
-                  label="Password (পাসওয়ার্ড)"
+                  label="Password"
                   type="text"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -357,7 +357,7 @@ export default function EmployeesPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Role (ভূমিকা)
+                  Role
                 </label>
                 <select
                   value={role}
@@ -373,7 +373,7 @@ export default function EmployeesPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Input
-                  label="Designation (পদবী)"
+                  label="Designation"
                   value={designation}
                   onChange={(e) => setDesignation(e.target.value)}
                   placeholder="e.g. Senior Software Engineer"
@@ -382,7 +382,7 @@ export default function EmployeesPage() {
 
               <div>
                 <Input
-                  label="Mobile No (ফোন নম্বর)"
+                  label="Mobile No"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="01711000000"

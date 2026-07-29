@@ -180,7 +180,7 @@ export default function TasksPage() {
             }}
             className="w-full sm:w-auto rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brass-500"
           >
-            <option value="all">🌐 All Employees (সকল ইমপ্লয়ী)</option>
+            <option value="all">🌐 All Employees</option>
             {employees.map((emp) => (
               <option key={emp.id} value={emp.id}>
                 #{emp.orderSerial} • {emp.name} ({emp.designation || emp.role})
@@ -245,7 +245,7 @@ export default function TasksPage() {
             }`}
           >
             <span>🌐</span>
-            <span>সব টাস্ক (All Tasks)</span>
+            <span>All Tasks</span>
           </button>
 
           <button
@@ -257,7 +257,7 @@ export default function TasksPage() {
             }`}
           >
             <span>👤</span>
-            <span>আমার নিজের টাস্ক (Self-Assigned)</span>
+            <span>Self-Assigned Tasks</span>
           </button>
 
           <button
@@ -269,7 +269,7 @@ export default function TasksPage() {
             }`}
           >
             <span>📩</span>
-            <span>অন্যের দেওয়া টাস্ক (Assigned by Others)</span>
+            <span>Assigned by Others</span>
           </button>
 
           <button
@@ -281,7 +281,7 @@ export default function TasksPage() {
             }`}
           >
             <span>📤</span>
-            <span>আমার অন্যকে দেওয়া টাস্ক</span>
+            <span>Assigned to Others</span>
           </button>
 
           <button
@@ -293,7 +293,7 @@ export default function TasksPage() {
             }`}
           >
             <span>❓</span>
-            <span>আন-অ্যাসাইন্ড টাস্ক ({metrics.unassignedTasks})</span>
+            <span>Unassigned Tasks ({metrics.unassignedTasks})</span>
           </button>
         </div>
       )}

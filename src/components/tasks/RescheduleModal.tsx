@@ -79,7 +79,7 @@ export function RescheduleModal({ task, onClose, onSaved }: RescheduleModalProps
   }
 
   return (
-    <Modal title="Reschedule Task (তারিখ/সময় পরিবর্তন)" onClose={onClose}>
+    <Modal title="Reschedule Task" onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
           <div className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-600 dark:text-red-400 font-medium">
@@ -99,7 +99,7 @@ export function RescheduleModal({ task, onClose, onSaved }: RescheduleModalProps
         {/* Date & Time Selector */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            New Scheduled Date & Time (নতুন তারিখ ও সময়)*
+            New Scheduled Date & Time*
           </label>
           <input
             type="datetime-local"
@@ -117,7 +117,7 @@ export function RescheduleModal({ task, onClose, onSaved }: RescheduleModalProps
               onClick={() => addDays(1)}
               className="px-2 py-1 text-xs font-medium rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brass-500/20 hover:text-brass-700 dark:hover:text-brass-300 transition-colors"
             >
-              +1 Day (আগামীকাল)
+              +1 Day
             </button>
             <button
               type="button"
@@ -138,7 +138,7 @@ export function RescheduleModal({ task, onClose, onSaved }: RescheduleModalProps
               onClick={() => addDays(7)}
               className="px-2 py-1 text-xs font-medium rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brass-500/20 hover:text-brass-700 dark:hover:text-brass-300 transition-colors"
             >
-              +1 Week (পরবর্তী সপ্তাহ)
+              +1 Week
             </button>
           </div>
         </div>
@@ -146,7 +146,7 @@ export function RescheduleModal({ task, onClose, onSaved }: RescheduleModalProps
         {/* Reschedule Reason / Note */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            Reason for Rescheduling (পুনর্নির্ধারণ বা রেফার করার কারণ - ঐচ্ছিক)
+            Reason for Rescheduling (Optional)
           </label>
           <textarea
             rows={2}
