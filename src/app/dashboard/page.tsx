@@ -57,7 +57,7 @@ export default function DashboardPage() {
   const [showTaskModal, setShowTaskModal] = useState(false);
 
   async function loadOverview(showLoading = false) {
-    if (showLoading || !data) setLoading(true);
+    if (showLoading && !data) setLoading(true);
     try {
       const res = await fetch("/api/dashboard/overview");
       const result = await res.json();
@@ -67,7 +67,7 @@ export default function DashboardPage() {
     } catch (err) {
       console.error("Failed to load dashboard overview:", err);
     } finally {
-      if (showLoading) setLoading(false);
+      setLoading(false);
     }
   }
 
