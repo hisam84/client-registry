@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { TaskFormModal } from "@/components/tasks/TaskFormModal";
 import { CustomFieldDef, Institution } from "@/lib/types";
@@ -23,11 +23,17 @@ const emptyFilters: Filters = {
   status: "",
 };
 
-export default function Home() {
+function InstitutionsLedgerContent() {
+  const searchParams = useSearchParams();
+  const urlStatus = searchParams.get("status") || "";
+
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [allInstitutions, setAllInstitutions] = useState<Institution[]>([]);
   const [customFields, setCustomFields] = useState<CustomFieldDef[]>([]);
-  const [filters, setFilters] = useState<Filters>(emptyFilters);
+  const [filters, setFilters] = useState<Filters>({
+    ...emptyFilters,
+    status: urlStatus,
+  });
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [showBulkUpload, setShowBulkUpload] = useState(false);
@@ -36,6 +42,14 @@ export default function Home() {
   const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
   const [showTrashModal, setShowTrashModal] = useState(false);
   const [editing, setEditing] = useState<Institution | null>(null);
+
+  // Sync with searchParams if status parameter changes in URL
+  useEffect(() => {
+    const statusParam = searchParams.get("status");
+    if (statusParam !== null && statusParam !== filters.status) {
+      setFilters((prev) => ({ ...prev, status: statusParam }));
+    }
+  }, [searchParams]);
 
   // Task modal states
   const [showTaskModal, setShowTaskModal] = useState(false);
@@ -251,5 +265,13 @@ export default function Home() {
         />
       )}
     </SidebarLayout>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-500">Loading Institutions Ledger...</div>}>
+      <InstitutionsLedgerContent />
+    </Suspense>
   );
 }

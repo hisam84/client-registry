@@ -50,8 +50,9 @@ export function FilterBar({
         <select className={inputClass} value={filters.status} onChange={(e) => set("status", e.target.value)}>
           <option value="">All Statuses</option>
           <option value="active">Active</option>
-          <option value="expiring_soon">Expiring Soon</option>
+          <option value="expiring_soon">Expiring Soon (Within 60 Days)</option>
           <option value="expired">Expired</option>
+          <option value="actual_expired">Actual Expired</option>
         </select>
         <select className={inputClass} value={filters.type} onChange={(e) => set("type", e.target.value)}>
           <option value="">All Types</option>

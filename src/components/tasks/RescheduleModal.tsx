@@ -69,6 +69,10 @@ export function RescheduleModal({ task, onClose, onSaved }: RescheduleModalProps
         throw new Error(data.error || "Failed to reschedule task");
       }
 
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("task-changed"));
+      }
+
       onSaved();
       onClose();
     } catch (err: any) {

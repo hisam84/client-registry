@@ -149,6 +149,9 @@ export default function TasksPage() {
   }, [search, statusFilter, priorityFilter, upcomingOnly, selectedEmployeeFilter, activeTab, currentUser.id]);
 
   function handleRefresh() {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("task-changed"));
+    }
     loadDashboardMetrics();
     loadTasks();
   }

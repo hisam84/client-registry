@@ -64,7 +64,7 @@ export function InstitutionTable({
         </thead>
         <tbody className="divide-y divide-slate-200 dark:divide-slate-800/70">
           {institutions.map((inst, index) => {
-            const status = computeStatus(inst.expireDate);
+            const status = computeStatus(inst.expireDate, inst.actualExpireDate);
             const isOpen = expanded === inst.id;
             const domainUrl = getDomainUrl(inst.domain);
 

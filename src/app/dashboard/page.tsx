@@ -56,8 +56,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [showTaskModal, setShowTaskModal] = useState(false);
 
-  async function loadOverview() {
-    setLoading(true);
+  async function loadOverview(showLoading = false) {
+    if (showLoading || !data) setLoading(true);
     try {
       const res = await fetch("/api/dashboard/overview");
       const result = await res.json();
@@ -67,25 +67,66 @@ export default function DashboardPage() {
     } catch (err) {
       console.error("Failed to load dashboard overview:", err);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   }
 
   useEffect(() => {
-    loadOverview();
+    loadOverview(true);
+
+    // Auto-refresh metrics & tasks every 10 seconds in real-time
+    const interval = setInterval(() => {
+      loadOverview(false);
+    }, 10000);
+
+    function handleFocus() {
+      loadOverview(false);
+    }
+
+    function handleTaskChange() {
+      loadOverview(false);
+    }
+
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("task-changed", handleTaskChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("task-changed", handleTaskChange);
+    };
   }, []);
 
   async function handleToggleTaskComplete(taskId: string, currentStatus: string) {
     const newStatus = currentStatus === "Completed" ? "Pending" : "Completed";
+
+    // Optimistic UI update
+    setData((prev) => {
+      if (!prev) return prev;
+      const isCompletedNow = newStatus === "Completed";
+      return {
+        ...prev,
+        tasks: {
+          ...prev.tasks,
+          completed: prev.tasks.completed + (isCompletedNow ? 1 : -1),
+          upcomingList: prev.tasks.upcomingList.map((t) =>
+            t.id === taskId ? { ...t, status: newStatus } : t
+          ),
+        },
+      };
+    });
+
     try {
       await fetch(`/api/tasks/${taskId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
-      loadOverview();
+      window.dispatchEvent(new CustomEvent("task-changed"));
+      loadOverview(false);
     } catch (err) {
       console.error("Failed to update task status:", err);
+      loadOverview(false);
     }
   }
 
@@ -283,7 +324,7 @@ export default function DashboardPage() {
                         </svg>
                       </div>
                       <span className="text-xs font-bold text-amber-900 dark:text-amber-300">
-                        Expiring Soon (30d)
+                        Expiring Soon (60d)
                       </span>
                     </div>
                     <span className="text-[11px] text-amber-700 dark:text-amber-400 font-bold group-hover:translate-x-0.5 transition-transform shrink-0">
@@ -297,12 +338,16 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="mt-3 pt-2.5 border-t border-amber-500/20 flex items-center gap-1.5 flex-wrap">
-                  <span className="px-2 py-0.5 rounded-full bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20 font-bold text-[10px]" title="Expired by Expire Date">
-                    {inst?.expired || 0} Expired
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20 font-bold text-[10px]" title="Expired by Actual Expire Date">
-                    {inst?.actualExpired || 0} Actual
-                  </span>
+                  <Link href="/?status=expired" onClick={(e) => e.stopPropagation()}>
+                    <span className="px-2 py-0.5 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-700 dark:text-red-400 border border-red-500/20 font-bold text-[10px] cursor-pointer transition-colors" title="Filter by Expire Date">
+                      {inst?.expired || 0} Expired
+                    </span>
+                  </Link>
+                  <Link href="/?status=actual_expired" onClick={(e) => e.stopPropagation()}>
+                    <span className="px-2 py-0.5 rounded-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/20 font-bold text-[10px] cursor-pointer transition-colors" title="Filter by Actual Expire Date">
+                      {inst?.actualExpired || 0} Actual Expired
+                    </span>
+                  </Link>
                 </div>
               </div>
             </Link>
@@ -565,7 +610,7 @@ export default function DashboardPage() {
                 <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
                   <span>Expiring Soon Institutions</span>
                   <span className="text-xs font-normal text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
-                    Next 30 Days
+                    Next 60 Days
                   </span>
                 </h3>
                 <Link
@@ -578,7 +623,7 @@ export default function DashboardPage() {
 
               {inst?.expiringSoonList.length === 0 ? (
                 <div className="py-8 text-center text-xs text-slate-400">
-                  No institutions expiring within the next 30 days.
+                  No institutions expiring within the next 60 days.
                 </div>
               ) : (
                 <div className="space-y-2.5">
@@ -657,11 +702,23 @@ export default function DashboardPage() {
                         <div className="flex items-start gap-2.5 min-w-0">
                           <button
                             onClick={() => handleToggleTaskComplete(task.id, task.status)}
-                            className="mt-0.5 h-4 w-4 shrink-0 rounded border border-slate-300 dark:border-slate-600 flex items-center justify-center hover:border-brass-500 text-brass-500"
-                            title="Mark complete"
-                          />
+                            className={`mt-0.5 h-4 w-4 shrink-0 rounded border flex items-center justify-center transition-colors ${
+                              task.status === "Completed"
+                                ? "bg-brass-500 border-brass-500 text-slate-950"
+                                : "border-slate-300 dark:border-slate-600 hover:border-brass-500 text-brass-500"
+                            }`}
+                            title={task.status === "Completed" ? "Mark pending" : "Mark complete"}
+                          >
+                            {task.status === "Completed" && (
+                              <svg className="w-3 h-3 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                          </button>
                           <div className="min-w-0">
-                            <h4 className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">
+                            <h4 className={`text-xs font-semibold truncate ${
+                              task.status === "Completed" ? "line-through text-slate-400 dark:text-slate-500" : "text-slate-900 dark:text-slate-100"
+                            }`}>
                               {task.title}
                             </h4>
                             <p className="text-[11px] text-brass-600 dark:text-brass-400 truncate mt-0.5">

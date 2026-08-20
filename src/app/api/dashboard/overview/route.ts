@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   try {
     const now = new Date();
-    const soonThreshold = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
+    const soonThreshold = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000); // 60 days from now
 
     // 1. Fetch Institutions
     const institutions = await prisma.institution.findMany({
@@ -74,7 +74,7 @@ export async function GET() {
         const diffDays = Math.ceil((exp.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
         if (diffDays < 0) {
           instExpired++;
-        } else if (diffDays <= 30) {
+        } else if (diffDays <= 60) {
           instExpiringSoon++;
         } else {
           instActive++;

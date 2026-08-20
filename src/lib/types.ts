@@ -10,12 +10,13 @@ export const INSTITUTE_TYPE_OPTIONS = [
   "Other",
 ] as const;
 
-export type StatusKey = "active" | "expiring_soon" | "expired" | "unknown";
+export type StatusKey = "active" | "expiring_soon" | "expired" | "actual_expired" | "unknown";
 
 export const STATUS_LABEL: Record<StatusKey, string> = {
   active: "Active",
   expiring_soon: "Expiring Soon",
   expired: "Expired",
+  actual_expired: "Actual Expired",
   unknown: "No Expiry Set",
 };
 
@@ -23,16 +24,37 @@ export const STATUS_COLOR: Record<StatusKey, string> = {
   active: "bg-moss-500/15 text-moss-400 border-moss-500/30",
   expiring_soon: "bg-amberflag-500/15 text-amberflag-500 border-amberflag-500/30",
   expired: "bg-rust-500/15 text-rust-400 border-rust-500/30",
+  actual_expired: "bg-rose-500/15 text-rose-400 border-rose-500/30",
   unknown: "bg-slate-700/40 text-slate-400 border-slate-600/40",
 };
 
-export function computeStatus(expireDate: string | Date | null, thresholdDays = 30): StatusKey {
+export function computeStatus(
+  expireDate: string | Date | null,
+  actualExpireDateOrThreshold?: string | Date | null | number,
+  thresholdDays = 60
+): StatusKey {
+  let actExpDate: string | Date | null = null;
+  let threshold = thresholdDays;
+
+  if (typeof actualExpireDateOrThreshold === "number") {
+    threshold = actualExpireDateOrThreshold;
+  } else if (actualExpireDateOrThreshold) {
+    actExpDate = actualExpireDateOrThreshold;
+  }
+
+  const now = new Date();
+  if (actExpDate) {
+    const actExp = new Date(actExpDate);
+    if (actExp.getTime() < now.getTime()) {
+      return "actual_expired";
+    }
+  }
+
   if (!expireDate) return "unknown";
   const exp = new Date(expireDate);
-  const now = new Date();
   const diffDays = Math.ceil((exp.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
   if (diffDays < 0) return "expired";
-  if (diffDays <= thresholdDays) return "expiring_soon";
+  if (diffDays <= threshold) return "expiring_soon";
   return "active";
 }
 

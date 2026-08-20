@@ -18,7 +18,7 @@ export function exportInstitutionsToExcel(
   filename: string
 ) {
   const rows = institutions.map((inst, index) => {
-    const status = computeStatus(inst.expireDate);
+    const status = computeStatus(inst.expireDate, inst.actualExpireDate);
     const rowObj: Record<string, any> = {
       "SL #": index + 1,
       "Institute Name": inst.instituteName || "",

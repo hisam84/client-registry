@@ -129,6 +129,10 @@ export function TaskFormModal({
         throw new Error(data.error || "Failed to save task");
       }
 
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("task-changed"));
+      }
+
       onSaved();
       onClose();
     } catch (err: any) {

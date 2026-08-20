@@ -43,6 +43,10 @@ export function StatusNoteModal({
         throw new Error(data.error || "Failed to update task status");
       }
 
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("task-changed"));
+      }
+
       onSaved();
       onClose();
     } catch (err: any) {

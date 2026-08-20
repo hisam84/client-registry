@@ -67,8 +67,17 @@ export function SidebarLayout({
 
   useEffect(() => {
     loadNotifications();
-    const interval = setInterval(loadNotifications, 60000);
-    return () => clearInterval(interval);
+    const interval = setInterval(loadNotifications, 10000);
+
+    function handleTaskChange() {
+      loadNotifications();
+    }
+    window.addEventListener("task-changed", handleTaskChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("task-changed", handleTaskChange);
+    };
   }, []);
 
   useEffect(() => {
@@ -88,6 +97,9 @@ export function SidebarLayout({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "Completed" }),
       });
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("task-changed"));
+      }
       loadNotifications();
     } catch (err) {
       console.error("Failed to mark completed:", err);

@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
   if (district) and.push({ district: { equals: district, mode: "insensitive" } });
 
   const now = new Date();
-  const soon = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const soon = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000);
 
   if (status === "expired") {
     and.push({ expireDate: { lt: now } });
@@ -44,6 +44,8 @@ export async function GET(req: NextRequest) {
     and.push({ expireDate: { gte: now, lte: soon } });
   } else if (status === "active") {
     and.push({ expireDate: { gt: soon } });
+  } else if (status === "actual_expired") {
+    and.push({ actualExpireDate: { lt: now } });
   }
 
   const institutions = await prisma.institution.findMany({
