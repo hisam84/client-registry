@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendTaskAssignmentEmail } from "@/lib/mailer";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -94,6 +95,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       if (inst) data.institutionName = inst.instituteName;
     }
 
+    const existingTask = await (prisma as any).task.findUnique({
+      where: { id: params.id },
+      select: { assignedToId: true },
+    });
+
     const updated = await (prisma as any).task.update({
       where: { id: params.id },
       data,
@@ -130,6 +136,26 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         },
       },
     });
+
+    if (
+      updated.assignedTo?.email &&
+      assignedToId !== undefined &&
+      assignedToId !== null &&
+      (!existingTask || existingTask.assignedToId !== updated.assignedToId)
+    ) {
+      sendTaskAssignmentEmail({
+        taskTitle: updated.title,
+        description: updated.description,
+        dueDate: updated.dueDate,
+        priority: updated.priority,
+        institutionName: updated.institutionName || updated.institution?.instituteName,
+        assignedByName: updated.assignedBy?.name || null,
+        assignedToEmail: updated.assignedTo.email,
+        assignedToName: updated.assignedTo.name,
+      }).catch((err) => {
+        console.error("Failed to send task assignment email on update:", err);
+      });
+    }
 
     return NextResponse.json(updated);
   } catch (error: any) {
