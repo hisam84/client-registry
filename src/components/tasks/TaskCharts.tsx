@@ -28,16 +28,17 @@ export function TaskCharts({ metrics }: TaskChartsProps) {
     completedTasks,
     pendingTasks,
     inProgressTasks,
+    cancelledTasks = 0,
     overdueTasks,
     next7Days,
   } = metrics;
 
-  // Donut chart calculations
-  const totalForDonut = Math.max(totalTasks, 1);
-  const pCompleted = (completedTasks / totalForDonut) * 100;
-  const pPending = (pendingTasks / totalForDonut) * 100;
-  const pInProgress = (inProgressTasks / totalForDonut) * 100;
-  const pOverdue = (overdueTasks / totalForDonut) * 100;
+  // Donut chart calculations (Completed, In Progress, Pending, Cancelled)
+  const safeTotal = Math.max(totalTasks, 1);
+  const pCompleted = (completedTasks / safeTotal) * 100;
+  const pInProgress = (inProgressTasks / safeTotal) * 100;
+  const pPending = (pendingTasks / safeTotal) * 100;
+  const pCancelled = (cancelledTasks / safeTotal) * 100;
 
   // SVG Donut slice calculation helpers
   const radius = 40;
@@ -46,7 +47,7 @@ export function TaskCharts({ metrics }: TaskChartsProps) {
   const completedStroke = (pCompleted / 100) * circumference;
   const inProgressStroke = (pInProgress / 100) * circumference;
   const pendingStroke = (pPending / 100) * circumference;
-  const overdueStroke = (pOverdue / 100) * circumference;
+  const cancelledStroke = (pCancelled / 100) * circumference;
 
   let offset = 0;
   const strokeCompletedOffset = offset;
@@ -58,7 +59,7 @@ export function TaskCharts({ metrics }: TaskChartsProps) {
   const strokePendingOffset = offset;
   offset += pendingStroke;
 
-  const strokeOverdueOffset = offset;
+  const strokeCancelledOffset = offset;
 
   // Workload Bar Chart metrics
   const totalNext7Count = next7Days.reduce((acc, d) => acc + d.count, 0);
@@ -110,7 +111,6 @@ export function TaskCharts({ metrics }: TaskChartsProps) {
                   strokeDasharray={`${completedStroke} ${circumference}`}
                   strokeDashoffset={-strokeCompletedOffset}
                   fill="none"
-                  strokeLinecap="round"
                   className="transition-all duration-700"
                 />
               )}
@@ -125,7 +125,6 @@ export function TaskCharts({ metrics }: TaskChartsProps) {
                   strokeDasharray={`${inProgressStroke} ${circumference}`}
                   strokeDashoffset={-strokeInProgressOffset}
                   fill="none"
-                  strokeLinecap="round"
                   className="transition-all duration-700"
                 />
               )}
@@ -140,22 +139,20 @@ export function TaskCharts({ metrics }: TaskChartsProps) {
                   strokeDasharray={`${pendingStroke} ${circumference}`}
                   strokeDashoffset={-strokePendingOffset}
                   fill="none"
-                  strokeLinecap="round"
                   className="transition-all duration-700"
                 />
               )}
-              {/* Overdue Segment (Red) */}
-              {overdueStroke > 0 && (
+              {/* Cancelled Segment (Slate) */}
+              {cancelledStroke > 0 && (
                 <circle
                   cx="50"
                   cy="50"
                   r={radius}
-                  stroke="#ef4444"
+                  stroke="#64748b"
                   strokeWidth="12"
-                  strokeDasharray={`${overdueStroke} ${circumference}`}
-                  strokeDashoffset={-strokeOverdueOffset}
+                  strokeDasharray={`${cancelledStroke} ${circumference}`}
+                  strokeDashoffset={-strokeCancelledOffset}
                   fill="none"
-                  strokeLinecap="round"
                   className="transition-all duration-700"
                 />
               )}
@@ -173,26 +170,43 @@ export function TaskCharts({ metrics }: TaskChartsProps) {
           </div>
 
           {/* Donut Legend */}
-          <div className="space-y-2 text-xs">
+          <div className="space-y-2 text-xs min-w-[130px]">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50"></span>
               <span className="text-slate-600 dark:text-slate-300">Completed:</span>
-              <strong className="text-slate-900 dark:text-slate-100 font-mono ml-auto">{completedTasks}</strong>
+              <strong className="text-slate-900 dark:text-slate-100 font-mono ml-auto">
+                {completedTasks} <span className="text-[10px] text-slate-400">({pCompleted.toFixed(0)}%)</span>
+              </strong>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-sky-400 shadow-sm shadow-sky-400/50"></span>
               <span className="text-slate-600 dark:text-slate-300">In Progress:</span>
-              <strong className="text-slate-900 dark:text-slate-100 font-mono ml-auto">{inProgressTasks}</strong>
+              <strong className="text-slate-900 dark:text-slate-100 font-mono ml-auto">
+                {inProgressTasks} <span className="text-[10px] text-slate-400">({pInProgress.toFixed(0)}%)</span>
+              </strong>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50"></span>
               <span className="text-slate-600 dark:text-slate-300">Pending:</span>
-              <strong className="text-slate-900 dark:text-slate-100 font-mono ml-auto">{pendingTasks}</strong>
+              <strong className="text-slate-900 dark:text-slate-100 font-mono ml-auto">
+                {pendingTasks} <span className="text-[10px] text-slate-400">({pPending.toFixed(0)}%)</span>
+              </strong>
             </div>
-            <div className="flex items-center gap-2">
+            {cancelledTasks > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-slate-500 shadow-sm shadow-slate-500/50"></span>
+                <span className="text-slate-600 dark:text-slate-300">Cancelled:</span>
+                <strong className="text-slate-900 dark:text-slate-100 font-mono ml-auto">
+                  {cancelledTasks} <span className="text-[10px] text-slate-400">({pCancelled.toFixed(0)}%)</span>
+                </strong>
+              </div>
+            )}
+            <div className="flex items-center gap-2 pt-1 border-t border-slate-100 dark:border-slate-800">
               <span className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm shadow-red-500/50"></span>
               <span className="text-slate-600 dark:text-slate-300">Overdue:</span>
-              <strong className="text-slate-900 dark:text-slate-100 font-mono ml-auto">{overdueTasks}</strong>
+              <strong className={`font-mono ml-auto ${overdueTasks > 0 ? "text-red-500 font-bold" : "text-slate-900 dark:text-slate-100"}`}>
+                {overdueTasks}
+              </strong>
             </div>
           </div>
         </div>

@@ -24,8 +24,8 @@ export default function TasksPage() {
   const isSuperAdmin = currentUser.role === "SUPER_ADMIN" || currentUser.id === "super-admin";
 
   // Tab State: Main Tab (My Tasks vs All Tasks) and Sub Tab
-  const [mainTab, setMainTab] = useState<MainTab>("my_tasks");
-  const [activeTab, setActiveTab] = useState<TaskCategoryTab>("my_tasks");
+  const [mainTab, setMainTab] = useState<MainTab>(() => (isSuperAdmin ? "all_tasks" : "my_tasks"));
+  const [activeTab, setActiveTab] = useState<TaskCategoryTab>(() => (isSuperAdmin ? "all" : "my_tasks"));
 
   useEffect(() => {
     if (isSuperAdmin) {

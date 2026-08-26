@@ -46,7 +46,7 @@ export function clearStoredUser() {
 }
 
 export function useUserSession() {
-  const [currentUser, setCurrentUser] = useState<Employee>(SUPER_ADMIN_USER);
+  const [currentUser, setCurrentUser] = useState<Employee>(() => getStoredUser());
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
