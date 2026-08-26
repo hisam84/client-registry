@@ -27,6 +27,7 @@ export function SidebarLayout({
   const [showNotifPopover, setShowNotifPopover] = useState(false);
   const [urgentTasks, setUrgentTasks] = useState<any[]>([]);
   const notifRef = useRef<HTMLDivElement>(null);
+  const mobileNotifRef = useRef<HTMLDivElement>(null);
 
   const pathname = usePathname();
   const router = useRouter();
@@ -82,7 +83,10 @@ export function SidebarLayout({
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      const isOutsideDesktop = !notifRef.current || !notifRef.current.contains(target);
+      const isOutsideMobile = !mobileNotifRef.current || !mobileNotifRef.current.contains(target);
+      if (isOutsideDesktop && isOutsideMobile) {
         setShowNotifPopover(false);
       }
     }
@@ -214,7 +218,7 @@ export function SidebarLayout({
 
         <div className="flex items-center gap-2">
           {/* Mobile Notification Bell */}
-          <div className="relative">
+          <div className="relative md:hidden" ref={mobileNotifRef}>
             <button
               onClick={() => setShowNotifPopover(!showNotifPopover)}
               className="relative p-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 transition-colors"
@@ -229,6 +233,90 @@ export function SidebarLayout({
                 </span>
               )}
             </button>
+
+            {showNotifPopover && (
+              <div className="absolute right-0 top-full mt-2 z-50 w-[300px] sm:w-[340px] rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 p-4 shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2.5 mb-3">
+                  <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                    <span>Urgent Task Alerts</span>
+                    {urgentCount > 0 && (
+                      <span className="bg-red-500/10 text-red-600 dark:text-red-400 text-[10px] px-1.5 py-0.5 rounded font-mono font-bold">
+                        {urgentCount}
+                      </span>
+                    )}
+                  </h3>
+                  <button
+                    onClick={() => setShowNotifPopover(false)}
+                    className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-md"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {urgentCount === 0 ? (
+                  <div className="py-6 text-center text-xs text-slate-400">
+                    No urgent tasks due within 24 hours.
+                  </div>
+                ) : (
+                  <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                    {urgentTasks.map((t) => {
+                      const due = new Date(t.dueDate);
+                      const now = new Date();
+                      const diffMs = due.getTime() - now.getTime();
+                      const isOverdue = diffMs < 0;
+                      const instName = t.institution?.instituteName || t.institutionName || "General Task";
+
+                      return (
+                        <div
+                          key={t.id}
+                          className="p-3 rounded-xl border border-slate-100 dark:border-slate-800/80 bg-slate-50/80 dark:bg-slate-950/80 flex items-start justify-between gap-2 shadow-xs"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
+                                {t.title}
+                              </span>
+                            </div>
+                            <span className="text-[11px] text-brass-600 dark:text-brass-400 font-medium block truncate mt-0.5">
+                              {instName}
+                            </span>
+                            <span
+                              className={`text-[10px] font-semibold block mt-1 ${
+                                isOverdue
+                                  ? "text-red-500 font-bold"
+                                  : "text-amber-600 dark:text-amber-400"
+                              }`}
+                            >
+                              {isOverdue ? "Overdue" : "Due soon"}:{" "}
+                              {due.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                          </div>
+
+                          <button
+                            onClick={() => handleQuickComplete(t.id)}
+                            className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold rounded-lg hover:bg-emerald-500/20 transition-colors shrink-0"
+                            title="Mark task completed"
+                          >
+                            Complete
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="mt-3 pt-2 border-t border-slate-200 dark:border-slate-800 text-center">
+                  <Link
+                    href="/tasks"
+                    onClick={() => setShowNotifPopover(false)}
+                    className="text-xs font-bold text-brass-600 dark:text-brass-400 hover:underline inline-flex items-center gap-1"
+                  >
+                    <span>Go to Tasks & Schedule</span>
+                    <span>→</span>
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
 
           {onAddTaskClick && (
@@ -511,8 +599,8 @@ export function SidebarLayout({
                 <span>Logout</span>
               </button>
 
-              {/* Notification Bell in Main Page Header - FAR RIGHT */}
-              <div className="relative" ref={notifRef}>
+              {/* Notification Bell in Main Page Header - DESKTOP ONLY */}
+              <div className="relative hidden md:block" ref={notifRef}>
                 <button
                   onClick={() => setShowNotifPopover((prev) => !prev)}
                   className="relative p-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-colors shadow-xs"
