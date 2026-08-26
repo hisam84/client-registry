@@ -62,6 +62,7 @@ export function TargetedClientTable({
             <th className="px-4 py-3.5">Contact Person</th>
             <th className="px-4 py-3.5">Phone & Email</th>
             <th className="px-4 py-3.5">Location</th>
+            <th className="px-4 py-3.5">Added By</th>
             <th className="px-4 py-3.5">Status</th>
             <th className="px-4 py-3.5 text-right">Actions</th>
           </tr>
@@ -116,6 +117,16 @@ export function TargetedClientTable({
                     <div className="text-[11px] text-slate-500 truncate max-w-xs" title={client.address}>
                       {client.address}
                     </div>
+                  )}
+                </td>
+
+                <td className="whitespace-nowrap px-4 py-3.5">
+                  {client.createdBy?.name ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30">
+                      👤 {client.createdBy.name}
+                    </span>
+                  ) : (
+                    <span className="text-slate-400 dark:text-slate-500 font-mono text-xs">Admin / System</span>
                   )}
                 </td>
 

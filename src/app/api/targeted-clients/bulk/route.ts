@@ -3,16 +3,18 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const bodyData = await req.json();
+    const items = Array.isArray(bodyData) ? bodyData : (Array.isArray(bodyData.clients) ? bodyData.clients : []);
+    const defaultCreatedById = bodyData.createdById || null;
 
-    if (!Array.isArray(body) || body.length === 0) {
+    if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "No client data provided." }, { status: 400 });
     }
 
     const recordsToCreate = [];
 
-    for (let i = 0; i < body.length; i++) {
-      const item = body[i];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
       const instituteName = item.instituteName || item["Institute Name"] || item["institute_name"];
 
       if (!instituteName || typeof instituteName !== "string" || !instituteName.trim()) {
@@ -23,6 +25,8 @@ export async function POST(req: NextRequest) {
       if (!["High", "Default", "Low"].includes(priority)) {
         priority = "Default";
       }
+
+      const createdById = item.createdById || defaultCreatedById;
 
       recordsToCreate.push({
         instituteName: String(instituteName).trim(),
@@ -36,6 +40,7 @@ export async function POST(req: NextRequest) {
         priority: priority,
         notes: item.notes || item["Notes"] || item["Remarks"] ? String(item.notes || item["Notes"] || item["Remarks"]).trim() : null,
         isArchived: false,
+        createdById: createdById ? String(createdById) : null,
       });
     }
 

@@ -179,6 +179,12 @@ export interface TargetedClient {
   priority: TargetedPriority;
   isArchived: boolean;
   notes: string | null;
+  createdById?: string | null;
+  createdBy?: {
+    id: string;
+    name: string;
+    email?: string | null;
+  } | null;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;

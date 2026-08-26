@@ -6,6 +6,15 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   try {
     const client = await (prisma as any).targetedClient.findUnique({
       where: { id: params.id },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
     });
     if (!client) {
       return NextResponse.json({ error: "Targeted client not found" }, { status: 404 });
@@ -66,6 +75,18 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         notes: body.notes !== undefined
           ? (body.notes?.trim() || null)
           : existing.notes,
+        createdById: body.createdById !== undefined
+          ? (body.createdById || null)
+          : existing.createdById,
+      },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
     });
 

@@ -50,6 +50,15 @@ export async function GET(req: NextRequest) {
 
     const clients = await (prisma as any).targetedClient.findMany({
       where,
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
       orderBy: [
         { isArchived: "asc" },
         { createdAt: "desc" },
@@ -103,6 +112,16 @@ export async function POST(req: NextRequest) {
         priority: priority,
         isArchived: Boolean(body.isArchived),
         notes: body.notes?.trim() || null,
+        createdById: body.createdById || null,
+      },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
     });
 

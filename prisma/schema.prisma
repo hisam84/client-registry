@@ -87,16 +87,21 @@ model TargetedClient {
   subDistrict         String?
   address             String?
   priority            String   @default("Default") // "High" | "Default" | "Low"
-  isArchived          Boolean  @default(false)
+  isArchived          Boolean   @default(false)
   notes               String?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+
+  createdById         String?
+  createdBy           Employee? @relation("CreatedTargetedClients", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
   deletedAt           DateTime?
 
   @@index([priority])
   @@index([isArchived])
   @@index([district])
   @@index([subDistrict])
+  @@index([createdById])
   @@index([deletedAt])
 }
 
@@ -115,8 +120,9 @@ model Employee {
   updatedAt    DateTime  @updatedAt
   deletedAt    DateTime?
 
-  assignedTasks Task[]   @relation("AssignedTasks")
-  createdTasks  Task[]   @relation("CreatedTasks")
+  assignedTasks          Task[]           @relation("AssignedTasks")
+  createdTasks           Task[]           @relation("CreatedTasks")
+  createdTargetedClients TargetedClient[] @relation("CreatedTargetedClients")
 
   @@index([orderSerial])
   @@index([deletedAt])

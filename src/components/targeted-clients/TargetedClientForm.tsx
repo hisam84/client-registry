@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { TargetedClient, TargetedPriority, TARGETED_PRIORITY_OPTIONS } from "@/lib/types";
 import { Button, Field, inputClass, Modal } from "@/components/ui";
+import { useUserSession } from "@/lib/userSession";
 
 interface Props {
   initial?: TargetedClient | null;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function TargetedClientForm({ initial, onClose, onSaved }: Props) {
+  const { currentUser } = useUserSession();
   const [form, setForm] = useState({
     instituteName: initial?.instituteName ?? "",
     instituteNameBangla: initial?.instituteNameBangla ?? "",
@@ -44,10 +46,15 @@ export function TargetedClientForm({ initial, onClose, onSaved }: Props) {
     try {
       const url = isEditing ? `/api/targeted-clients/${initial!.id}` : "/api/targeted-clients";
       const method = isEditing ? "PUT" : "POST";
+      const bodyPayload = {
+        ...form,
+        createdById: isEditing ? (initial?.createdById || currentUser.id) : currentUser.id,
+      };
+
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(bodyPayload),
       });
 
       if (!res.ok) {

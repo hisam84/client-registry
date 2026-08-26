@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import { Button, Modal } from "@/components/ui";
+import { useUserSession } from "@/lib/userSession";
 
 const targetedTemplateHeaders = [
   "instituteName",
@@ -24,6 +25,7 @@ export function TargetedBulkUpload({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const { currentUser } = useUserSession();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -78,7 +80,10 @@ export function TargetedBulkUpload({
         const res = await fetch("/api/targeted-clients/bulk", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
+          body: JSON.stringify({
+            clients: data,
+            createdById: currentUser.id,
+          }),
         });
 
         const resData = await res.json();
