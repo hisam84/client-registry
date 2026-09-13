@@ -127,19 +127,39 @@ export function InstitutionTable({
                     <div className="flex justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
                       {onAddTask && (
                         <button
+                          type="button"
                           onClick={() => onAddTask(inst)}
-                          className="px-2.5 py-1 text-xs font-semibold rounded-md bg-brass-500/15 text-brass-700 dark:text-brass-400 border border-brass-500/30 hover:bg-brass-500/25 transition-colors flex items-center gap-1"
-                          title="Add task for this institution"
+                          className="p-1.5 text-xs rounded-md bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-colors flex items-center justify-center"
+                          title="Add Task"
+                          aria-label="Add Task"
                         >
-                          <span>+ Task</span>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          </svg>
                         </button>
                       )}
-                      <Button variant="outline" onClick={() => onEdit(inst)}>
-                        Edit
-                      </Button>
-                      <Button variant="danger" onClick={() => onDelete(inst)}>
-                        Delete
-                      </Button>
+                      <button
+                        type="button"
+                        onClick={() => onEdit(inst)}
+                        className="p-1.5 text-xs rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center"
+                        title="Edit Institution"
+                        aria-label="Edit Institution"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onDelete(inst)}
+                        className="p-1.5 text-xs rounded-md bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors flex items-center justify-center"
+                        title="Delete Institution"
+                        aria-label="Delete Institution"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -153,21 +173,42 @@ export function InstitutionTable({
                             <span className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 font-medium">Status:</span>
                             <Badge className={STATUS_COLOR[status]}>{STATUS_LABEL[status]}</Badge>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-1.5">
                             {onAddTask && (
                               <button
+                                type="button"
                                 onClick={() => onAddTask(inst)}
-                                className="px-2.5 py-1 text-xs font-semibold rounded-md bg-brass-500/15 text-brass-700 dark:text-brass-400 border border-brass-500/30 hover:bg-brass-500/25 transition-colors flex items-center gap-1"
+                                className="p-1.5 rounded-md bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 hover:bg-blue-100 transition-colors flex items-center justify-center"
+                                title="Add Task"
+                                aria-label="Add Task"
                               >
-                                <span>+ Task</span>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
                               </button>
                             )}
-                            <Button variant="outline" onClick={() => onEdit(inst)}>
-                              Edit
-                            </Button>
-                            <Button variant="danger" onClick={() => onDelete(inst)}>
-                              Delete
-                            </Button>
+                            <button
+                              type="button"
+                              onClick={() => onEdit(inst)}
+                              className="p-1.5 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-blue-600 transition-colors flex items-center justify-center"
+                              title="Edit"
+                              aria-label="Edit"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => onDelete(inst)}
+                              className="p-1.5 rounded-md bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors flex items-center justify-center"
+                              title="Delete"
+                              aria-label="Delete"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
                           </div>
                         </div>
 
