@@ -32,6 +32,8 @@ export default function TargetedClientsPage() {
   const [editing, setEditing] = useState<TargetedClient | null>(null);
   const [convertingClient, setConvertingClient] = useState<TargetedClient | null>(null);
 
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   // Task modal states
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [taskInstName, setTaskInstName] = useState("");
@@ -52,7 +54,9 @@ export default function TargetedClientsPage() {
     try {
       const res = await fetch("/api/targeted-clients?status=all", { cache: "no-store" });
       const data = await res.json();
-      setAllClients(Array.isArray(data) ? data : []);
+      if (res.ok && Array.isArray(data)) {
+        setAllClients(data);
+      }
     } catch (err) {
       console.error("Failed to load all targeted clients:", err);
     }
@@ -60,6 +64,7 @@ export default function TargetedClientsPage() {
 
   async function loadFiltered() {
     setLoading(true);
+    setErrorMsg(null);
     try {
       const params = new URLSearchParams();
       if (filters.search) params.set("search", filters.search);
@@ -70,14 +75,16 @@ export default function TargetedClientsPage() {
 
       const res = await fetch(`/api/targeted-clients?${params.toString()}`, { cache: "no-store" });
       const data = await res.json();
-      if (Array.isArray(data)) {
+      if (res.ok && Array.isArray(data)) {
         setClients(data);
       } else {
-        console.warn("Targeted clients fetch returned non-array:", data);
+        console.warn("Targeted clients fetch returned error or non-array:", data);
+        setErrorMsg(data?.error || "Failed to load targeted clients.");
         setClients([]);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to load filtered targeted clients:", err);
+      setErrorMsg(err?.message || "Failed to load targeted clients.");
       setClients([]);
     } finally {
       setLoading(false);
@@ -219,6 +226,25 @@ export default function TargetedClientsPage() {
           subDistricts={subDistricts}
         />
       </div>
+
+      {errorMsg && (
+        <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span>⚠️</span>
+            <span className="text-sm font-medium">{errorMsg}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              loadAll();
+              loadFiltered();
+            }}
+            className="px-3 py-1 text-xs font-semibold rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <div className="py-16 text-center text-slate-500">Loading targeted clients…</div>

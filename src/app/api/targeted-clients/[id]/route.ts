@@ -7,25 +7,9 @@ export const revalidate = 0;
 // GET /api/targeted-clients/[id]
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    let client: any;
-    try {
-      client = await (prisma as any).targetedClient.findUnique({
-        where: { id: params.id },
-        include: {
-          createdBy: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-        },
-      });
-    } catch {
-      client = await (prisma as any).targetedClient.findUnique({
-        where: { id: params.id },
-      });
-    }
+    const client = await prisma.targetedClient.findUnique({
+      where: { id: params.id },
+    });
 
     if (!client) {
       return NextResponse.json({ error: "Targeted client not found" }, { status: 404 });
@@ -41,7 +25,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   try {
     const body = await req.json();
 
-    const existing = await (prisma as any).targetedClient.findUnique({
+    const existing = await prisma.targetedClient.findUnique({
       where: { id: params.id },
     });
     if (!existing) {
@@ -52,95 +36,42 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       ? body.priority
       : existing.priority;
 
-    let updated: any;
-    try {
-      updated = await (prisma as any).targetedClient.update({
-        where: { id: params.id },
-        data: {
-          instituteName: typeof body.instituteName === "string" && body.instituteName.trim()
-            ? body.instituteName.trim()
-            : existing.instituteName,
-          instituteNameBangla: body.instituteNameBangla !== undefined
-            ? (body.instituteNameBangla?.trim() || null)
-            : existing.instituteNameBangla,
-          contactPerson: body.contactPerson !== undefined
-            ? (body.contactPerson?.trim() || null)
-            : existing.contactPerson,
-          phone: body.phone !== undefined
-            ? (body.phone?.trim() || null)
-            : existing.phone,
-          email: body.email !== undefined
-            ? (body.email?.trim() || null)
-            : existing.email,
-          district: body.district !== undefined
-            ? (body.district?.trim() || null)
-            : existing.district,
-          subDistrict: body.subDistrict !== undefined
-            ? (body.subDistrict?.trim() || null)
-            : existing.subDistrict,
-          address: body.address !== undefined
-            ? (body.address?.trim() || null)
-            : existing.address,
-          priority: priority,
-          isArchived: body.isArchived !== undefined
-            ? Boolean(body.isArchived)
-            : existing.isArchived,
-          notes: body.notes !== undefined
-            ? (body.notes?.trim() || null)
-            : existing.notes,
-          createdById: body.createdById !== undefined
-            ? (body.createdById || null)
-            : existing.createdById,
-        },
-        include: {
-          createdBy: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-        },
-      });
-    } catch (updateErr: any) {
-      console.warn("targetedClient.update with createdBy failed, retrying without createdById:", updateErr?.message);
-      updated = await (prisma as any).targetedClient.update({
-        where: { id: params.id },
-        data: {
-          instituteName: typeof body.instituteName === "string" && body.instituteName.trim()
-            ? body.instituteName.trim()
-            : existing.instituteName,
-          instituteNameBangla: body.instituteNameBangla !== undefined
-            ? (body.instituteNameBangla?.trim() || null)
-            : existing.instituteNameBangla,
-          contactPerson: body.contactPerson !== undefined
-            ? (body.contactPerson?.trim() || null)
-            : existing.contactPerson,
-          phone: body.phone !== undefined
-            ? (body.phone?.trim() || null)
-            : existing.phone,
-          email: body.email !== undefined
-            ? (body.email?.trim() || null)
-            : existing.email,
-          district: body.district !== undefined
-            ? (body.district?.trim() || null)
-            : existing.district,
-          subDistrict: body.subDistrict !== undefined
-            ? (body.subDistrict?.trim() || null)
-            : existing.subDistrict,
-          address: body.address !== undefined
-            ? (body.address?.trim() || null)
-            : existing.address,
-          priority: priority,
-          isArchived: body.isArchived !== undefined
-            ? Boolean(body.isArchived)
-            : existing.isArchived,
-          notes: body.notes !== undefined
-            ? (body.notes?.trim() || null)
-            : existing.notes,
-        },
-      });
-    }
+    const updated = await prisma.targetedClient.update({
+      where: { id: params.id },
+      data: {
+        instituteName: typeof body.instituteName === "string" && body.instituteName.trim()
+          ? body.instituteName.trim()
+          : existing.instituteName,
+        instituteNameBangla: body.instituteNameBangla !== undefined
+          ? (body.instituteNameBangla?.trim() || null)
+          : existing.instituteNameBangla,
+        contactPerson: body.contactPerson !== undefined
+          ? (body.contactPerson?.trim() || null)
+          : existing.contactPerson,
+        phone: body.phone !== undefined
+          ? (body.phone?.trim() || null)
+          : existing.phone,
+        email: body.email !== undefined
+          ? (body.email?.trim() || null)
+          : existing.email,
+        district: body.district !== undefined
+          ? (body.district?.trim() || null)
+          : existing.district,
+        subDistrict: body.subDistrict !== undefined
+          ? (body.subDistrict?.trim() || null)
+          : existing.subDistrict,
+        address: body.address !== undefined
+          ? (body.address?.trim() || null)
+          : existing.address,
+        priority: priority,
+        isArchived: body.isArchived !== undefined
+          ? Boolean(body.isArchived)
+          : existing.isArchived,
+        notes: body.notes !== undefined
+          ? (body.notes?.trim() || null)
+          : existing.notes,
+      },
+    });
 
     return NextResponse.json(updated);
   } catch (error: any) {

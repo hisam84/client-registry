@@ -14,70 +14,81 @@ export async function GET(req: NextRequest) {
     const subDistrict = params.get("subDistrict");
     const status = params.get("status"); // "active" | "archived" | "all"
 
-    const where: any = {
-      deletedAt: null,
-    };
+    const and: any[] = [{ deletedAt: null }];
 
     if (search) {
-      where.OR = [
-        { instituteName: { contains: search, mode: "insensitive" } },
-        { instituteNameBangla: { contains: search, mode: "insensitive" } },
-        { contactPerson: { contains: search, mode: "insensitive" } },
-        { phone: { contains: search, mode: "insensitive" } },
-        { email: { contains: search, mode: "insensitive" } },
-        { district: { contains: search, mode: "insensitive" } },
-        { subDistrict: { contains: search, mode: "insensitive" } },
-        { address: { contains: search, mode: "insensitive" } },
-      ];
+      and.push({
+        OR: [
+          { instituteName: { contains: search, mode: "insensitive" } },
+          { instituteNameBangla: { contains: search, mode: "insensitive" } },
+          { contactPerson: { contains: search, mode: "insensitive" } },
+          { phone: { contains: search, mode: "insensitive" } },
+          { email: { contains: search, mode: "insensitive" } },
+          { district: { contains: search, mode: "insensitive" } },
+          { subDistrict: { contains: search, mode: "insensitive" } },
+          { address: { contains: search, mode: "insensitive" } },
+        ],
+      });
     }
 
     if (priority && priority !== "all") {
-      where.priority = priority;
+      and.push({ priority });
     }
 
     if (district) {
-      where.district = { equals: district, mode: "insensitive" };
+      and.push({ district: { equals: district, mode: "insensitive" } });
     }
 
     if (subDistrict) {
-      where.subDistrict = { equals: subDistrict, mode: "insensitive" };
+      and.push({ subDistrict: { equals: subDistrict, mode: "insensitive" } });
     }
 
     if (status === "archived") {
-      where.isArchived = true;
+      and.push({ isArchived: true });
     } else if (status === "active" || !status) {
       // Matches both false and null (ensures legacy/unmigrated records show)
-      where.isArchived = { not: true };
+      and.push({
+        OR: [
+          { isArchived: false },
+          { isArchived: null },
+        ],
+      });
     }
     // if status === "all", don't filter by isArchived
 
+    const where: any = { AND: and };
+
     let clients: any[] = [];
     try {
-      clients = await (prisma as any).targetedClient.findMany({
-        where,
-        include: {
-          createdBy: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-        },
-        orderBy: [
-          { isArchived: "asc" },
-          { createdAt: "desc" },
-        ],
-      });
-    } catch (includeError: any) {
-      console.warn("targetedClient.findMany with include failed, retrying without createdBy relation:", includeError?.message);
-      clients = await (prisma as any).targetedClient.findMany({
+      clients = await prisma.targetedClient.findMany({
         where,
         orderBy: [
           { isArchived: "asc" },
           { createdAt: "desc" },
         ],
       });
+    } catch (primaryErr: any) {
+      console.warn("targetedClient.findMany with AND where failed, trying without deletedAt filter:", primaryErr?.message);
+      try {
+        const fallbackAnd = and.filter((item) => !item.deletedAt);
+        clients = await prisma.targetedClient.findMany({
+          where: fallbackAnd.length > 0 ? { AND: fallbackAnd } : {},
+          orderBy: [
+            { isArchived: "asc" },
+            { createdAt: "desc" },
+          ],
+        });
+      } catch (secErr: any) {
+        console.warn("targetedClient.findMany fallback failed, fetching without filters:", secErr?.message);
+        try {
+          clients = await prisma.targetedClient.findMany({
+            orderBy: { createdAt: "desc" },
+          });
+        } catch (minErr: any) {
+          console.error("targetedClient.findMany minimal query failed:", minErr?.message);
+          clients = [];
+        }
+      }
     }
 
     const PRIORITY_ORDER: Record<string, number> = {
@@ -116,51 +127,21 @@ export async function POST(req: NextRequest) {
 
     const priority = ["High", "Default", "Low"].includes(body.priority) ? body.priority : "Default";
 
-    let created: any;
-    try {
-      created = await (prisma as any).targetedClient.create({
-        data: {
-          instituteName: body.instituteName.trim(),
-          instituteNameBangla: body.instituteNameBangla?.trim() || null,
-          contactPerson: body.contactPerson?.trim() || null,
-          phone: body.phone?.trim() || null,
-          email: body.email?.trim() || null,
-          district: body.district?.trim() || null,
-          subDistrict: body.subDistrict?.trim() || null,
-          address: body.address?.trim() || null,
-          priority: priority,
-          isArchived: Boolean(body.isArchived),
-          notes: body.notes?.trim() || null,
-          createdById: body.createdById || null,
-        },
-        include: {
-          createdBy: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-        },
-      });
-    } catch (createErr: any) {
-      console.warn("targetedClient.create with createdById failed, retrying without createdById:", createErr?.message);
-      created = await (prisma as any).targetedClient.create({
-        data: {
-          instituteName: body.instituteName.trim(),
-          instituteNameBangla: body.instituteNameBangla?.trim() || null,
-          contactPerson: body.contactPerson?.trim() || null,
-          phone: body.phone?.trim() || null,
-          email: body.email?.trim() || null,
-          district: body.district?.trim() || null,
-          subDistrict: body.subDistrict?.trim() || null,
-          address: body.address?.trim() || null,
-          priority: priority,
-          isArchived: Boolean(body.isArchived),
-          notes: body.notes?.trim() || null,
-        },
-      });
-    }
+    const created = await prisma.targetedClient.create({
+      data: {
+        instituteName: body.instituteName.trim(),
+        instituteNameBangla: body.instituteNameBangla?.trim() || null,
+        contactPerson: body.contactPerson?.trim() || null,
+        phone: body.phone?.trim() || null,
+        email: body.email?.trim() || null,
+        district: body.district?.trim() || null,
+        subDistrict: body.subDistrict?.trim() || null,
+        address: body.address?.trim() || null,
+        priority: priority,
+        isArchived: Boolean(body.isArchived),
+        notes: body.notes?.trim() || null,
+      },
+    });
 
     return NextResponse.json(created, { status: 201 });
   } catch (error: any) {

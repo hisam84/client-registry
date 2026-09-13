@@ -29,8 +29,6 @@ export async function POST(req: NextRequest) {
         priority = "Default";
       }
 
-      const createdById = item.createdById || defaultCreatedById;
-
       recordsToCreate.push({
         instituteName: String(instituteName).trim(),
         instituteNameBangla: item.instituteNameBangla || item["Institute Name Bangla"] || item["instituteName (Bangla)"] ? String(item.instituteNameBangla || item["Institute Name Bangla"] || item["instituteName (Bangla)"]).trim() : null,
@@ -43,7 +41,6 @@ export async function POST(req: NextRequest) {
         priority: priority,
         notes: item.notes || item["Notes"] || item["Remarks"] ? String(item.notes || item["Notes"] || item["Remarks"]).trim() : null,
         isArchived: false,
-        createdById: createdById ? String(createdById) : null,
       });
     }
 
@@ -51,18 +48,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No valid client records found in uploaded file. Check 'instituteName' column." }, { status: 400 });
     }
 
-    let created: any;
-    try {
-      created = await (prisma as any).targetedClient.createMany({
-        data: recordsToCreate,
-      });
-    } catch (createManyErr: any) {
-      console.warn("targetedClient.createMany with createdById failed, retrying without createdById:", createManyErr?.message);
-      const strippedRecords = recordsToCreate.map(({ createdById, ...rest }) => rest);
-      created = await (prisma as any).targetedClient.createMany({
-        data: strippedRecords,
-      });
-    }
+    const created = await prisma.targetedClient.createMany({
+      data: recordsToCreate,
+    });
 
     return NextResponse.json({ count: created.count, message: `Successfully imported ${created.count} targeted clients.` }, { status: 201 });
   } catch (error: any) {
