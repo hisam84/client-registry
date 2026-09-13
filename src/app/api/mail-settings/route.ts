@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const settings = await getMailSettings();
-    const brevoSenderEmail = process.env.BREVO_SENDER_EMAIL || DEFAULT_BREVO_CONFIG.senderEmail;
+    const brevoSenderEmail = "imperialitbd2011@gmail.com";
     const hasApiKey = Boolean(process.env.BREVO_API_KEY || DEFAULT_BREVO_CONFIG.apiKey);
     const hasSmtpUser = Boolean(process.env.BREVO_SMTP_USER || DEFAULT_BREVO_CONFIG.smtpUser);
 

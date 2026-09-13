@@ -245,7 +245,7 @@ export default function MailSettingsPage() {
                 <span>{providerInfo?.name || "Brevo (Sendinblue)"}</span>
               </h4>
               <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                Verified Sender: <strong className="font-mono text-slate-800 dark:text-slate-200">{providerInfo?.senderEmail || "hisam.uddin844@gmail.com"}</strong>
+                Verified Sender: <strong className="font-mono text-slate-800 dark:text-slate-200">{providerInfo?.senderEmail || "imperialitbd2011@gmail.com"}</strong>
               </p>
             </div>
 
