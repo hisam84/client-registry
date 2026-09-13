@@ -26,8 +26,18 @@ export function SidebarLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifPopover, setShowNotifPopover] = useState(false);
   const [urgentTasks, setUrgentTasks] = useState<any[]>([]);
+  const [dismissedAlertIds, setDismissedAlertIds] = useState<string[]>([]);
   const notifRef = useRef<HTMLDivElement>(null);
   const mobileNotifRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("dismissed_task_alerts");
+      if (stored) {
+        setDismissedAlertIds(JSON.parse(stored));
+      }
+    } catch {}
+  }, []);
 
   const pathname = usePathname();
   const router = useRouter();
@@ -103,8 +113,30 @@ export function SidebarLayout({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  function handleDismissAlert(taskId: string) {
+    setDismissedAlertIds((prev) => {
+      const next = prev.includes(taskId) ? prev : [...prev, taskId];
+      try {
+        localStorage.setItem("dismissed_task_alerts", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  }
+
+  function handleDismissAllAlerts() {
+    const ids = urgentTasks.map((t) => t.id);
+    setDismissedAlertIds((prev) => {
+      const next = Array.from(new Set([...prev, ...ids]));
+      try {
+        localStorage.setItem("dismissed_task_alerts", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  }
+
   async function handleQuickComplete(taskId: string) {
     try {
+      handleDismissAlert(taskId);
       await fetch(`/api/tasks/${taskId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -191,7 +223,8 @@ export function SidebarLayout({
 
   const navItems = allNavItems;
 
-  const urgentCount = urgentTasks.length;
+  const activeUrgentTasks = urgentTasks.filter((t) => !dismissedAlertIds.includes(t.id));
+  const urgentCount = activeUrgentTasks.length;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col md:flex-row transition-colors relative">
@@ -254,12 +287,24 @@ export function SidebarLayout({
                       </span>
                     )}
                   </h3>
-                  <button
-                    onClick={() => setShowNotifPopover(false)}
-                    className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-md"
-                  >
-                    ✕
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {activeUrgentTasks.length > 0 && (
+                      <button
+                        onClick={handleDismissAllAlerts}
+                        className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:underline transition-colors"
+                        title="Dismiss all alerts"
+                      >
+                        Clear all
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setShowNotifPopover(false)}
+                      className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-md"
+                      title="Close"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </div>
 
                 {urgentCount === 0 ? (
@@ -268,7 +313,7 @@ export function SidebarLayout({
                   </div>
                 ) : (
                   <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-                    {urgentTasks.map((t) => {
+                    {activeUrgentTasks.map((t) => {
                       const due = new Date(t.dueDate);
                       const now = new Date();
                       const diffMs = due.getTime() - now.getTime();
@@ -301,13 +346,24 @@ export function SidebarLayout({
                             </span>
                           </div>
 
-                          <button
-                            onClick={() => handleQuickComplete(t.id)}
-                            className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold rounded-lg hover:bg-emerald-500/20 transition-colors shrink-0"
-                            title="Mark task completed"
-                          >
-                            Complete
-                          </button>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              onClick={() => handleQuickComplete(t.id)}
+                              className="px-2 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold rounded-lg hover:bg-emerald-500/20 transition-colors"
+                              title="Mark task completed"
+                            >
+                              Complete
+                            </button>
+                            <button
+                              onClick={() => handleDismissAlert(t.id)}
+                              className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors"
+                              title="Dismiss alert"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
                         </div>
                       );
                     })}
@@ -637,12 +693,24 @@ export function SidebarLayout({
                           </span>
                         )}
                       </h3>
-                      <button
-                        onClick={() => setShowNotifPopover(false)}
-                        className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-md"
-                      >
-                        ✕
-                      </button>
+                      <div className="flex items-center gap-2">
+                        {activeUrgentTasks.length > 0 && (
+                          <button
+                            onClick={handleDismissAllAlerts}
+                            className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:underline transition-colors"
+                            title="Dismiss all alerts"
+                          >
+                            Clear all
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setShowNotifPopover(false)}
+                          className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-md"
+                          title="Close"
+                        >
+                          ✕
+                        </button>
+                      </div>
                     </div>
 
                     {urgentCount === 0 ? (
@@ -651,7 +719,7 @@ export function SidebarLayout({
                       </div>
                     ) : (
                       <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-                        {urgentTasks.map((t) => {
+                        {activeUrgentTasks.map((t) => {
                           const due = new Date(t.dueDate);
                           const now = new Date();
                           const diffMs = due.getTime() - now.getTime();
@@ -684,13 +752,24 @@ export function SidebarLayout({
                                 </span>
                               </div>
 
-                              <button
-                                onClick={() => handleQuickComplete(t.id)}
-                                className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold rounded-lg hover:bg-emerald-500/20 transition-colors shrink-0"
-                                title="Mark task completed"
-                              >
-                                Complete
-                              </button>
+                              <div className="flex items-center gap-1 shrink-0">
+                                <button
+                                  onClick={() => handleQuickComplete(t.id)}
+                                  className="px-2 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold rounded-lg hover:bg-emerald-500/20 transition-colors"
+                                  title="Mark task completed"
+                                >
+                                  Complete
+                                </button>
+                                <button
+                                  onClick={() => handleDismissAlert(t.id)}
+                                  className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors"
+                                  title="Dismiss alert"
+                                >
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              </div>
                             </div>
                           );
                         })}

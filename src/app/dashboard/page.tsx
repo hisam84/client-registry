@@ -56,6 +56,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [showTaskModal, setShowTaskModal] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   async function loadOverview(showLoading = false) {
     if (showLoading && !data) setLoading(true);
@@ -256,7 +257,7 @@ export default function DashboardPage() {
           </div>
 
           {/* URGENT TASK DEADLINE ALERT BANNER */}
-          {((tsk?.overdue || 0) > 0 || (tsk?.tasksToday || 0) > 0) && (
+          {!bannerDismissed && ((tsk?.overdue || 0) > 0 || (tsk?.tasksToday || 0) > 0) && (
             <div className="rounded-xl border border-amber-500/40 dark:border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <svg className="w-6 h-6 text-amber-600 dark:text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -281,11 +282,23 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <Link href="/tasks">
-                <button className="px-3.5 py-1.5 bg-amber-500 text-slate-950 font-semibold text-xs rounded-lg hover:bg-amber-400 transition-colors shadow shrink-0">
-                  View Tasks →
+              <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                <Link href="/tasks">
+                  <button className="px-3.5 py-1.5 bg-amber-500 text-slate-950 font-semibold text-xs rounded-lg hover:bg-amber-400 transition-colors shadow shrink-0">
+                    View Tasks →
+                  </button>
+                </Link>
+                <button
+                  onClick={() => setBannerDismissed(true)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-amber-500/20 rounded-lg transition-colors"
+                  title="Dismiss alert"
+                  aria-label="Dismiss alert"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
-              </Link>
+              </div>
             </div>
           )}
 
