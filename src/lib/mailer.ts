@@ -194,7 +194,9 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
   return { success: false, error: noConfigMsg };
 }
 
-const loginUrl = "https://client-registry-gray.vercel.app/login";
+const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || "https://impdatabase.vercel.app").replace(/\/$/, "");
+const loginUrl = `${SITE_URL}/login`;
+const tasksUrl = `${SITE_URL}/tasks`;
 
 /**
  * 1. Password Reset OTP Email (English Only, Responsive Blue Styling)
@@ -245,7 +247,7 @@ export async function sendOTPEmail(data: { email: string; otp: string }) {
           </tr>
           <tr>
             <td style="background-color: #E3F2FD; padding: 14px; text-align: center; font-size: 12px; color: #0D47A1; border-top: 1px solid #90CAF9;">
-              Client Registry Management System &copy; ${new Date().getFullYear()}
+              Client Registry Management System &copy; ${new Date().getFullYear()} &middot; <a href="${SITE_URL}" style="color: #0D47A1; text-decoration: underline;">impdatabase.vercel.app</a>
             </td>
           </tr>
         </table>
@@ -263,7 +265,7 @@ Your one-time verification code (OTP) is: ${otp}
 
 This code is valid for 10 minutes. If you did not make this request, please ignore this message.
 
-Client Registry Management System
+Client Registry Management System (impdatabase.vercel.app)
   `.trim();
 
   return sendEmail({
@@ -392,7 +394,7 @@ export async function sendTaskAssignmentEmail(data: TaskEmailData) {
               <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                 <tr>
                   <td align="center" style="padding: 8px 0 20px 0;">
-                    <a href="${loginUrl}" target="_blank" style="background-color: #2196F3; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-size: 14px; font-weight: bold; display: inline-block; box-shadow: 0 3px 8px rgba(33, 150, 243, 0.3);">
+                    <a href="${tasksUrl}" target="_blank" style="background-color: #2196F3; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-size: 14px; font-weight: bold; display: inline-block; box-shadow: 0 3px 8px rgba(33, 150, 243, 0.3);">
                       Open Task Dashboard
                     </a>
                   </td>
@@ -400,7 +402,7 @@ export async function sendTaskAssignmentEmail(data: TaskEmailData) {
               </table>
 
               <p style="font-size: 12px; color: #94A3B8; text-align: center; margin: 0; line-height: 1.4;">
-                Access URL: <a href="${loginUrl}" style="color: #2196F3; text-decoration: underline;">${loginUrl}</a>
+                Access URL: <a href="${tasksUrl}" style="color: #2196F3; text-decoration: underline;">${tasksUrl}</a>
               </p>
             </td>
           </tr>
@@ -408,7 +410,7 @@ export async function sendTaskAssignmentEmail(data: TaskEmailData) {
           <!-- Footer -->
           <tr>
             <td style="background-color: #E3F2FD; padding: 14px; text-align: center; font-size: 12px; color: #0D47A1; border-top: 1px solid #90CAF9;">
-              Client Registry Management System &copy; ${new Date().getFullYear()}
+              Client Registry Management System &copy; ${new Date().getFullYear()} &middot; <a href="${SITE_URL}" style="color: #0D47A1; text-decoration: underline;">impdatabase.vercel.app</a>
             </td>
           </tr>
         </table>
@@ -432,9 +434,9 @@ Due Date: ${formattedDate}
 Priority: ${priority}
 ${institutionName ? `Institution: ${institutionName}\n` : ""}${description ? `Description: ${description}\n` : ""}
 Open Task Dashboard:
-${loginUrl}
+${tasksUrl}
 
-Client Registry Management System
+Client Registry Management System (impdatabase.vercel.app)
   `.trim();
 
   await sendEmail({
@@ -563,7 +565,7 @@ export async function sendTaskDueSoonEmail(data: TaskAlertEmailData) {
               <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                 <tr>
                   <td align="center" style="padding: 8px 0 20px 0;">
-                    <a href="${loginUrl}" target="_blank" style="background-color: #2196F3; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-size: 14px; font-weight: bold; display: inline-block; box-shadow: 0 3px 8px rgba(33, 150, 243, 0.3);">
+                    <a href="${tasksUrl}" target="_blank" style="background-color: #2196F3; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-size: 14px; font-weight: bold; display: inline-block; box-shadow: 0 3px 8px rgba(33, 150, 243, 0.3);">
                       Complete or Update Task
                     </a>
                   </td>
@@ -571,7 +573,7 @@ export async function sendTaskDueSoonEmail(data: TaskAlertEmailData) {
               </table>
 
               <p style="font-size: 12px; color: #94A3B8; text-align: center; margin: 0; line-height: 1.4;">
-                Direct link: <a href="${loginUrl}" style="color: #2196F3; text-decoration: underline;">${loginUrl}</a>
+                Direct link: <a href="${tasksUrl}" style="color: #2196F3; text-decoration: underline;">${tasksUrl}</a>
               </p>
             </td>
           </tr>
@@ -579,7 +581,7 @@ export async function sendTaskDueSoonEmail(data: TaskAlertEmailData) {
           <!-- Footer -->
           <tr>
             <td style="background-color: #E3F2FD; padding: 14px; text-align: center; font-size: 12px; color: #0D47A1; border-top: 1px solid #90CAF9;">
-              Client Registry Management System &copy; ${new Date().getFullYear()}
+              Client Registry Management System &copy; ${new Date().getFullYear()} &middot; <a href="${SITE_URL}" style="color: #0D47A1; text-decoration: underline;">impdatabase.vercel.app</a>
             </td>
           </tr>
         </table>
@@ -603,9 +605,9 @@ Priority: ${priority}
 Assigned By: ${assignedByText}
 ${institutionName ? `Institution: ${institutionName}\n` : ""}${description ? `Description: ${description}\n` : ""}
 View and update on Dashboard:
-${loginUrl}
+${tasksUrl}
 
-Client Registry Management System
+Client Registry Management System (impdatabase.vercel.app)
   `.trim();
 
   await sendEmail({
@@ -737,7 +739,7 @@ export async function sendTaskOverdueEmail(data: TaskAlertEmailData) {
               <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                 <tr>
                   <td align="center" style="padding: 8px 0 20px 0;">
-                    <a href="${loginUrl}" target="_blank" style="background-color: #DC2626; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-size: 14px; font-weight: bold; display: inline-block; box-shadow: 0 3px 8px rgba(220, 38, 38, 0.3);">
+                    <a href="${tasksUrl}" target="_blank" style="background-color: #DC2626; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-size: 14px; font-weight: bold; display: inline-block; box-shadow: 0 3px 8px rgba(220, 38, 38, 0.3);">
                       Resolve Overdue Task
                     </a>
                   </td>
@@ -745,7 +747,7 @@ export async function sendTaskOverdueEmail(data: TaskAlertEmailData) {
               </table>
 
               <p style="font-size: 12px; color: #94A3B8; text-align: center; margin: 0; line-height: 1.4;">
-                Direct link: <a href="${loginUrl}" style="color: #2196F3; text-decoration: underline;">${loginUrl}</a>
+                Direct link: <a href="${tasksUrl}" style="color: #2196F3; text-decoration: underline;">${tasksUrl}</a>
               </p>
             </td>
           </tr>
@@ -753,7 +755,7 @@ export async function sendTaskOverdueEmail(data: TaskAlertEmailData) {
           <!-- Footer -->
           <tr>
             <td style="background-color: #E3F2FD; padding: 14px; text-align: center; font-size: 12px; color: #0D47A1; border-top: 1px solid #90CAF9;">
-              Client Registry Management System &copy; ${new Date().getFullYear()}
+              Client Registry Management System &copy; ${new Date().getFullYear()} &middot; <a href="${SITE_URL}" style="color: #0D47A1; text-decoration: underline;">impdatabase.vercel.app</a>
             </td>
           </tr>
         </table>
@@ -777,9 +779,9 @@ Priority: ${priority}
 Assigned By: ${assignedByText}
 ${institutionName ? `Institution: ${institutionName}\n` : ""}${description ? `Description: ${description}\n` : ""}
 Please resolve this task on your dashboard immediately:
-${loginUrl}
+${tasksUrl}
 
-Client Registry Management System
+Client Registry Management System (impdatabase.vercel.app)
   `.trim();
 
   const ccList = assignerEmail && assignerEmail !== assignedToEmail ? [assignerEmail] : undefined;
@@ -909,7 +911,7 @@ export async function sendTaskCompletionEmail(data: TaskCompletionEmailData) {
               <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                 <tr>
                   <td align="center" style="padding: 8px 0 20px 0;">
-                    <a href="${loginUrl}" target="_blank" style="background-color: #2196F3; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-size: 14px; font-weight: bold; display: inline-block; box-shadow: 0 3px 8px rgba(33, 150, 243, 0.3);">
+                    <a href="${tasksUrl}" target="_blank" style="background-color: #2196F3; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-size: 14px; font-weight: bold; display: inline-block; box-shadow: 0 3px 8px rgba(33, 150, 243, 0.3);">
                       View on Dashboard
                     </a>
                   </td>
@@ -917,7 +919,7 @@ export async function sendTaskCompletionEmail(data: TaskCompletionEmailData) {
               </table>
 
               <p style="font-size: 12px; color: #94A3B8; text-align: center; margin: 0; line-height: 1.4;">
-                Direct link: <a href="${loginUrl}" style="color: #2196F3; text-decoration: underline;">${loginUrl}</a>
+                Direct link: <a href="${tasksUrl}" style="color: #2196F3; text-decoration: underline;">${tasksUrl}</a>
               </p>
             </td>
           </tr>
@@ -925,7 +927,7 @@ export async function sendTaskCompletionEmail(data: TaskCompletionEmailData) {
           <!-- Footer -->
           <tr>
             <td style="background-color: #E3F2FD; padding: 14px; text-align: center; font-size: 12px; color: #0D47A1; border-top: 1px solid #90CAF9;">
-              Client Registry Management System &copy; ${new Date().getFullYear()}
+              Client Registry Management System &copy; ${new Date().getFullYear()} &middot; <a href="${SITE_URL}" style="color: #0D47A1; text-decoration: underline;">impdatabase.vercel.app</a>
             </td>
           </tr>
         </table>
@@ -949,9 +951,9 @@ Completion Time: ${completionDate}
 Original Due Date: ${formattedDueDate}
 ${institutionName ? `Institution: ${institutionName}\n` : ""}${completionNote ? `Completion Note: ${completionNote}\n` : ""}
 View on Dashboard:
-${loginUrl}
+${tasksUrl}
 
-Client Registry Management System
+Client Registry Management System (impdatabase.vercel.app)
   `.trim();
 
   await sendEmail({
