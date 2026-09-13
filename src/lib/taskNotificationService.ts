@@ -71,7 +71,7 @@ export async function checkAndSendTaskAlerts(): Promise<TaskAlertCheckResult> {
       // Rule: Trigger if due within 2 hours, BUT SKIP if total task lifetime is less than 2 hours.
       const isDueInTwoHours = msUntilDue > 0 && msUntilDue <= TWO_HOURS_MS;
       const isEligibleDuration = totalDurationMs >= TWO_HOURS_MS;
-      const reminderAlreadySent = Boolean(task.reminderSentAt) || sentRemindersMemory.has(task.id);
+      const reminderAlreadySent = (task as any).reminderSentAt ? true : sentRemindersMemory.has(task.id);
 
       if (isDueInTwoHours && isEligibleDuration && !reminderAlreadySent) {
         try {
@@ -89,16 +89,6 @@ export async function checkAndSendTaskAlerts(): Promise<TaskAlertCheckResult> {
 
           sentRemindersMemory.add(task.id);
           result.remindersSent++;
-
-          // Attempt to update database timestamp
-          try {
-            await (prisma as any).task.update({
-              where: { id: task.id },
-              data: { reminderSentAt: now },
-            });
-          } catch (dbErr) {
-            // Safe fallback if column not yet added to live DB
-          }
         } catch (err: any) {
           result.errors.push(`Failed to send 2h reminder for task ${task.id}: ${err.message}`);
         }
@@ -106,7 +96,7 @@ export async function checkAndSendTaskAlerts(): Promise<TaskAlertCheckResult> {
 
       // CASE B: Task Overdue Alert
       const isOverdue = msUntilDue < 0;
-      const overdueAlreadySent = Boolean(task.overdueSentAt) || sentOverdueMemory.has(task.id);
+      const overdueAlreadySent = (task as any).overdueSentAt ? true : sentOverdueMemory.has(task.id);
 
       if (isOverdue && !overdueAlreadySent) {
         try {
@@ -128,16 +118,6 @@ export async function checkAndSendTaskAlerts(): Promise<TaskAlertCheckResult> {
 
           sentOverdueMemory.add(task.id);
           result.overdueSent++;
-
-          // Attempt to update database timestamp
-          try {
-            await (prisma as any).task.update({
-              where: { id: task.id },
-              data: { overdueSentAt: now },
-            });
-          } catch (dbErr) {
-            // Safe fallback if column not yet added to live DB
-          }
         } catch (err: any) {
           result.errors.push(`Failed to send overdue alert for task ${task.id}: ${err.message}`);
         }
