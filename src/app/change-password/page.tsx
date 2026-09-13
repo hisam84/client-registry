@@ -53,7 +53,7 @@ export default function ChangePasswordPage() {
       const res = await fetch("/api/auth/change-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ otp, newPassword }),
+        body: JSON.stringify({ email, otp, newPassword }),
       });
       const data = await res.json();
 
@@ -75,16 +75,16 @@ export default function ChangePasswordPage() {
   return (
     <SidebarLayout
       title="Change Password"
-      subtitle="Request OTP and reset your administrative password"
+      subtitle="Request OTP and reset your account password"
     >
       <div className="flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 p-8 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800">
           <div>
             <h2 className="mt-2 text-center text-2xl font-bold text-[#0D47A1] dark:text-[#E3F2FD]">
-              Change Admin Password
+              Reset Account Password
             </h2>
             <p className="mt-2 text-center text-xs text-slate-600 dark:text-slate-400">
-              {step === 1 ? "Enter your admin email to receive an OTP code" : "Enter the OTP sent to your email and your new password"}
+              {step === 1 ? "Enter your registered email to receive an OTP verification code" : "Enter the OTP sent to your email and your new password"}
             </p>
           </div>
 
@@ -110,7 +110,7 @@ export default function ChangePasswordPage() {
                   type="email"
                   required
                   className="appearance-none rounded-lg relative block w-full px-3 py-2.5 border border-[#90CAF9] dark:border-slate-700 placeholder-slate-400 text-slate-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2196F3]/30 focus:border-[#2196F3] sm:text-sm font-medium"
-                  placeholder="Admin Email Address"
+                  placeholder="Your Registered Email Address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />

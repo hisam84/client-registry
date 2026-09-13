@@ -1,4 +1,55 @@
 import nodemailer from "nodemailer";
+import { prisma } from "@/lib/prisma";
+import { MailServiceSettings, DEFAULT_MAIL_SETTINGS } from "@/lib/mailTypes";
+
+export { type MailServiceSettings, DEFAULT_MAIL_SETTINGS };
+
+export async function getMailSettings(): Promise<MailServiceSettings> {
+  try {
+    const record = await (prisma as any).siteSettings.findUnique({
+      where: { id: "mail_settings" },
+    });
+    if (record?.adminEmail) {
+      const data = JSON.parse(record.adminEmail);
+      return {
+        masterEnabled: typeof data.masterEnabled === "boolean" ? data.masterEnabled : true,
+        taskAssignment: typeof data.taskAssignment === "boolean" ? data.taskAssignment : true,
+        passwordReset: typeof data.passwordReset === "boolean" ? data.passwordReset : true,
+        taskOverdue: typeof data.taskOverdue === "boolean" ? data.taskOverdue : true,
+        taskDueSoon: typeof data.taskDueSoon === "boolean" ? data.taskDueSoon : true,
+        taskCompletion: typeof data.taskCompletion === "boolean" ? data.taskCompletion : true,
+      };
+    }
+  } catch (err: any) {
+    console.warn("Could not load mail settings:", err?.message);
+  }
+  return { ...DEFAULT_MAIL_SETTINGS };
+}
+
+export async function saveMailSettings(settings: Partial<MailServiceSettings>): Promise<MailServiceSettings> {
+  const current = await getMailSettings();
+  const updated: MailServiceSettings = {
+    ...current,
+    ...settings,
+  };
+  try {
+    const payload = JSON.stringify(updated);
+    await (prisma as any).siteSettings.upsert({
+      where: { id: "mail_settings" },
+      create: {
+        id: "mail_settings",
+        password: "mail_config",
+        adminEmail: payload,
+      },
+      update: {
+        adminEmail: payload,
+      },
+    });
+  } catch (err: any) {
+    console.error("Could not save mail settings:", err?.message);
+  }
+  return updated;
+}
 
 export interface TaskEmailData {
   taskTitle: string;
@@ -172,6 +223,12 @@ const tasksUrl = `${SITE_URL}/tasks`;
 export async function sendOTPEmail(data: { email: string; otp: string }) {
   const { email, otp } = data;
 
+  const settings = await getMailSettings();
+  if (!settings.masterEnabled || !settings.passwordReset) {
+    console.log("Password reset OTP email skipped: service disabled in Mail Settings.");
+    return { success: false, error: "Password reset email service is currently disabled." };
+  }
+
   const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -248,6 +305,12 @@ Client Registry Management System (impdatabase.vercel.app)
  * 2. Task Assignment Email (Dispatched When Task is Created or Reassigned)
  */
 export async function sendTaskAssignmentEmail(data: TaskEmailData) {
+  const settings = await getMailSettings();
+  if (!settings.masterEnabled || !settings.taskAssignment) {
+    console.log("Task assignment email skipped: service disabled in Mail Settings.");
+    return { success: false, error: "Task assignment email service is currently disabled." };
+  }
+
   const {
     taskTitle,
     description,
@@ -420,6 +483,12 @@ Client Registry Management System (impdatabase.vercel.app)
  * 3. Task Due in 2 Hours Alert Email
  */
 export async function sendTaskDueSoonEmail(data: TaskAlertEmailData) {
+  const settings = await getMailSettings();
+  if (!settings.masterEnabled || !settings.taskDueSoon) {
+    console.log("2-hour reminder email skipped: service disabled in Mail Settings.");
+    return { success: false, error: "2-hour deadline reminder email service is currently disabled." };
+  }
+
   const {
     taskTitle,
     description,
@@ -591,6 +660,12 @@ Client Registry Management System (impdatabase.vercel.app)
  * 4. Task Overdue Alert Email
  */
 export async function sendTaskOverdueEmail(data: TaskAlertEmailData) {
+  const settings = await getMailSettings();
+  if (!settings.masterEnabled || !settings.taskOverdue) {
+    console.log("Task overdue email skipped: service disabled in Mail Settings.");
+    return { success: false, error: "Task overdue alert email service is currently disabled." };
+  }
+
   const {
     taskTitle,
     description,
@@ -752,12 +827,9 @@ ${tasksUrl}
 Client Registry Management System (impdatabase.vercel.app)
   `.trim();
 
-  const ccList = assignerEmail && assignerEmail !== assignedToEmail ? [assignerEmail] : undefined;
-
   await sendEmail({
     to: assignedToEmail,
     toName: assignedToName,
-    cc: ccList,
     subject: `[OVERDUE ALERT] Task Overdue: ${taskTitle}`,
     text,
     html,
@@ -768,6 +840,12 @@ Client Registry Management System (impdatabase.vercel.app)
  * 5. Task Completion Confirmation Email (Optional)
  */
 export async function sendTaskCompletionEmail(data: TaskCompletionEmailData) {
+  const settings = await getMailSettings();
+  if (!settings.masterEnabled || !settings.taskCompletion) {
+    console.log("Task completion confirmation email skipped: service disabled in Mail Settings.");
+    return { success: false, error: "Task completion email service is currently disabled." };
+  }
+
   const {
     taskTitle,
     description,

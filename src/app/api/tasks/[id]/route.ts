@@ -157,31 +157,12 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       });
     }
 
+    // Optional completion confirmation email sent exclusively to the task assigner
     if (updated.status === "Completed" && body.sendCompletionEmail) {
-      const completionRecipients: { email: string; name: string }[] = [];
-      if (updated.assignedBy?.email) {
-        completionRecipients.push({
-          email: updated.assignedBy.email,
-          name: updated.assignedBy.name || "Administrator",
-        });
-      }
-      if (
-        updated.assignedTo?.email &&
-        !completionRecipients.some((r) => r.email === updated.assignedTo.email)
-      ) {
-        completionRecipients.push({
-          email: updated.assignedTo.email,
-          name: updated.assignedTo.name || "Team Member",
-        });
-      }
-      if (completionRecipients.length === 0 && process.env.ADMIN_EMAIL) {
-        completionRecipients.push({
-          email: process.env.ADMIN_EMAIL,
-          name: "Administrator",
-        });
-      }
+      const assignerEmail = updated.assignedBy?.email || process.env.ADMIN_EMAIL || process.env.BREVO_SENDER_EMAIL;
+      const assignerName = updated.assignedBy?.name || "Administrator";
 
-      for (const recipient of completionRecipients) {
+      if (assignerEmail) {
         sendTaskCompletionEmail({
           taskTitle: updated.title,
           description: updated.description,
@@ -190,10 +171,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
           institutionName: updated.institutionName || updated.institution?.instituteName,
           completedByName: updated.assignedTo?.name || "Team Member",
           assignedByName: updated.assignedBy?.name || null,
-          recipientEmail: recipient.email,
-          recipientName: recipient.name,
+          recipientEmail: assignerEmail,
+          recipientName: assignerName,
         }).catch((err) => {
-          console.error("Failed to send task completion confirmation email:", err);
+          console.error("Failed to send task completion confirmation email to assigner:", err);
         });
       }
     }

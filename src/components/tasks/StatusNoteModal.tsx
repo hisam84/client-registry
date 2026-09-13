@@ -19,7 +19,7 @@ export function StatusNoteModal({
   const [status, setStatus] = useState<TaskStatus>(targetStatus || task.status);
   const [note, setNote] = useState<string>(task.completionNote || "");
   const [progress, setProgress] = useState<number>(task.progress ?? (task.status === "Completed" ? 100 : 0));
-  const [sendCompletionEmail, setSendCompletionEmail] = useState<boolean>(true);
+  const [sendCompletionEmail, setSendCompletionEmail] = useState<boolean>(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -179,10 +179,10 @@ export function StatusNoteModal({
               />
               <div>
                 <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 block">
-                  Send completion confirmation email
+                  Send completion confirmation email to assigner (Optional)
                 </span>
                 <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
-                  Notifies the task assigner and assignee that this task has been completed.
+                  Directly notifies the person who assigned this task that it is completed.
                 </span>
               </div>
             </label>
