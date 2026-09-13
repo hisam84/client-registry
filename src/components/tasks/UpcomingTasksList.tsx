@@ -4,6 +4,7 @@ import { TaskItem, TASK_PRIORITY_COLOR, TASK_STATUS_COLOR } from "@/lib/types";
 import { useUserSession } from "@/lib/userSession";
 import { StatusNoteModal } from "./StatusNoteModal";
 import { RescheduleModal } from "./RescheduleModal";
+import { TaskCompletionModal } from "./TaskCompletionModal";
 
 interface UpcomingTasksListProps {
   tasks: TaskItem[];
@@ -23,6 +24,7 @@ export function UpcomingTasksList({
   const { currentUser } = useUserSession();
   const [noteModalTask, setNoteModalTask] = useState<TaskItem | null>(null);
   const [rescheduleModalTask, setRescheduleModalTask] = useState<TaskItem | null>(null);
+  const [completingTask, setCompletingTask] = useState<TaskItem | null>(null);
   const [claimingTaskId, setClaimingTaskId] = useState<string | null>(null);
   const [collapsedMonths, setCollapsedMonths] = useState<Record<string, boolean>>({});
 
@@ -232,13 +234,19 @@ export function UpcomingTasksList({
             {/* Complete checkbox */}
             <button
               type="button"
-              onClick={() => onToggleComplete(task)}
+              onClick={() => {
+                if (isCompleted) {
+                  onToggleComplete(task);
+                } else {
+                  setCompletingTask(task);
+                }
+              }}
               className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${
                 isCompleted
                   ? "border-emerald-500 bg-emerald-500 text-white"
-                  : "border-slate-300 dark:border-slate-600 hover:border-brass-500"
+                  : "border-slate-300 dark:border-slate-600 hover:border-emerald-500"
               }`}
-              title={isCompleted ? "Mark as pending" : "Mark as completed"}
+              title={isCompleted ? "Mark as pending" : "Complete task (opens completion modal with email option)"}
             >
               {isCompleted && (
                 <svg className="h-3.5 w-3.5 stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -405,6 +413,21 @@ export function UpcomingTasksList({
               </button>
             )}
 
+            {/* Complete Task Button with Email Notification */}
+            {!isCompleted && (
+              <button
+                type="button"
+                onClick={() => setCompletingTask(task)}
+                className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 transition-colors whitespace-nowrap flex items-center gap-1"
+                title="Mark task as completed and notify via email"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Complete</span>
+              </button>
+            )}
+
             {/* Reschedule Button */}
             <button
               onClick={() => setRescheduleModalTask(task)}
@@ -552,6 +575,18 @@ export function UpcomingTasksList({
           onSaved={() => {
             if (onRefresh) onRefresh();
             setRescheduleModalTask(null);
+          }}
+        />
+      )}
+
+      {/* Task Completion Modal with Email Notification Option */}
+      {completingTask && (
+        <TaskCompletionModal
+          task={completingTask}
+          onClose={() => setCompletingTask(null)}
+          onCompleted={() => {
+            if (onRefresh) onRefresh();
+            setCompletingTask(null);
           }}
         />
       )}

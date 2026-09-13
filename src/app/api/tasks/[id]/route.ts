@@ -143,39 +143,47 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       assignedToId !== null &&
       (!existingTask || existingTask.assignedToId !== updated.assignedToId)
     ) {
-      sendTaskAssignmentEmail({
-        taskTitle: updated.title,
-        description: updated.description,
-        dueDate: updated.dueDate,
-        priority: updated.priority,
-        institutionName: updated.institutionName || updated.institution?.instituteName,
-        assignedByName: updated.assignedBy?.name || null,
-        assignedToEmail: updated.assignedTo.email,
-        assignedToName: updated.assignedTo.name,
-      }).catch((err) => {
-        console.error("Failed to send task assignment email on update:", err);
-      });
-    }
-
-    // Optional completion confirmation email sent exclusively to the task assigner
-    if (updated.status === "Completed" && body.sendCompletionEmail) {
-      const assignerEmail = updated.assignedBy?.email || process.env.ADMIN_EMAIL || process.env.BREVO_SENDER_EMAIL;
-      const assignerName = updated.assignedBy?.name || "Administrator";
-
-      if (assignerEmail) {
-        sendTaskCompletionEmail({
+      try {
+        await sendTaskAssignmentEmail({
           taskTitle: updated.title,
           description: updated.description,
           dueDate: updated.dueDate,
-          completionNote: updated.completionNote,
+          priority: updated.priority,
           institutionName: updated.institutionName || updated.institution?.instituteName,
-          completedByName: updated.assignedTo?.name || "Team Member",
           assignedByName: updated.assignedBy?.name || null,
-          recipientEmail: assignerEmail,
-          recipientName: assignerName,
-        }).catch((err) => {
-          console.error("Failed to send task completion confirmation email to assigner:", err);
+          assignedToEmail: updated.assignedTo.email,
+          assignedToName: updated.assignedTo.name,
         });
+      } catch (err) {
+        console.error("Failed to send task assignment email on update:", err);
+      }
+    }
+
+    // Optional completion confirmation email sent to the task assigner or specified recipient
+    if (updated.status === "Completed" && body.sendCompletionEmail) {
+      const recipientEmail =
+        body.notifyEmail?.trim() ||
+        updated.assignedBy?.email ||
+        process.env.ADMIN_EMAIL ||
+        "imperialitbd2011@gmail.com";
+      const recipientName = updated.assignedBy?.name || "Administrator";
+
+      if (recipientEmail) {
+        try {
+          await sendTaskCompletionEmail({
+            taskTitle: updated.title,
+            description: updated.description,
+            dueDate: updated.dueDate,
+            completionNote: updated.completionNote,
+            institutionName: updated.institutionName || updated.institution?.instituteName,
+            completedByName: updated.assignedTo?.name || "Team Member",
+            assignedByName: updated.assignedBy?.name || null,
+            recipientEmail,
+            recipientName,
+          });
+        } catch (err) {
+          console.error("Failed to send task completion confirmation email:", err);
+        }
       }
     }
 

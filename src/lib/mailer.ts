@@ -493,7 +493,7 @@ ${tasksUrl}
 Client Registry Management System (impdatabase.vercel.app)
   `.trim();
 
-  await sendEmail({
+  return await sendEmail({
     to: assignedToEmail,
     toName: assignedToName,
     subject: `New Task Assigned: ${taskTitle}`,
@@ -1025,7 +1025,7 @@ ${tasksUrl}
 Client Registry Management System (impdatabase.vercel.app)
   `.trim();
 
-  await sendEmail({
+  return await sendEmail({
     to: recipientEmail,
     toName: recipientName,
     subject: `[COMPLETED] Task Completed: ${taskTitle}`,
