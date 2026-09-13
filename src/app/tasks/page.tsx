@@ -120,13 +120,23 @@ export default function TasksPage() {
       const data = await res.json();
       if (Array.isArray(data)) {
         const sorted = [...data].sort((a: TaskItem, b: TaskItem) => {
-          const aDone = a.status === "Completed" || a.status === "Cancelled";
-          const bDone = b.status === "Completed" || b.status === "Cancelled";
+          const getRank = (t: TaskItem) => {
+            if (t.status === "Cancelled") return 2; // Cancelled at the very bottom
+            if (t.status === "Completed") return 1; // Completed in middle
+            return 0; // To-Do & Overdue on top
+          };
 
-          if (aDone && !bDone) return 1;
-          if (!aDone && bDone) return -1;
+          const rankA = getRank(a);
+          const rankB = getRank(b);
 
-          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+          if (rankA !== rankB) {
+            return rankA - rankB;
+          }
+
+          const timeA = a.createdAt ? new Date(a.createdAt).getTime() : new Date(a.dueDate).getTime();
+          const timeB = b.createdAt ? new Date(b.createdAt).getTime() : new Date(b.dueDate).getTime();
+
+          return timeB - timeA;
         });
         setTasks(sorted);
       } else {

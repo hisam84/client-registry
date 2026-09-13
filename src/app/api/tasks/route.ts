@@ -134,15 +134,29 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Sort tasks so active/pending tasks appear first by due date, and completed/cancelled tasks are pushed to the very bottom!
+    // Sort tasks:
+    // 1. To-Do & Overdue (Active: Pending / In Progress) -> Top
+    // 2. Completed -> Middle
+    // 3. Cancelled -> All the way at the bottom
+    // Within each tier: Recent tasks on top (createdAt desc, fallback to dueDate desc)
     tasks.sort((a: any, b: any) => {
-      const aDone = a.status === "Completed" || a.status === "Cancelled";
-      const bDone = b.status === "Completed" || b.status === "Cancelled";
+      const getRank = (t: any) => {
+        if (t.status === "Cancelled") return 2; // Cancelled at the very bottom
+        if (t.status === "Completed") return 1; // Completed in middle
+        return 0; // To-Do & Overdue on top
+      };
 
-      if (aDone && !bDone) return 1;
-      if (!aDone && bDone) return -1;
+      const rankA = getRank(a);
+      const rankB = getRank(b);
 
-      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      if (rankA !== rankB) {
+        return rankA - rankB;
+      }
+
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : new Date(a.dueDate).getTime();
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : new Date(b.dueDate).getTime();
+
+      return timeB - timeA;
     });
 
     return NextResponse.json(tasks);
