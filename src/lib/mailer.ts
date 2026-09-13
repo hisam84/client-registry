@@ -70,7 +70,7 @@ export function parseBrevoKey(rawKey?: string): string | undefined {
 }
 
 /**
- * Universal email sender supporting Brevo (REST API & SMTP) with Gmail fallback.
+ * Dedicated Brevo email sender supporting Brevo REST API (primary) and Brevo SMTP relay (secondary).
  */
 export async function sendEmail(payload: EmailPayload): Promise<{ success: boolean; error?: string }> {
   const { to, toName, cc, subject, html, text, fromEmail, fromName } = payload;
@@ -83,7 +83,7 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
 
   const rawBrevoApiKey = process.env.BREVO_API_KEY || process.env.BREVO_SMTP_KEY;
   const brevoApiKey = parseBrevoKey(rawBrevoApiKey);
-  const senderEmail = fromEmail || process.env.BREVO_SENDER_EMAIL || process.env.BREVO_SMTP_USER || process.env.GMAIL_USER;
+  const senderEmail = fromEmail || process.env.BREVO_SENDER_EMAIL || process.env.BREVO_SMTP_USER;
   const senderName = fromName || process.env.BREVO_SENDER_NAME || "Client Registry";
 
   // 1. Try Brevo REST API (Fastest & most reliable on serverless like Vercel)
@@ -117,13 +117,13 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
       }
 
       const errorData = await response.json().catch(() => ({}));
-      console.warn("Brevo REST API error (will attempt SMTP fallback if configured):", errorData);
+      console.warn("Brevo REST API error (will attempt Brevo SMTP relay):", errorData);
     } catch (apiErr) {
-      console.warn("Brevo REST API request failed (will attempt SMTP fallback if configured):", apiErr);
+      console.warn("Brevo REST API request failed (will attempt Brevo SMTP relay):", apiErr);
     }
   }
 
-  // 2. Try Brevo SMTP via Nodemailer
+  // 2. Try Brevo SMTP via Nodemailer relay
   const brevoSmtpUser = process.env.BREVO_SMTP_USER;
   const brevoSmtpPass = parseBrevoKey(process.env.BREVO_SMTP_KEY || process.env.BREVO_API_KEY);
 
@@ -151,45 +151,13 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
 
       return { success: true };
     } catch (smtpErr: any) {
-      console.warn("Brevo SMTP send failed (will attempt Gmail fallback if configured):", smtpErr?.message || smtpErr);
-    }
-  }
-
-  // 3. Fallback to Gmail SMTP if configured
-  const gmailUser = process.env.GMAIL_USER;
-  const gmailPass = process.env.GMAIL_APP_PASSWORD;
-
-  if (gmailUser && gmailPass) {
-    try {
-      const transporter = nodemailer.createTransport({
-        host: "smtp.gmail.com",
-        port: 465,
-        secure: true,
-        auth: {
-          user: gmailUser,
-          pass: gmailPass,
-        },
-      });
-
-      await transporter.sendMail({
-        from: `"${senderName}" <${gmailUser}>`,
-        replyTo: gmailUser,
-        to: toName ? `"${toName}" <${to}>` : to,
-        ...(cc && cc.length > 0 ? { cc } : {}),
-        subject,
-        text,
-        html,
-      });
-
-      return { success: true };
-    } catch (gmailErr: any) {
-      const errMsg = `Gmail SMTP send failed: ${gmailErr?.message || gmailErr}`;
+      const errMsg = `Brevo SMTP send failed: ${smtpErr?.message || smtpErr}`;
       console.error(errMsg);
       return { success: false, error: errMsg };
     }
   }
 
-  const noConfigMsg = "Mailer warning: No valid mailing provider credentials configured (Brevo or Gmail). Email skipped.";
+  const noConfigMsg = "Mailer warning: Brevo credentials (BREVO_API_KEY / BREVO_SMTP_KEY) not configured. Email skipped.";
   console.warn(noConfigMsg);
   return { success: false, error: noConfigMsg };
 }

@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     }
 
     // Verify if it's the admin email (can be set in .env)
-    const adminEmail = process.env.ADMIN_EMAIL || process.env.BREVO_SENDER_EMAIL || process.env.GMAIL_USER;
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.BREVO_SENDER_EMAIL;
     if (adminEmail && email.trim().toLowerCase() !== adminEmail.trim().toLowerCase()) {
       return NextResponse.json({ success: false, message: 'Unauthorized email' }, { status: 403 });
     }
