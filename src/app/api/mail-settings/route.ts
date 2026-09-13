@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
-import { getMailSettings, saveMailSettings } from "@/lib/mailer";
+import { getMailSettings, saveMailSettings, DEFAULT_BREVO_CONFIG } from "@/lib/mailer";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
     const settings = await getMailSettings();
-    const brevoSenderEmail = process.env.BREVO_SENDER_EMAIL || process.env.BREVO_SMTP_USER || "Not configured";
-    const hasApiKey = Boolean(process.env.BREVO_API_KEY || process.env.BREVO_SMTP_KEY);
-    const hasSmtpUser = Boolean(process.env.BREVO_SMTP_USER);
+    const brevoSenderEmail = process.env.BREVO_SENDER_EMAIL || DEFAULT_BREVO_CONFIG.senderEmail;
+    const hasApiKey = Boolean(process.env.BREVO_API_KEY || DEFAULT_BREVO_CONFIG.apiKey);
+    const hasSmtpUser = Boolean(process.env.BREVO_SMTP_USER || DEFAULT_BREVO_CONFIG.smtpUser);
 
     return NextResponse.json({
       success: true,
