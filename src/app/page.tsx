@@ -10,7 +10,6 @@ import { InstitutionTable } from "@/components/InstitutionTable";
 import { InstitutionForm } from "@/components/InstitutionForm";
 import { CustomFieldModal } from "@/components/CustomFieldModal";
 import { BulkUpload } from "@/components/BulkUpload";
-import { DeleteAllModal } from "@/components/DeleteAllModal";
 import { ExportModal } from "@/components/ExportModal";
 import { TrashModal } from "@/components/TrashModal";
 import { Button } from "@/components/ui";
@@ -40,7 +39,6 @@ function InstitutionsLedgerContent() {
   const [showBulkUpload, setShowBulkUpload] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showFieldModal, setShowFieldModal] = useState(false);
-  const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
   const [showTrashModal, setShowTrashModal] = useState(false);
   const [editing, setEditing] = useState<Institution | null>(null);
 
@@ -132,9 +130,6 @@ function InstitutionsLedgerContent() {
       </Link>
       <Button variant="outline" onClick={() => setShowTrashModal(true)}>
         Trash Bin
-      </Button>
-      <Button variant="danger" onClick={() => setShowDeleteAllModal(true)}>
-        Delete All
       </Button>
       <Button variant="outline" onClick={() => setShowFieldModal(true)}>
         Custom Fields
@@ -247,17 +242,6 @@ function InstitutionsLedgerContent() {
           onClose={() => setShowBulkUpload(false)}
           onSaved={() => {
             setShowBulkUpload(false);
-            loadAll();
-            loadFiltered();
-          }}
-        />
-      )}
-
-      {showDeleteAllModal && (
-        <DeleteAllModal
-          onClose={() => setShowDeleteAllModal(false)}
-          onDeleted={() => {
-            setShowDeleteAllModal(false);
             loadAll();
             loadFiltered();
           }}
