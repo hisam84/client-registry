@@ -53,6 +53,7 @@ export function FilterBar({
           <option value="expiring_soon">Expiring Soon (Within 60 Days)</option>
           <option value="expired">Expired</option>
           <option value="actual_expired">Actual Expired</option>
+          <option value="deactivated">Deactivated</option>
         </select>
         <select className={inputClass} value={filters.type} onChange={(e) => set("type", e.target.value)}>
           <option value="">All Types</option>

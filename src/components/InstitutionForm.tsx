@@ -182,6 +182,27 @@ export function InstitutionForm({
           <Field label="Condition">
             <input className={inputClass} value={form.condition ?? ""} onChange={(e) => set("condition", e.target.value)} />
           </Field>
+          <div className="sm:col-span-2 pt-1">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={Boolean(customValues.isDeactivated)}
+                onChange={(e) =>
+                  setCustomValues((prev) => ({
+                    ...prev,
+                    isDeactivated: e.target.checked as any,
+                  }))
+                }
+                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+              />
+              <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                Deactivate Client
+              </span>
+              <span className="text-xs text-slate-500">
+                (Mark this client as deactivated)
+              </span>
+            </label>
+          </div>
         </Section>
 
         <Section title="BTCL Credentials">

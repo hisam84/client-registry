@@ -29,12 +29,14 @@ export function InstitutionTable({
   onEdit,
   onDelete,
   onAddTask,
+  onToggleDeactivate,
 }: {
   institutions: Institution[];
   customFieldDefs: CustomFieldDef[];
   onEdit: (i: Institution) => void;
   onDelete: (i: Institution) => void;
   onAddTask?: (i: Institution) => void;
+  onToggleDeactivate?: (i: Institution) => void;
 }) {
   const [expanded, setExpanded] = useState<string | null>(null);
 
@@ -64,7 +66,8 @@ export function InstitutionTable({
         </thead>
         <tbody className="divide-y divide-slate-200 dark:divide-slate-800/70">
           {institutions.map((inst, index) => {
-            const status = computeStatus(inst.expireDate, inst.actualExpireDate);
+            const isDeactivated = Boolean(inst.customFields?.isDeactivated);
+            const status = computeStatus(inst.expireDate, inst.actualExpireDate, 60, isDeactivated);
             const isOpen = expanded === inst.id;
             const domainUrl = getDomainUrl(inst.domain);
 
@@ -72,6 +75,8 @@ export function InstitutionTable({
               <tr key={inst.id} className="contents">
                 <tr
                   className={`cursor-pointer border-b border-slate-200 dark:border-slate-800/70 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60 ${
+                    isDeactivated ? "opacity-75 bg-slate-50/40 dark:bg-slate-900/40" : ""
+                  } ${
                     isOpen ? "bg-slate-50 dark:bg-slate-900/60" : ""
                   }`}
                   onClick={() => setExpanded(isOpen ? null : inst.id)}
@@ -85,7 +90,14 @@ export function InstitutionTable({
                   <td className="px-3 py-3">
                     <div className="flex items-center justify-between gap-2">
                       <div>
-                        <div className="font-medium text-slate-900 dark:text-slate-100">{inst.instituteName}</div>
+                        <div className="font-medium text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                          <span>{inst.instituteName}</span>
+                          {isDeactivated && (
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700">
+                              Deactivated
+                            </span>
+                          )}
+                        </div>
                         {inst.instituteNameBangla && (
                           <div className="bn text-xs text-slate-600 dark:text-slate-400">{inst.instituteNameBangla}</div>
                         )}
@@ -138,6 +150,29 @@ export function InstitutionTable({
                           </svg>
                         </button>
                       )}
+                      {onToggleDeactivate && (
+                        <button
+                          type="button"
+                          onClick={() => onToggleDeactivate(inst)}
+                          className={`p-1.5 text-xs rounded-md border transition-colors flex items-center justify-center ${
+                            isDeactivated
+                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
+                              : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 hover:bg-amber-500/20"
+                          }`}
+                          title={isDeactivated ? "Activate Client" : "Deactivate Client"}
+                          aria-label={isDeactivated ? "Activate Client" : "Deactivate Client"}
+                        >
+                          {isDeactivated ? (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                            </svg>
+                          )}
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => onEdit(inst)}
@@ -185,6 +220,29 @@ export function InstitutionTable({
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                 </svg>
+                              </button>
+                            )}
+                            {onToggleDeactivate && (
+                              <button
+                                type="button"
+                                onClick={() => onToggleDeactivate(inst)}
+                                className={`p-1.5 rounded-md border transition-colors flex items-center justify-center ${
+                                  isDeactivated
+                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
+                                    : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 hover:bg-amber-500/20"
+                                }`}
+                                title={isDeactivated ? "Activate Client" : "Deactivate Client"}
+                                aria-label={isDeactivated ? "Activate Client" : "Deactivate Client"}
+                              >
+                                {isDeactivated ? (
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                ) : (
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                  </svg>
+                                )}
                               </button>
                             )}
                             <button

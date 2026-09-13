@@ -48,10 +48,20 @@ export async function GET(req: NextRequest) {
     and.push({ actualExpireDate: { lt: now } });
   }
 
-  const institutions = await prisma.institution.findMany({
+  let institutions = await prisma.institution.findMany({
     where,
     orderBy: { instituteName: "asc" },
   });
+
+  if (status === "deactivated") {
+    institutions = institutions.filter(
+      (inst) => (inst.customFields as any)?.isDeactivated === true || (inst.customFields as any)?.isDeactivated === "true"
+    );
+  } else if (status === "active") {
+    institutions = institutions.filter(
+      (inst) => (inst.customFields as any)?.isDeactivated !== true && (inst.customFields as any)?.isDeactivated !== "true"
+    );
+  }
 
   const TYPE_PRIORITY: Record<string, number> = {
     "University": 1,

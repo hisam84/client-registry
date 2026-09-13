@@ -116,6 +116,19 @@ function InstitutionsLedgerContent() {
     refreshAfterChange();
   }
 
+  async function handleToggleDeactivate(inst: Institution) {
+    const isCurrentlyDeactivated = Boolean(inst.customFields?.isDeactivated);
+    const action = isCurrentlyDeactivated ? "activate" : "deactivate";
+    if (!confirm(`Are you sure you want to ${action} "${inst.instituteName}"?`)) return;
+
+    await fetch(`/api/institutions/${inst.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ toggleDeactivate: true }),
+    });
+    refreshAfterChange();
+  }
+
   const total = allInstitutions.length;
 
   const pageActions = (
@@ -184,6 +197,7 @@ function InstitutionsLedgerContent() {
             setShowForm(true);
           }}
           onDelete={handleDelete}
+          onToggleDeactivate={handleToggleDeactivate}
           onAddTask={(inst) => {
             setTaskInstId(inst.id);
             setTaskInstName(inst.instituteName);

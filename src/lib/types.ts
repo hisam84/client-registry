@@ -10,7 +10,7 @@ export const INSTITUTE_TYPE_OPTIONS = [
   "Other",
 ] as const;
 
-export type StatusKey = "active" | "expiring_soon" | "expired" | "actual_expired" | "unknown";
+export type StatusKey = "active" | "expiring_soon" | "expired" | "actual_expired" | "unknown" | "deactivated";
 
 export const STATUS_LABEL: Record<StatusKey, string> = {
   active: "Active",
@@ -18,6 +18,7 @@ export const STATUS_LABEL: Record<StatusKey, string> = {
   expired: "Expired",
   actual_expired: "Actual Expired",
   unknown: "No Expiry Set",
+  deactivated: "Deactivated",
 };
 
 export const STATUS_COLOR: Record<StatusKey, string> = {
@@ -26,13 +27,18 @@ export const STATUS_COLOR: Record<StatusKey, string> = {
   expired: "bg-rust-500/15 text-rust-400 border-rust-500/30",
   actual_expired: "bg-rose-500/15 text-rose-400 border-rose-500/30",
   unknown: "bg-slate-700/40 text-slate-400 border-slate-600/40",
+  deactivated: "bg-slate-500/15 text-slate-500 dark:text-slate-400 border-slate-400/30",
 };
 
 export function computeStatus(
   expireDate: string | Date | null,
   actualExpireDateOrThreshold?: string | Date | null | number,
-  thresholdDays = 60
+  thresholdDays = 60,
+  isDeactivated?: boolean
 ): StatusKey {
+  if (isDeactivated) {
+    return "deactivated";
+  }
   let actExpDate: string | Date | null = null;
   let threshold = thresholdDays;
 
