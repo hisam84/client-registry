@@ -80,22 +80,22 @@ export default function ChangePasswordPage() {
       <div className="flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 p-8 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800">
           <div>
-            <h2 className="mt-2 text-center text-2xl font-bold text-gray-900 dark:text-white">
+            <h2 className="mt-2 text-center text-2xl font-bold text-[#0D47A1] dark:text-[#E3F2FD]">
               Change Admin Password
             </h2>
-            <p className="mt-2 text-center text-xs text-gray-600 dark:text-slate-400">
+            <p className="mt-2 text-center text-xs text-slate-600 dark:text-slate-400">
               {step === 1 ? "Enter your admin email to receive an OTP code" : "Enter the OTP sent to your email and your new password"}
             </p>
           </div>
 
           {error && (
-            <div className="text-red-500 text-xs text-center font-medium bg-red-50 dark:bg-rust-500/10 p-2.5 rounded border border-red-100 dark:border-rust-500/30">
+            <div className="text-red-500 text-xs text-center font-medium bg-red-50 dark:bg-red-950/20 p-2.5 rounded border border-red-100 dark:border-red-900/40">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="text-green-600 text-xs text-center font-medium bg-green-50 dark:bg-moss-500/10 p-2.5 rounded border border-green-100 dark:border-moss-500/30">
+            <div className="text-emerald-600 text-xs text-center font-medium bg-emerald-50 dark:bg-emerald-950/20 p-2.5 rounded border border-emerald-100 dark:border-emerald-900/40">
               {success}
             </div>
           )}
@@ -109,7 +109,7 @@ export default function ChangePasswordPage() {
                   name="email"
                   type="email"
                   required
-                  className="appearance-none rounded-lg relative block w-full px-3 py-2.5 border border-gray-300 dark:border-slate-700 placeholder-gray-400 text-gray-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brass-400 sm:text-sm"
+                  className="appearance-none rounded-lg relative block w-full px-3 py-2.5 border border-[#90CAF9] dark:border-slate-700 placeholder-slate-400 text-slate-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2196F3]/30 focus:border-[#2196F3] sm:text-sm font-medium"
                   placeholder="Admin Email Address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -119,7 +119,7 @@ export default function ChangePasswordPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-semibold rounded-lg text-slate-950 bg-brass-500 hover:bg-brass-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brass-400 disabled:opacity-50 transition-colors shadow"
+                  className="group relative w-full flex justify-center py-2.5 px-4 text-sm font-semibold rounded-lg text-white bg-[#2196F3] hover:bg-[#1E88E5] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2196F3] disabled:opacity-50 transition-all shadow-md shadow-blue-500/25 active:scale-95"
                 >
                   {loading ? "Sending OTP..." : "Send OTP"}
                 </button>
@@ -138,7 +138,7 @@ export default function ChangePasswordPage() {
                     name="otp"
                     type="text"
                     required
-                    className="appearance-none rounded-lg relative block w-full px-3 py-2.5 border border-gray-300 dark:border-slate-700 placeholder-gray-400 text-gray-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brass-400 sm:text-sm font-mono"
+                    className="appearance-none rounded-lg relative block w-full px-3 py-2.5 border border-[#90CAF9] dark:border-slate-700 placeholder-slate-400 text-slate-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2196F3]/30 focus:border-[#2196F3] sm:text-sm font-mono tracking-widest text-center text-lg font-bold"
                     placeholder="6-digit OTP Code"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
@@ -153,7 +153,7 @@ export default function ChangePasswordPage() {
                       type={showPassword ? "text" : "password"}
                       required
                       autoComplete="new-password"
-                      className="appearance-none rounded-lg relative block w-full px-3 py-2.5 pr-10 border border-gray-300 dark:border-slate-700 placeholder-gray-400 text-gray-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brass-400 sm:text-sm"
+                      className="appearance-none rounded-lg relative block w-full px-3 py-2.5 pr-10 border border-[#90CAF9] dark:border-slate-700 placeholder-slate-400 text-slate-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2196F3]/30 focus:border-[#2196F3] sm:text-sm"
                       placeholder="New Password"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
@@ -173,13 +173,13 @@ export default function ChangePasswordPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-semibold rounded-lg text-slate-950 bg-brass-500 hover:bg-brass-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brass-400 disabled:opacity-50 transition-colors shadow"
+                  className="group relative w-full flex justify-center py-2.5 px-4 text-sm font-semibold rounded-lg text-white bg-[#2196F3] hover:bg-[#1E88E5] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2196F3] disabled:opacity-50 transition-all shadow-md shadow-blue-500/25 active:scale-95"
                 >
                   {loading ? "Changing Password..." : "Change Password"}
                 </button>
               </div>
               <div className="text-center text-sm">
-                <button type="button" onClick={() => setStep(1)} className="text-xs text-slate-500 hover:text-slate-300">
+                <button type="button" onClick={() => setStep(1)} className="text-xs font-semibold text-[#2196F3] hover:underline">
                   Cancel
                 </button>
               </div>

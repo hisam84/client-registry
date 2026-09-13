@@ -19,6 +19,7 @@ export function StatusNoteModal({
   const [status, setStatus] = useState<TaskStatus>(targetStatus || task.status);
   const [note, setNote] = useState<string>(task.completionNote || "");
   const [progress, setProgress] = useState<number>(task.progress ?? (task.status === "Completed" ? 100 : 0));
+  const [sendCompletionEmail, setSendCompletionEmail] = useState<boolean>(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -35,6 +36,7 @@ export function StatusNoteModal({
           status,
           completionNote: note.trim() || null,
           progress,
+          sendCompletionEmail: status === "Completed" ? sendCompletionEmail : false,
         }),
       });
 
@@ -165,6 +167,27 @@ export function StatusNoteModal({
             className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brass-500"
           />
         </div>
+
+        {status === "Completed" && (
+          <div className="rounded-lg border border-blue-200 dark:border-blue-900/40 bg-blue-50/50 dark:bg-blue-950/20 p-3">
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={sendCompletionEmail}
+                onChange={(e) => setSendCompletionEmail(e.target.checked)}
+                className="mt-0.5 rounded border-slate-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500 h-4 w-4"
+              />
+              <div>
+                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 block">
+                  Send completion confirmation email
+                </span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                  Notifies the task assigner and assignee that this task has been completed.
+                </span>
+              </div>
+            </label>
+          </div>
+        )}
 
         <div className="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
           <Button variant="ghost" onClick={onClose} disabled={saving}>

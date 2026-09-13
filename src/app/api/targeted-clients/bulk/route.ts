@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function POST(req: NextRequest) {
   try {
     const bodyData = await req.json();
@@ -48,9 +51,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No valid client records found in uploaded file. Check 'instituteName' column." }, { status: 400 });
     }
 
-    const created = await (prisma as any).targetedClient.createMany({
-      data: recordsToCreate,
-    });
+    let created: any;
+    try {
+      created = await (prisma as any).targetedClient.createMany({
+        data: recordsToCreate,
+      });
+    } catch (createManyErr: any) {
+      console.warn("targetedClient.createMany with createdById failed, retrying without createdById:", createManyErr?.message);
+      const strippedRecords = recordsToCreate.map(({ createdById, ...rest }) => rest);
+      created = await (prisma as any).targetedClient.createMany({
+        data: strippedRecords,
+      });
+    }
 
     return NextResponse.json({ count: created.count, message: `Successfully imported ${created.count} targeted clients.` }, { status: 201 });
   } catch (error: any) {

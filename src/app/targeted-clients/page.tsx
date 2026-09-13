@@ -49,24 +49,39 @@ export default function TargetedClientsPage() {
   }
 
   async function loadAll() {
-    const res = await fetch("/api/targeted-clients?status=all");
-    const data = await res.json();
-    setAllClients(Array.isArray(data) ? data : []);
+    try {
+      const res = await fetch("/api/targeted-clients?status=all", { cache: "no-store" });
+      const data = await res.json();
+      setAllClients(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to load all targeted clients:", err);
+    }
   }
 
   async function loadFiltered() {
     setLoading(true);
-    const params = new URLSearchParams();
-    if (filters.search) params.set("search", filters.search);
-    if (filters.priority) params.set("priority", filters.priority);
-    if (filters.district) params.set("district", filters.district);
-    if (filters.subDistrict) params.set("subDistrict", filters.subDistrict);
-    if (filters.status) params.set("status", filters.status);
+    try {
+      const params = new URLSearchParams();
+      if (filters.search) params.set("search", filters.search);
+      if (filters.priority) params.set("priority", filters.priority);
+      if (filters.district) params.set("district", filters.district);
+      if (filters.subDistrict) params.set("subDistrict", filters.subDistrict);
+      if (filters.status) params.set("status", filters.status);
 
-    const res = await fetch(`/api/targeted-clients?${params.toString()}`);
-    const data = await res.json();
-    setClients(Array.isArray(data) ? data : []);
-    setLoading(false);
+      const res = await fetch(`/api/targeted-clients?${params.toString()}`, { cache: "no-store" });
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setClients(data);
+      } else {
+        console.warn("Targeted clients fetch returned non-array:", data);
+        setClients([]);
+      }
+    } catch (err) {
+      console.error("Failed to load filtered targeted clients:", err);
+      setClients([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {

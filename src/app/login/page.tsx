@@ -63,21 +63,21 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-6 p-8 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-800">
         <div className="text-center flex flex-col items-center">
           {/* Imperial IT High-Res Vector SVG Logo */}
-          <div className="w-16 h-16 rounded-2xl bg-slate-950 border-2 border-brass-500/80 flex items-center justify-center shadow-lg mb-3 shrink-0">
-            <svg className="w-10 h-10 text-brass-400" viewBox="0 0 100 100" fill="none" stroke="currentColor">
-              <rect width="100" height="100" rx="22" fill="#0f172a"/>
-              <circle cx="50" cy="50" r="42" fill="none" stroke="#d97706" strokeWidth="5"/>
-              <text x="50%" y="64%" textAnchor="middle" fill="#fbbf24" fontFamily="system-ui, sans-serif" fontWeight="900" fontSize="44">IT</text>
+          <div className="w-16 h-16 rounded-2xl bg-[#0D47A1] border-2 border-[#2196F3] flex items-center justify-center shadow-lg shadow-blue-900/30 mb-3 shrink-0">
+            <svg className="w-10 h-10" viewBox="0 0 100 100" fill="none">
+              <rect width="100" height="100" rx="22" fill="#0D47A1"/>
+              <circle cx="50" cy="50" r="42" fill="none" stroke="#2196F3" strokeWidth="6"/>
+              <text x="50%" y="64%" textAnchor="middle" fill="#FFFFFF" fontFamily="system-ui, sans-serif" fontWeight="900" fontSize="44">IT</text>
             </svg>
           </div>
 
-          <h2 className="text-center text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+          <h2 className="text-center text-3xl font-extrabold text-[#0D47A1] dark:text-[#E3F2FD] tracking-tight">
             Imperial IT
           </h2>
-          <p className="mt-1 text-center text-xs font-medium italic text-brass-400">
+          <p className="mt-1 text-center text-xs font-semibold italic text-[#2196F3]">
             The complete IT solution
           </p>
-          <p className="mt-3 text-center text-sm text-gray-600 dark:text-slate-400">
+          <p className="mt-3 text-center text-sm text-slate-600 dark:text-slate-400">
             Enter your username and password to log in
           </p>
         </div>
@@ -86,7 +86,7 @@ export default function LoginPage() {
         <form className="mt-6 space-y-4" onSubmit={handleSubmit} autoComplete="on">
           {/* Username Field */}
           <div>
-            <label htmlFor="username" className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
+            <label htmlFor="username" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Username or Email
             </label>
             <div className="relative flex items-center">
@@ -96,7 +96,7 @@ export default function LoginPage() {
                 id="username"
                 required
                 autoComplete="username"
-                className="appearance-none rounded-lg relative block w-full px-3 py-2.5 border border-gray-300 dark:border-slate-700 placeholder-gray-400 text-gray-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brass-400 focus:border-brass-400 text-sm font-medium"
+                className="appearance-none rounded-lg relative block w-full px-3 py-2.5 border border-[#90CAF9] dark:border-slate-700 placeholder-slate-400 text-slate-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2196F3]/30 focus:border-[#2196F3] text-sm font-medium"
                 placeholder="Enter Username or Email"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -106,7 +106,7 @@ export default function LoginPage() {
 
           {/* Password Field */}
           <div>
-            <label htmlFor="password" className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
+            <label htmlFor="password" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Password
             </label>
             <div className="relative flex items-center">
@@ -116,7 +116,7 @@ export default function LoginPage() {
                 id="password"
                 required
                 autoComplete="current-password"
-                className="appearance-none rounded-lg relative block w-full px-3 py-2.5 pr-10 border border-gray-300 dark:border-slate-700 placeholder-gray-400 text-gray-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brass-400 focus:border-brass-400 text-sm"
+                className="appearance-none rounded-lg relative block w-full px-3 py-2.5 pr-10 border border-[#90CAF9] dark:border-slate-700 placeholder-slate-400 text-slate-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2196F3]/30 focus:border-[#2196F3] text-sm"
                 placeholder="Enter Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -133,7 +133,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="text-red-500 text-xs text-center font-medium bg-red-50 dark:bg-rust-500/10 p-2.5 rounded-lg border border-red-200 dark:border-rust-500/30">
+            <div className="text-red-500 text-xs text-center font-medium bg-red-50 dark:bg-red-950/20 p-2.5 rounded-lg border border-red-200 dark:border-red-900/40">
               {error}
             </div>
           )}
@@ -142,14 +142,14 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-slate-950 bg-brass-500 hover:bg-brass-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brass-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 shadow-md active:scale-95"
+              className="group relative w-full flex justify-center py-3 px-4 text-sm font-bold rounded-lg text-white bg-[#2196F3] hover:bg-[#1E88E5] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2196F3] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-blue-500/25 active:scale-95"
             >
               {loading ? "Authenticating..." : "Log in"}
             </button>
           </div>
 
           <div className="text-center text-xs pt-2">
-            <Link href="/change-password" className="font-semibold text-brass-400 hover:text-brass-300 transition-colors">
+            <Link href="/change-password" className="font-semibold text-[#2196F3] hover:text-[#0D47A1] dark:hover:text-[#90CAF9] transition-colors">
               Forgot / Change Password?
             </Link>
           </div>

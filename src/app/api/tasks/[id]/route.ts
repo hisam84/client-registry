@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendTaskAssignmentEmail } from "@/lib/mailer";
+import { sendTaskAssignmentEmail, sendTaskCompletionEmail } from "@/lib/mailer";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -155,6 +155,47 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       }).catch((err) => {
         console.error("Failed to send task assignment email on update:", err);
       });
+    }
+
+    if (updated.status === "Completed" && body.sendCompletionEmail) {
+      const completionRecipients: { email: string; name: string }[] = [];
+      if (updated.assignedBy?.email) {
+        completionRecipients.push({
+          email: updated.assignedBy.email,
+          name: updated.assignedBy.name || "Administrator",
+        });
+      }
+      if (
+        updated.assignedTo?.email &&
+        !completionRecipients.some((r) => r.email === updated.assignedTo.email)
+      ) {
+        completionRecipients.push({
+          email: updated.assignedTo.email,
+          name: updated.assignedTo.name || "Team Member",
+        });
+      }
+      if (completionRecipients.length === 0 && process.env.ADMIN_EMAIL) {
+        completionRecipients.push({
+          email: process.env.ADMIN_EMAIL,
+          name: "Administrator",
+        });
+      }
+
+      for (const recipient of completionRecipients) {
+        sendTaskCompletionEmail({
+          taskTitle: updated.title,
+          description: updated.description,
+          dueDate: updated.dueDate,
+          completionNote: updated.completionNote,
+          institutionName: updated.institutionName || updated.institution?.instituteName,
+          completedByName: updated.assignedTo?.name || "Team Member",
+          assignedByName: updated.assignedBy?.name || null,
+          recipientEmail: recipient.email,
+          recipientName: recipient.name,
+        }).catch((err) => {
+          console.error("Failed to send task completion confirmation email:", err);
+        });
+      }
     }
 
     return NextResponse.json(updated);

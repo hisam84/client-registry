@@ -28,12 +28,12 @@ export function Button({
   loading?: boolean;
   title?: string;
 }) {
-  const base = "inline-flex items-center justify-center gap-1.5 rounded-md px-3.5 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
+  const base = "inline-flex items-center justify-center gap-1.5 rounded-md px-3.5 py-2 text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed";
   const variants: Record<string, string> = {
-    primary: "bg-brass-500 text-slate-950 hover:bg-brass-400 font-semibold shadow-sm",
-    ghost: "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100",
-    danger: "bg-rust-500/10 dark:bg-rust-500/15 text-rust-600 dark:text-rust-400 border border-rust-500/30 hover:bg-rust-500/20",
-    outline: "border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 bg-white dark:bg-slate-900/50 shadow-sm",
+    primary: "bg-[#2196F3] hover:bg-[#1E88E5] text-white font-semibold shadow-sm shadow-blue-500/20 active:scale-95",
+    ghost: "text-slate-600 dark:text-slate-300 hover:bg-[#E3F2FD] dark:hover:bg-slate-800 hover:text-[#0D47A1] dark:hover:text-white",
+    danger: "bg-red-500/10 dark:bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30 hover:bg-red-500/20",
+    outline: "border border-[#90CAF9] dark:border-slate-700 text-[#0D47A1] dark:text-[#E3F2FD] hover:bg-[#E3F2FD]/60 dark:hover:bg-slate-800 bg-white dark:bg-slate-900/50 shadow-sm",
   };
   return (
     <button
@@ -65,14 +65,14 @@ export function Field({
 }) {
   return (
     <label className={`flex flex-col gap-1.5 ${full ? "sm:col-span-2" : ""}`}>
-      <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</span>
+      <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</span>
       {children}
     </label>
   );
 }
 
 export const inputClass =
-  "w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-brass-500 focus:outline-none transition-colors";
+  "w-full rounded-md border border-[#90CAF9] dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-[#0D47A1] dark:text-[#E3F2FD] placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-[#2196F3] focus:ring-2 focus:ring-[#2196F3]/30 focus:outline-none transition-colors";
 
 export function Input({
   label,
@@ -126,12 +126,12 @@ export function Modal({
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/40 dark:bg-black/70 p-4 py-10 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/50 p-4 py-10 backdrop-blur-sm">
       <div
-        className={`w-full ${wide ? "max-w-3xl" : "max-w-lg"} rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xl`}
+        className={`w-full ${wide ? "max-w-3xl" : "max-w-lg"} rounded-xl border border-[#90CAF9] dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl`}
       >
-        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-5 py-4">
-          <h2 className="font-display text-lg text-slate-900 dark:text-slate-100">{title}</h2>
+        <div className="flex items-center justify-between border-b border-[#E3F2FD] dark:border-slate-800 px-5 py-4 bg-[#E3F2FD]/30 dark:bg-slate-900/50 rounded-t-xl">
+          <h2 className="font-display text-lg font-bold text-[#0D47A1] dark:text-[#E3F2FD]">{title}</h2>
           <button
             onClick={onClose}
             aria-label="Close"

@@ -152,6 +152,9 @@ model Task {
   updatedAt       DateTime     @updatedAt
   deletedAt       DateTime?
 
+  reminderSentAt  DateTime?
+  overdueSentAt   DateTime?
+
   @@index([dueDate])
   @@index([status])
   @@index([priority])
@@ -159,5 +162,7 @@ model Task {
   @@index([assignedToId])
   @@index([assignedById])
   @@index([deletedAt])
+  @@index([reminderSentAt])
+  @@index([overdueSentAt])
 }
 

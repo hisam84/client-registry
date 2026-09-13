@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SidebarLayout } from "@/components/SidebarLayout";
@@ -121,6 +122,14 @@ function InstitutionsLedgerContent() {
 
   const pageActions = (
     <>
+      <Link href="/targeted-clients">
+        <Button variant="outline" className="text-xs flex items-center gap-1.5 border-purple-300 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/50">
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          <span>Targeted Clients</span>
+        </Button>
+      </Link>
       <Button variant="outline" onClick={() => setShowTrashModal(true)}>
         Trash Bin
       </Button>

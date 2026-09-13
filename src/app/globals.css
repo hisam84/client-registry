@@ -3,25 +3,29 @@
 @tailwind utilities;
 
 :root {
-  --bg-main: #f8fafc;
+  --bg-main: #f0f7ff;
   --bg-card: #ffffff;
-  --border-color: #e2e8f0;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
+  --border-color: #dbeafe;
+  --text-main: #0d47a1;
+  --text-muted: #475569;
   --input-bg: #ffffff;
-  --input-border: #cbd5e1;
-  --table-header-bg: #f1f5f9;
+  --input-border: #90caf9;
+  --table-header-bg: #e3f2fd;
+  --primary: #2196f3;
+  --primary-dark: #0d47a1;
+  --primary-light: #90caf9;
+  --primary-subtle: #e3f2fd;
 }
 
 html.dark {
-  --bg-main: #0b0e13;
-  --bg-card: #12161c;
-  --border-color: #1f2530;
-  --text-main: #e7e9ed;
-  --text-muted: #8891a0;
-  --input-bg: #12161c;
-  --input-border: #2a313e;
-  --table-header-bg: #0b0e13;
+  --bg-main: #070e1a;
+  --bg-card: #0d1b2a;
+  --border-color: #1b2e4b;
+  --text-main: #e3f2fd;
+  --text-muted: #90caf9;
+  --input-bg: #0d1b2a;
+  --input-border: #2b436b;
+  --table-header-bg: #112240;
 }
 
 * {
@@ -33,8 +37,8 @@ body {
   color: var(--text-main);
   transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
   background-image:
-    radial-gradient(circle at 20% -10%, rgba(192, 138, 62, 0.08), transparent 40%),
-    radial-gradient(circle at 90% 10%, rgba(76, 122, 94, 0.06), transparent 35%);
+    radial-gradient(circle at 20% -10%, rgba(33, 150, 243, 0.12), transparent 45%),
+    radial-gradient(circle at 90% 10%, rgba(13, 71, 161, 0.08), transparent 40%);
 }
 
 ::-webkit-scrollbar {
@@ -45,11 +49,11 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #90caf9;
   border-radius: 8px;
 }
 html.dark ::-webkit-scrollbar-thumb {
-  background: #2a313e;
+  background: #1b2e4b;
 }
 
 .bn {
@@ -57,7 +61,7 @@ html.dark ::-webkit-scrollbar-thumb {
 }
 
 :focus-visible {
-  outline: 2px solid theme("colors.brass.400");
+  outline: 2px solid #2196f3;
   outline-offset: 2px;
 }
 

@@ -71,6 +71,13 @@ export function SidebarLayout({
     loadNotifications();
     const interval = setInterval(loadNotifications, 10000);
 
+    // Periodically trigger background task alert email checks
+    function triggerAlertCheck() {
+      fetch("/api/cron/tasks").catch(() => {});
+    }
+    triggerAlertCheck();
+    const alertInterval = setInterval(triggerAlertCheck, 120000);
+
     function handleTaskChange() {
       loadNotifications();
     }
@@ -78,6 +85,7 @@ export function SidebarLayout({
 
     return () => {
       clearInterval(interval);
+      clearInterval(alertInterval);
       window.removeEventListener("task-changed", handleTaskChange);
     };
   }, []);
@@ -189,7 +197,7 @@ export function SidebarLayout({
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col md:flex-row transition-colors relative">
       {/* GLOBAL TOP LOADING PROGRESS BAR */}
       {navLoading && (
-        <div className="fixed top-0 left-0 right-0 z-[100] h-1 bg-gradient-to-r from-brass-500 via-amber-400 to-brass-600 animate-pulse shadow-md" />
+        <div className="fixed top-0 left-0 right-0 z-[100] h-1 bg-gradient-to-r from-[#0D47A1] via-[#2196F3] to-[#90CAF9] animate-pulse shadow-md" />
       )}
 
       {/* MOBILE TOP BAR (md:hidden) */}
@@ -207,7 +215,7 @@ export function SidebarLayout({
           <div className="flex items-center gap-2.5">
             <img src="/pad.png" alt="Imperial IT Logo" className="w-7 h-7 object-contain rounded-md" />
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brass-600 dark:text-brass-400 block leading-none">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#0D47A1] dark:text-[#90CAF9] block leading-none">
                 Imperial IT
               </span>
               <h2 className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate max-w-[130px] leading-tight">
@@ -323,7 +331,7 @@ export function SidebarLayout({
           {onAddTaskClick && (
             <button
               onClick={onAddTaskClick}
-              className="px-3 py-1.5 bg-brass-500 hover:bg-brass-400 text-slate-950 font-bold text-xs rounded-lg shadow-sm border border-brass-600/30 flex items-center gap-1 active:scale-95 transition-all"
+              className="px-3 py-1.5 bg-[#2196F3] hover:bg-[#1E88E5] text-white font-bold text-xs rounded-lg shadow-sm shadow-blue-500/25 border border-blue-600/30 flex items-center gap-1 active:scale-95 transition-all"
             >
               <span>+ Task</span>
             </button>
@@ -397,7 +405,7 @@ export function SidebarLayout({
                     onClick={() => setMobileMenuOpen(false)}
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                       isActive
-                        ? "bg-brass-500/15 text-brass-700 dark:text-brass-400 border border-brass-500/30 font-semibold"
+                        ? "bg-[#E3F2FD] dark:bg-[#2196F3]/20 text-[#0D47A1] dark:text-[#90CAF9] border border-[#90CAF9] dark:border-[#2196F3]/40 font-semibold shadow-xs"
                         : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-slate-200"
                     }`}
                   >
@@ -456,7 +464,7 @@ export function SidebarLayout({
           <div className="border-b border-slate-200 dark:border-slate-800/80 pb-4 mb-5 flex items-center gap-3">
             <img src="/pad.png" alt="Imperial IT Logo" className="w-10 h-10 object-contain rounded-lg shadow-sm border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-900 p-1 shrink-0" />
             <div className="min-w-0">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brass-600 dark:text-brass-400 block truncate">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#0D47A1] dark:text-[#90CAF9] block truncate">
                 Imperial IT
               </span>
               <h2 className="font-display text-base text-slate-900 dark:text-slate-50 font-bold leading-tight mt-0.5 truncate">
@@ -473,7 +481,7 @@ export function SidebarLayout({
             <div className="mb-5">
               <button
                 onClick={onAddTaskClick}
-                className="w-full py-2.5 px-3 bg-brass-500 hover:bg-brass-400 text-slate-950 font-bold text-xs rounded-lg shadow-sm hover:shadow transition-all flex items-center justify-center gap-1.5 active:scale-95 border border-brass-600/30"
+                className="w-full py-2.5 px-3 bg-[#2196F3] hover:bg-[#1E88E5] text-white font-bold text-xs rounded-lg shadow-sm shadow-blue-500/25 hover:shadow transition-all flex items-center justify-center gap-1.5 active:scale-95 border border-blue-600/30"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
@@ -498,7 +506,7 @@ export function SidebarLayout({
                   onClick={() => setNavLoading(true)}
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                     isActive
-                      ? "bg-brass-500/15 text-brass-700 dark:text-brass-400 border border-brass-500/30 font-semibold shadow-xs"
+                      ? "bg-[#E3F2FD] dark:bg-[#2196F3]/20 text-[#0D47A1] dark:text-[#90CAF9] border border-[#90CAF9] dark:border-[#2196F3]/40 font-semibold shadow-xs"
                       : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100"
                   }`}
                 >

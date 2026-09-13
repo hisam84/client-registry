@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import nodemailer from 'nodemailer';
+import { sendOTPEmail } from '@/lib/mailer';
 
 const prisma = new PrismaClient();
 
@@ -16,9 +16,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: 'Email is required' }, { status: 400 });
     }
 
-    // Verify if it's the admin email (you can also hardcode it in .env)
-    const adminEmail = process.env.GMAIL_USER;
-    if (email !== adminEmail) {
+    // Verify if it's the admin email (can be set in .env)
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.BREVO_SENDER_EMAIL || process.env.GMAIL_USER;
+    if (adminEmail && email.trim().toLowerCase() !== adminEmail.trim().toLowerCase()) {
       return NextResponse.json({ success: false, message: 'Unauthorized email' }, { status: 403 });
     }
 
@@ -42,28 +42,11 @@ export async function POST(request: Request) {
       }
     });
 
-    // Send email via Nodemailer
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD,
-      },
-    });
-
-    await transporter.sendMail({
-      from: `"Client Manager" <${process.env.GMAIL_USER}>`,
-      to: email,
-      subject: 'Your Password Reset OTP',
-      html: `
-        <div style="font-family: sans-serif; padding: 20px; text-align: center;">
-          <h2>Password Reset Request</h2>
-          <p>Your OTP to change the site password is:</p>
-          <h1 style="color: #2563eb; letter-spacing: 5px;">${otp}</h1>
-          <p>This code will expire in 10 minutes.</p>
-        </div>
-      `,
-    });
+    // Send email via Brevo / unified mailer
+    const result = await sendOTPEmail({ email, otp });
+    if (!result.success) {
+      console.warn('sendOTPEmail reported an issue:', result.error);
+    }
 
     return NextResponse.json({ success: true, message: 'OTP sent successfully' });
   } catch (error) {
