@@ -1,25 +1,48 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET() {
   try {
     const now = new Date();
     const soonThreshold = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000); // 60 days from now
 
-    // 1. Fetch Institutions
-    const institutions = await prisma.institution.findMany({
-      where: { deletedAt: null },
-      select: {
-        id: true,
-        instituteName: true,
-        category: true,
-        instituteType: true,
-        expireDate: true,
-        actualExpireDate: true,
-        district: true,
-        subDistrict: true,
-      },
-    });
+    // 1. Fetch Institutions safely
+    let institutions: any[] = [];
+    try {
+      institutions = await prisma.institution.findMany({
+        where: { deletedAt: null },
+        select: {
+          id: true,
+          instituteName: true,
+          category: true,
+          instituteType: true,
+          expireDate: true,
+          actualExpireDate: true,
+          district: true,
+          subDistrict: true,
+        },
+      });
+    } catch (instErr) {
+      console.error("Dashboard overview: failed to fetch institutions with deletedAt:", instErr);
+      try {
+        institutions = await (prisma.institution as any).findMany({
+          select: {
+            id: true,
+            instituteName: true,
+            category: true,
+            instituteType: true,
+            expireDate: true,
+            district: true,
+            subDistrict: true,
+          },
+        });
+      } catch (fallbackErr) {
+        console.error("Dashboard overview: fallback institutions fetch failed:", fallbackErr);
+      }
+    }
 
     let instActive = 0;
     let instExpiringSoon = 0;
@@ -99,33 +122,61 @@ export async function GET() {
       .sort((a, b) => new Date(a.expireDate!).getTime() - new Date(b.expireDate!).getTime())
       .slice(0, 5);
 
-    // 2. Fetch Targeted Clients
-    const targetedClients = await prisma.targetedClient.findMany({
-      where: { deletedAt: null },
-      select: {
-        id: true,
-        priority: true,
-        isArchived: true,
-      },
-    });
+    // 2. Fetch Targeted Clients safely
+    let targetedClients: any[] = [];
+    try {
+      targetedClients = await prisma.targetedClient.findMany({
+        where: { deletedAt: null },
+        select: {
+          id: true,
+          priority: true,
+          isArchived: true,
+        },
+      });
+    } catch (tcErr) {
+      console.error("Dashboard overview: failed to fetch targeted clients with deletedAt:", tcErr);
+      try {
+        targetedClients = await (prisma.targetedClient as any).findMany({
+          select: {
+            id: true,
+            priority: true,
+            isArchived: true,
+          },
+        });
+      } catch (tcFallbackErr) {
+        console.error("Dashboard overview: fallback targeted clients failed:", tcFallbackErr);
+      }
+    }
 
     const targetedTotalActive = targetedClients.filter((c) => !c.isArchived).length;
     const targetedHighPriority = targetedClients.filter((c) => !c.isArchived && c.priority === "High").length;
     const targetedArchived = targetedClients.filter((c) => c.isArchived).length;
 
-    // 3. Fetch Tasks
+    // 3. Fetch Tasks safely
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
 
-    const tasks: any[] = await (prisma as any).task.findMany({
-      where: { deletedAt: null },
-      include: {
-        institution: {
-          select: { id: true, instituteName: true },
+    let tasks: any[] = [];
+    try {
+      tasks = await (prisma as any).task.findMany({
+        where: { deletedAt: null },
+        include: {
+          institution: {
+            select: { id: true, instituteName: true },
+          },
         },
-      },
-      orderBy: { dueDate: "asc" },
-    });
+        orderBy: { dueDate: "asc" },
+      });
+    } catch (taskErr) {
+      console.error("Dashboard overview: failed to fetch tasks with relation:", taskErr);
+      try {
+        tasks = await (prisma as any).task.findMany({
+          orderBy: { dueDate: "asc" },
+        });
+      } catch (taskFallbackErr) {
+        console.error("Dashboard overview: fallback tasks failed:", taskFallbackErr);
+      }
+    }
 
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter((t) => t.status === "Completed").length;
@@ -171,7 +222,7 @@ export async function GET() {
       },
     });
   } catch (error: any) {
-    console.error("GET /api/dashboard/overview error:", error);
+    console.error("GET /api/dashboard/overview fatal error:", error);
     return NextResponse.json({ error: error.message || "Failed to load overview metrics" }, { status: 500 });
   }
 }

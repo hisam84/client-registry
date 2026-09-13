@@ -54,18 +54,23 @@ export default function DashboardPage() {
   const { currentUser } = useUserSession();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
   const [showTaskModal, setShowTaskModal] = useState(false);
 
   async function loadOverview(showLoading = false) {
     if (showLoading && !data) setLoading(true);
     try {
-      const res = await fetch("/api/dashboard/overview");
+      const res = await fetch("/api/dashboard/overview", { cache: "no-store" });
       const result = await res.json();
       if (result && !result.error) {
         setData(result);
+        setErrorMsg("");
+      } else {
+        setErrorMsg(result?.error || `Failed to load dashboard metrics (Status: ${res.status})`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to load dashboard overview:", err);
+      setErrorMsg(err.message || "Network error loading dashboard metrics");
     } finally {
       setLoading(false);
     }
@@ -186,7 +191,17 @@ export default function DashboardPage() {
       {loading ? (
         <div className="py-20 text-center text-slate-500">Loading system metrics & analytics...</div>
       ) : !data ? (
-        <div className="py-20 text-center text-red-500">Failed to load dashboard metrics. Please refresh.</div>
+        <div className="py-20 text-center">
+          <p className="text-red-500 font-semibold mb-2">Failed to load dashboard metrics. Please refresh.</p>
+          {errorMsg && (
+            <p className="text-xs text-red-600 dark:text-red-400 font-mono mb-4 max-w-md mx-auto bg-red-50 dark:bg-red-950/30 p-2.5 rounded-lg border border-red-200 dark:border-red-900/40">
+              {errorMsg}
+            </p>
+          )}
+          <Button onClick={() => loadOverview(true)} variant="outline" className="text-xs">
+            Retry Now
+          </Button>
+        </div>
       ) : (
         <div className="space-y-8">
           {/* WELCOME BANNER FOR ACTIVE USER */}
