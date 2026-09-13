@@ -154,53 +154,35 @@ export function TaskFormModal({
           </div>
         )}
 
-        {/* Employee Assignment Dropdown */}
-        <div className="bg-brass-500/5 dark:bg-brass-500/10 p-3 rounded-xl border border-brass-500/20">
-          <div className="flex items-center justify-between mb-1.5">
-            <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-              <svg className="w-4 h-4 text-brass-600 dark:text-brass-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <span>Assign Employee</span>
-            </label>
-            <button
-              type="button"
-              onClick={() => setAssignedToId(currentUser.id !== "super-admin" ? currentUser.id : "")}
-              className="text-[11px] font-semibold text-brass-600 dark:text-brass-400 hover:underline"
-            >
-              + Assign to Myself
-            </button>
-          </div>
-
+        {/* Employee Assignment Dropdown - Single Clean Box */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Assign Employee
+          </label>
           <select
             value={assignedToId}
             onChange={(e) => setAssignedToId(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brass-500"
+            className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#2196F3] font-medium"
           >
-            <option value="">Unassigned</option>
-
+            <option value="">Select employee</option>
             {currentUser.id === "super-admin" && (
               <option value="super-admin">Super Admin (Self)</option>
             )}
-
             {employees.map((emp) => (
               <option key={emp.id} value={emp.id}>
-                #{emp.orderSerial} • {emp.name} ({emp.designation || emp.role})
+                {emp.name} ({emp.designation || emp.role})
               </option>
             ))}
           </select>
-          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
-            * Tasks can also be created without assigning an employee.
-          </p>
         </div>
 
-        {/* Institution Select */}
+        {/* Institution Select - Single Clean Box */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            Institution / Organization
+            Institution
           </label>
           {loadingInst ? (
-            <div className="text-xs text-slate-400">Loading institutions list...</div>
+            <div className="text-xs text-slate-400 py-2">Loading...</div>
           ) : (
             <CustomInstituteSelect
               institutions={institutions}
@@ -217,26 +199,30 @@ export function TaskFormModal({
 
         {/* Task Title */}
         <div>
-          <Input
-            label="Task Title*"
+          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Task Title*
+          </label>
+          <input
+            type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g., Domain Renewal Followup"
+            placeholder="Task title"
             required
+            className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#2196F3] font-medium"
           />
         </div>
 
         {/* Date and Time Selection */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            Scheduled Date & Time*
+            Date & Time*
           </label>
           <input
             type="datetime-local"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
             required
-            className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brass-500 font-mono"
+            className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#2196F3] font-mono"
           />
         </div>
 
@@ -249,11 +235,11 @@ export function TaskFormModal({
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value as TaskPriority)}
-              className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brass-500 font-medium"
+              className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#2196F3] font-medium"
             >
-              <option value="High">High Priority</option>
-              <option value="Medium">Medium Priority</option>
-              <option value="Low">Low Priority</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
             </select>
           </div>
 
@@ -269,7 +255,7 @@ export function TaskFormModal({
                 if (s === "Completed") setProgress(100);
                 else if (s === "Pending" && progress === 100) setProgress(0);
               }}
-              className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brass-500 font-medium"
+              className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#2196F3] font-medium"
             >
               <option value="Pending">Pending</option>
               <option value="In Progress">In Progress</option>
@@ -279,97 +265,72 @@ export function TaskFormModal({
           </div>
         </div>
 
-        {/* Completion Progress % */}
-        <div>
-          <div className="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            <span>Progress (%)</span>
-            <span className="font-mono text-brass-600 dark:text-brass-400 font-bold">{progress}%</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <input
-              type="range"
-              min="0"
-              max="100"
-              step="5"
-              value={progress}
-              onChange={(e) => {
-                const val = Number(e.target.value);
-                setProgress(val);
-                if (val === 100) setStatus("Completed");
-                else if (val > 0 && status === "Pending") setStatus("In Progress");
-              }}
-              className="flex-1 accent-brass-500 cursor-pointer h-2 bg-slate-200 dark:bg-slate-700 rounded-lg"
-            />
-            <input
-              type="number"
-              min="0"
-              max="100"
-              value={progress}
-              onChange={(e) => {
-                const val = Math.min(100, Math.max(0, Number(e.target.value)));
-                setProgress(val);
-                if (val === 100) setStatus("Completed");
-                else if (val > 0 && status === "Pending") setStatus("In Progress");
-              }}
-              className="w-16 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1 text-center text-xs font-mono font-bold text-slate-900 dark:text-slate-100"
-            />
-          </div>
-          {/* Quick preset percentage buttons */}
-          <div className="flex items-center gap-1.5 mt-2">
-            {[0, 25, 50, 75, 100].map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => {
-                  setProgress(p);
-                  if (p === 100) setStatus("Completed");
-                  else if (p > 0 && status === "Pending") setStatus("In Progress");
+        {/* Completion Progress % - only shown if editing or in progress */}
+        {(Boolean(initialTask) || status === "In Progress") && (
+          <div>
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <span>Progress</span>
+              <span className="font-mono text-[#2196F3] font-bold">{progress}%</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min="0"
+                max="100"
+                step="5"
+                value={progress}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  setProgress(val);
+                  if (val === 100) setStatus("Completed");
+                  else if (val > 0 && status === "Pending") setStatus("In Progress");
                 }}
-                className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
-                  progress === p
-                    ? "bg-brass-500 text-slate-950 font-bold border-brass-500"
-                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700 hover:bg-slate-200"
-                }`}
-              >
-                {p}%
-              </button>
-            ))}
+                className="flex-1 accent-[#2196F3] cursor-pointer h-2 bg-slate-200 dark:bg-slate-700 rounded-lg"
+              />
+              <span className="text-xs font-mono font-bold text-slate-700 dark:text-slate-300 w-10 text-right">{progress}%</span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Task Details */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            Task Details & Instructions
+            Details
           </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
-            placeholder="Write details, instructions, or action notes..."
-            className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brass-500"
+            placeholder="Details (optional)"
+            className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#2196F3]"
           />
         </div>
 
-        {/* Completion / Status Note or Reason */}
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            Outcome / Completion Reason & Remarks
-          </label>
-          <textarea
-            value={completionNote}
-            onChange={(e) => setCompletionNote(e.target.value)}
-            rows={2}
-            placeholder="e.g., Client requested delay until next week, domain renewed successfully, or budget issue..."
-            className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brass-500"
-          />
-        </div>
+        {/* Completion / Outcome Remarks - only shown if editing or if Cancelled / Completed */}
+        {(Boolean(initialTask) || status === "Cancelled" || status === "Completed") && (
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              {status === "Cancelled" ? "Cancellation Reason" : "Outcome / Remarks"}
+            </label>
+            <textarea
+              value={completionNote}
+              onChange={(e) => setCompletionNote(e.target.value)}
+              rows={2}
+              placeholder="Reason / remarks"
+              className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#2196F3]"
+            />
+          </div>
+        )}
 
         <div className="mt-6 flex justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
           <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
             Cancel
           </Button>
-          <Button type="submit" disabled={saving} className="bg-brass-500 hover:bg-brass-400 text-slate-950 font-bold">
+          <Button
+            type="submit"
+            disabled={saving}
+            className="bg-[#2196F3] hover:bg-[#1E88E5] text-white font-semibold shadow-sm shadow-blue-500/20 cursor-pointer"
+          >
             {saving ? "Saving..." : initialTask ? "Save Changes" : "Save Task"}
           </Button>
         </div>
