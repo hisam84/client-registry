@@ -13,19 +13,19 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // Clear any autofilled inputs on mount
-  useEffect(() => {
-    setUsername("");
-    setPassword("");
-  }, []);
+  // Remove anti-autofill clearing so saved credentials can populate
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!username.trim()) {
+    const form = e.currentTarget;
+    const submittedUsername = ((form.elements.namedItem("username") as HTMLInputElement)?.value ?? username).trim();
+    const submittedPassword = (form.elements.namedItem("password") as HTMLInputElement)?.value ?? password;
+
+    if (!submittedUsername) {
       setError("Username or Email is required");
       return;
     }
-    if (!password) {
+    if (!submittedPassword) {
       setError("Password is required");
       return;
     }
@@ -37,7 +37,7 @@ export default function LoginPage() {
       const res = await fetch("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: username.trim(), password }),
+        body: JSON.stringify({ username: submittedUsername, password: submittedPassword }),
       });
 
       const data = await res.json();
@@ -82,24 +82,20 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Form with Anti-Autofill protection */}
-        <form className="mt-6 space-y-4" onSubmit={handleSubmit} autoComplete="off">
-          {/* Dummy hidden inputs to hijack browser autofill engines */}
-          <input type="text" name="fake_username" id="fake_username" className="hidden" aria-hidden="true" autoComplete="off" tabIndex={-1} />
-          <input type="password" name="fake_password" id="fake_password" className="hidden" aria-hidden="true" autoComplete="off" tabIndex={-1} />
-
+        {/* Form with browser autofill and credential manager support */}
+        <form className="mt-6 space-y-4" onSubmit={handleSubmit} autoComplete="on">
           {/* Username Field */}
           <div>
-            <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
+            <label htmlFor="username" className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
               Username or Email
             </label>
             <div className="relative flex items-center">
               <input
                 type="text"
-                name="app_user_login"
-                id="app_user_login"
+                name="username"
+                id="username"
                 required
-                autoComplete="off"
+                autoComplete="username"
                 className="appearance-none rounded-lg relative block w-full px-3 py-2.5 border border-gray-300 dark:border-slate-700 placeholder-gray-400 text-gray-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brass-400 focus:border-brass-400 text-sm font-medium"
                 placeholder="Enter Username or Email"
                 value={username}
@@ -110,16 +106,16 @@ export default function LoginPage() {
 
           {/* Password Field */}
           <div>
-            <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
+            <label htmlFor="password" className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
               Password
             </label>
             <div className="relative flex items-center">
               <input
                 type={showPassword ? "text" : "password"}
-                name="app_user_pass"
-                id="app_user_pass"
+                name="password"
+                id="password"
                 required
-                autoComplete="new-password"
+                autoComplete="current-password"
                 className="appearance-none rounded-lg relative block w-full px-3 py-2.5 pr-10 border border-gray-300 dark:border-slate-700 placeholder-gray-400 text-gray-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brass-400 focus:border-brass-400 text-sm"
                 placeholder="Enter Password"
                 value={password}
