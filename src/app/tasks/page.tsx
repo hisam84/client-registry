@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { TaskCharts } from "@/components/tasks/TaskCharts";
 import { TaskFormModal } from "@/components/tasks/TaskFormModal";
@@ -41,6 +41,7 @@ export default function TasksPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [selectedMonthFilter, setSelectedMonthFilter] = useState<string>("all");
   const [upcomingOnly, setUpcomingOnly] = useState<boolean>(false);
 
   // Dashboard metrics
@@ -148,6 +149,38 @@ export default function TasksPage() {
       setLoading(false);
     }
   }
+
+  // Derive all unique months present in tasks
+  const availableMonths = useMemo(() => {
+    const map = new Map<string, { key: string; label: string; count: number }>();
+    tasks.forEach((t) => {
+      if (!t.dueDate) return;
+      const d = new Date(t.dueDate);
+      if (isNaN(d.getTime())) return;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      const label = d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+      const existing = map.get(key);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        map.set(key, { key, label, count: 1 });
+      }
+    });
+
+    return Array.from(map.values()).sort((a, b) => b.key.localeCompare(a.key));
+  }, [tasks]);
+
+  // Filter tasks by selected month (if not "all")
+  const displayedTasks = useMemo(() => {
+    if (selectedMonthFilter === "all") return tasks;
+    return tasks.filter((t) => {
+      if (!t.dueDate) return selectedMonthFilter === "undated";
+      const d = new Date(t.dueDate);
+      if (isNaN(d.getTime())) return selectedMonthFilter === "undated";
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      return key === selectedMonthFilter;
+    });
+  }, [tasks, selectedMonthFilter]);
 
   useEffect(() => {
     loadDashboardMetrics();
@@ -455,6 +488,20 @@ export default function TasksPage() {
               ))}
             </select>
 
+            {/* Month Filter */}
+            <select
+              value={selectedMonthFilter}
+              onChange={(e) => setSelectedMonthFilter(e.target.value)}
+              className="rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none font-semibold"
+            >
+              <option value="all">All Months</option>
+              {availableMonths.map((m) => (
+                <option key={m.key} value={m.key}>
+                  📅 {m.label} ({m.count})
+                </option>
+              ))}
+            </select>
+
             <select
               value={statusFilter}
               onChange={(e) => {
@@ -481,12 +528,13 @@ export default function TasksPage() {
               <option value="Low">Low Priority</option>
             </select>
 
-            {(search || statusFilter !== "all" || priorityFilter !== "all" || upcomingOnly || selectedEmployeeFilter !== "all" || activeTab !== "my_tasks") && (
+            {(search || statusFilter !== "all" || priorityFilter !== "all" || selectedMonthFilter !== "all" || upcomingOnly || selectedEmployeeFilter !== "all" || activeTab !== "my_tasks") && (
               <button
                 onClick={() => {
                   setSearch("");
                   setStatusFilter("all");
                   setPriorityFilter("all");
+                  setSelectedMonthFilter("all");
                   setUpcomingOnly(false);
                   setSelectedEmployeeFilter("all");
                   setActiveTab(isSuperAdmin ? "all" : "my_tasks");
@@ -506,7 +554,7 @@ export default function TasksPage() {
         <div className="py-16 text-center text-slate-500">Loading tasks...</div>
       ) : (
         <UpcomingTasksList
-          tasks={tasks}
+          tasks={displayedTasks}
           onEdit={(task) => {
             setEditingTask(task);
             setShowTaskModal(true);
