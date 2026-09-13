@@ -29,6 +29,8 @@ export function setStoredUser(user: Employee) {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem("imperial_active_user", JSON.stringify(user));
+    localStorage.setItem("imperial_last_activity", Date.now().toString());
+    localStorage.setItem("imperial_session_start", Date.now().toString());
     window.dispatchEvent(new Event("user-session-changed"));
   } catch (err) {
     console.error("Failed to store user:", err);
@@ -39,6 +41,8 @@ export function clearStoredUser() {
   if (typeof window === "undefined") return;
   try {
     localStorage.removeItem("imperial_active_user");
+    localStorage.removeItem("imperial_last_activity");
+    localStorage.removeItem("imperial_session_start");
     window.dispatchEvent(new Event("user-session-changed"));
   } catch (err) {
     console.error("Failed to clear stored user:", err);

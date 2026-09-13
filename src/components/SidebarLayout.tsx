@@ -3,7 +3,7 @@ import { ReactNode, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { useUserSession } from "@/lib/userSession";
+import { useUserSession, clearStoredUser } from "@/lib/userSession";
 
 interface SidebarLayoutProps {
   children: ReactNode;
@@ -41,6 +41,7 @@ export function SidebarLayout({
   async function handleLogout() {
     setNavLoading(true);
     await fetch("/api/auth/logout", { method: "POST" });
+    clearStoredUser();
     router.push("/login");
     router.refresh();
   }

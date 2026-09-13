@@ -12,6 +12,9 @@ const SUPER_ADMIN_USER = {
   avatarColor: "#0b7677",
 };
 
+// 24 hours in seconds = 86,400 seconds
+const SESSION_MAX_AGE = 60 * 60 * 24;
+
 export async function POST(request: Request) {
   try {
     const { username, password } = await request.json();
@@ -41,7 +44,7 @@ export async function POST(request: Request) {
         cookies().set("site-auth", "true", {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
-          maxAge: 60 * 60 * 24 * 30, // 30 days
+          maxAge: SESSION_MAX_AGE, // 24 hours
           path: "/",
         });
 
@@ -69,7 +72,7 @@ export async function POST(request: Request) {
         cookies().set("site-auth", "true", {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
-          maxAge: 60 * 60 * 24 * 30, // 30 days
+          maxAge: SESSION_MAX_AGE, // 24 hours
           path: "/",
         });
 
@@ -101,7 +104,7 @@ export async function POST(request: Request) {
       cookies().set("site-auth", "true", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        maxAge: 60 * 60 * 24 * 30,
+        maxAge: SESSION_MAX_AGE, // 24 hours
         path: "/",
       });
 
