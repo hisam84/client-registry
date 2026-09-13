@@ -269,7 +269,14 @@ export default function TasksPage() {
 
       {/* Top Stat Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
+        <div
+          onClick={() => {
+            setStatusFilter("all");
+            setUpcomingOnly(true);
+          }}
+          className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm cursor-pointer hover:border-amber-400/60 transition-colors"
+          title="Click to filter upcoming tasks"
+        >
           <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
             <span>Upcoming Tasks</span>
             <span className="text-amber-500 font-bold">Upcoming</span>
@@ -289,7 +296,18 @@ export default function TasksPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
+        <div
+          onClick={() => {
+            setUpcomingOnly(false);
+            setStatusFilter(statusFilter === "Overdue" ? "all" : "Overdue");
+          }}
+          className={`rounded-xl border p-4 shadow-sm cursor-pointer transition-colors ${
+            statusFilter === "Overdue"
+              ? "border-red-500/60 bg-red-500/5 dark:bg-red-500/10"
+              : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-red-400/60"
+          }`}
+          title="Click to filter overdue tasks"
+        >
           <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
             <span>Overdue Tasks</span>
             <span className="text-red-500 font-bold">Action Needed</span>
@@ -299,7 +317,18 @@ export default function TasksPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
+        <div
+          onClick={() => {
+            setUpcomingOnly(false);
+            setStatusFilter(statusFilter === "Completed" ? "all" : "Completed");
+          }}
+          className={`rounded-xl border p-4 shadow-sm cursor-pointer transition-colors ${
+            statusFilter === "Completed"
+              ? "border-emerald-500/60 bg-emerald-500/5 dark:bg-emerald-500/10"
+              : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-emerald-400/60"
+          }`}
+          title="Click to filter completed tasks"
+        >
           <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
             <span>Completed</span>
             <span className="text-emerald-500 font-bold">Done</span>
@@ -461,7 +490,12 @@ export default function TasksPage() {
 
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <button
-              onClick={() => setUpcomingOnly(!upcomingOnly)}
+              onClick={() => {
+                if (!upcomingOnly && statusFilter === "Overdue") {
+                  setStatusFilter("all");
+                }
+                setUpcomingOnly(!upcomingOnly);
+              }}
               className={`px-3 py-1.5 rounded-lg font-semibold border transition-all ${
                 upcomingOnly
                   ? "bg-brass-500/20 text-brass-700 dark:text-brass-400 border-brass-500/40"
@@ -469,6 +503,24 @@ export default function TasksPage() {
               }`}
             >
               Upcoming Only ({metrics.upcomingTasks})
+            </button>
+
+            <button
+              onClick={() => {
+                if (statusFilter === "Overdue") {
+                  setStatusFilter("all");
+                } else {
+                  setUpcomingOnly(false);
+                  setStatusFilter("Overdue");
+                }
+              }}
+              className={`px-3 py-1.5 rounded-lg font-semibold border transition-all ${
+                statusFilter === "Overdue"
+                  ? "bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/40 shadow-xs"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-200 dark:hover:bg-slate-700"
+              }`}
+            >
+              Overdue Only ({metrics.overdueTasks})
             </button>
 
             {/* Filter by Employee / User */}
@@ -505,12 +557,19 @@ export default function TasksPage() {
             <select
               value={statusFilter}
               onChange={(e) => {
-                setUpcomingOnly(false);
+                if (e.target.value === "Overdue") {
+                  setUpcomingOnly(false);
+                }
                 setStatusFilter(e.target.value);
               }}
-              className="rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none font-medium"
+              className={`rounded-lg border px-3 py-1.5 text-xs focus:outline-none font-semibold ${
+                statusFilter === "Overdue"
+                  ? "border-red-400 dark:border-red-700 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400"
+                  : "border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200"
+              }`}
             >
               <option value="all">All Statuses</option>
+              <option value="Overdue">Overdue ({metrics.overdueTasks})</option>
               <option value="Pending">Pending</option>
               <option value="In Progress">In Progress</option>
               <option value="Completed">Completed</option>

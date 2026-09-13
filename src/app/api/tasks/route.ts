@@ -13,6 +13,7 @@ export async function GET(req: NextRequest) {
     const status = params.get("status");
     const priority = params.get("priority");
     const upcoming = params.get("upcoming"); // "true" or "false"
+    const overdue = params.get("overdue"); // "true" or "false"
     const institutionId = params.get("institutionId");
     const assignedToId = params.get("assignedToId");
     const assignedById = params.get("assignedById");
@@ -34,7 +35,21 @@ export async function GET(req: NextRequest) {
     }
 
     if (status && status !== "all") {
-      where.status = status;
+      if (status === "Overdue") {
+        const now = new Date();
+        where.dueDate = { lt: now };
+        where.status = { notIn: ["Completed", "Cancelled"] };
+      } else {
+        where.status = status;
+      }
+    }
+
+    if (overdue === "true") {
+      const now = new Date();
+      where.dueDate = { lt: now };
+      if (!status || status === "all") {
+        where.status = { notIn: ["Completed", "Cancelled"] };
+      }
     }
 
     if (priority && priority !== "all") {
@@ -45,10 +60,10 @@ export async function GET(req: NextRequest) {
       where.institutionId = institutionId;
     }
 
-    if (upcoming === "true") {
+    if (upcoming === "true" && status !== "Overdue") {
       const now = new Date();
       where.dueDate = { gte: now };
-      if (!status) {
+      if (!status || status === "all") {
         where.status = { in: ["Pending", "In Progress"] };
       }
     }

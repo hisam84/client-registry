@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
     const unassignedTasks = allTasks.filter((t) => !t.assignedToId).length;
 
     const overdueTasks = allTasks.filter(
-      (t) => new Date(t.dueDate) < startOfToday && t.status !== "Completed" && t.status !== "Cancelled"
+      (t) => new Date(t.dueDate) < now && t.status !== "Completed" && t.status !== "Cancelled"
     ).length;
 
     const tasksToday = allTasks.filter((t) => {
@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
     }).length;
 
     const upcomingTasks = allTasks.filter(
-      (t) => new Date(t.dueDate) >= startOfToday && t.status !== "Completed" && t.status !== "Cancelled"
+      (t) => new Date(t.dueDate) >= now && t.status !== "Completed" && t.status !== "Cancelled"
     ).length;
 
     // Daily breakdown for the next 7 days

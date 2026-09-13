@@ -88,6 +88,14 @@ export function UpcomingTasksList({
     }
 
     if (diffDays === 0) {
+      const isPastTime = due.getTime() < now.getTime();
+      if (isPastTime) {
+        return (
+          <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30 whitespace-nowrap">
+            Overdue Today ({timeStr})
+          </span>
+        );
+      }
       return (
         <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 whitespace-nowrap">
           Due Today ({timeStr})
@@ -206,9 +214,10 @@ export function UpcomingTasksList({
 
   function renderTaskCard(task: TaskItem) {
     const isCompleted = task.status === "Completed";
+    const isCancelled = task.status === "Cancelled";
     const instName = task.institution?.instituteName || task.institutionName || "General Task";
     const due = new Date(task.dueDate);
-    const isOverdue = !isCompleted && due.getTime() < Date.now();
+    const isOverdue = !isCompleted && !isCancelled && due.getTime() < Date.now();
 
     const assignedEmp = task.assignedTo;
     const assignerEmp = task.assignedBy;
