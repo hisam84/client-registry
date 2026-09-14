@@ -120,12 +120,12 @@ export function InstitutionTable({
 
   return (
     <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-      <table className="w-full border-collapse text-sm table-fixed min-w-[850px]">
+      <table className="w-full border-collapse text-sm table-fixed min-w-[980px]">
         <thead>
           <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900/80 text-left text-xs uppercase tracking-wide text-slate-600 dark:text-slate-400">
             <th className="w-12 px-3 py-3 text-center">SL #</th>
             <th className="w-8 px-2 py-3"></th>
-            <th className="w-[34%] max-w-[320px] px-3 py-3">Institute Name</th>
+            <th className="w-[400px] max-w-[400px] px-3 py-3">Institute Name</th>
             <th className="hidden md:table-cell w-[22%] max-w-[210px] px-3 py-3">Website / Domain</th>
             <th className="hidden md:table-cell w-28 px-3 py-3">Issue Date</th>
             <th className="hidden md:table-cell w-28 px-3 py-3">Expire Date</th>
@@ -156,7 +156,7 @@ export function InstitutionTable({
                   <td className="w-8 px-2 py-3 text-slate-400 dark:text-slate-500">
                     <span className={`inline-block transition-transform ${isOpen ? "rotate-90" : ""}`}>›</span>
                   </td>
-                  <td className="w-[34%] max-w-[320px] px-3 py-3 overflow-hidden">
+                  <td className="w-[400px] max-w-[400px] px-3 py-3 overflow-hidden">
                     <div className="flex items-center justify-between gap-2 min-w-0">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 min-w-0">
