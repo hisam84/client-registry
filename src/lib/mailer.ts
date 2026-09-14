@@ -523,7 +523,9 @@ export async function sendTaskDueSoonEmail(data: TaskAlertEmailData) {
     assignedToName,
   } = data;
 
-  if (!assignedToEmail) return;
+  if (!assignedToEmail) {
+    return { success: false, error: "No recipient email address provided." };
+  }
 
   const formattedDate = new Date(dueDate).toLocaleString("en-US", {
     dateStyle: "medium",
@@ -670,7 +672,7 @@ ${tasksUrl}
 Client Registry Management System (impdatabase.vercel.app)
   `.trim();
 
-  await sendEmail({
+  return await sendEmail({
     to: assignedToEmail,
     toName: assignedToName,
     subject: `[REMINDER] Task Due in 2 Hours: ${taskTitle}`,
@@ -682,11 +684,11 @@ Client Registry Management System (impdatabase.vercel.app)
 /**
  * 4. Task Overdue Alert Email
  */
-export async function sendTaskOverdueEmail(data: TaskAlertEmailData) {
+export async function sendTaskOverdueEmail(data: TaskAlertEmailData): Promise<{ success: boolean; error?: string }> {
   const settings = await getMailSettings();
   if (!settings.masterEnabled || !settings.taskOverdue) {
     console.log("Task overdue email skipped: service disabled in Mail Settings.");
-    return { success: false, error: "Task overdue alert email service is currently disabled." };
+    return { success: false, error: "Task overdue alert email service is currently disabled in Mail Settings." };
   }
 
   const {
@@ -702,7 +704,25 @@ export async function sendTaskOverdueEmail(data: TaskAlertEmailData) {
     timeOverdueText,
   } = data;
 
-  if (!assignedToEmail) return;
+  const finalRecipientEmail = assignedToEmail?.trim() || assignerEmail?.trim() || "imperialitbd2011@gmail.com";
+  const finalRecipientName = assignedToName || assignedByName || "Team Administrator";
+
+  if (!finalRecipientEmail) {
+    return { success: false, error: "No recipient email address found for overdue task." };
+  }
+
+  // CC list for overdue alert: ensure assigner and admin are notified
+  const ccList: string[] = [];
+  if (assignerEmail && assignerEmail.trim().toLowerCase() !== finalRecipientEmail.toLowerCase()) {
+    ccList.push(assignerEmail.trim());
+  }
+  const defaultAdmin = "imperialitbd2011@gmail.com";
+  if (
+    finalRecipientEmail.toLowerCase() !== defaultAdmin.toLowerCase() &&
+    !ccList.some((c) => c.toLowerCase() === defaultAdmin.toLowerCase())
+  ) {
+    ccList.push(defaultAdmin);
+  }
 
   const formattedDate = new Date(dueDate).toLocaleString("en-US", {
     dateStyle: "medium",
@@ -850,9 +870,10 @@ ${tasksUrl}
 Client Registry Management System (impdatabase.vercel.app)
   `.trim();
 
-  await sendEmail({
-    to: assignedToEmail,
-    toName: assignedToName,
+  return await sendEmail({
+    to: finalRecipientEmail,
+    toName: finalRecipientName,
+    ...(ccList.length > 0 ? { cc: ccList } : {}),
     subject: `[OVERDUE ALERT] Task Overdue: ${taskTitle}`,
     text,
     html,

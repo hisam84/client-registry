@@ -24,6 +24,16 @@ export default function MailSettingsPage() {
   const [sendingTest, setSendingTest] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
+  const [triggeringCron, setTriggeringCron] = useState(false);
+  const [cronResult, setCronResult] = useState<{
+    success: boolean;
+    checkedCount?: number;
+    overdueSent?: number;
+    remindersSent?: number;
+    errors?: string[];
+    message?: string;
+  } | null>(null);
+
   useEffect(() => {
     loadSettings();
   }, []);
@@ -106,6 +116,42 @@ export default function MailSettingsPage() {
       });
     } finally {
       setSendingTest(false);
+    }
+  }
+
+  async function handleRunTaskAlertCheck(reset: boolean = false) {
+    setTriggeringCron(true);
+    setCronResult(null);
+    try {
+      const url = reset ? "/api/cron/tasks?reset=true" : "/api/cron/tasks?force=true";
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.success) {
+        setCronResult({
+          success: true,
+          checkedCount: data.checkedCount,
+          overdueSent: data.overdueSent,
+          remindersSent: data.remindersSent,
+          errors: data.errors || [],
+          message: `Check completed: ${data.checkedCount} active tasks scanned. ${data.overdueSent} overdue alerts and ${data.remindersSent} 2h reminders dispatched.`,
+        });
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("task-changed"));
+        }
+      } else {
+        setCronResult({
+          success: false,
+          message: data.error || "Failed to execute task alert check",
+          errors: data.errors || [],
+        });
+      }
+    } catch (err: any) {
+      setCronResult({
+        success: false,
+        message: err.message || "Network error while triggering task alerts",
+      });
+    } finally {
+      setTriggeringCron(false);
     }
   }
 
@@ -369,6 +415,64 @@ export default function MailSettingsPage() {
               }`}
             >
               <span>{testResult.message}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Task Alert & Overdue Notification Dispatcher */}
+        <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <span>Task Alert & Overdue Notification Dispatcher</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                  Real-time Cron
+                </span>
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Trigger background scanning for approaching deadlines (2-hour notice) and overdue task email alerts immediately.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => handleRunTaskAlertCheck(false)}
+                disabled={triggeringCron}
+                className="px-3.5 py-2 bg-[#2196F3] hover:bg-[#1E88E5] text-white text-xs font-semibold rounded-xl transition-colors shadow-sm disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {triggeringCron ? "Scanning..." : "⚡ Run Alert Check Now"}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRunTaskAlertCheck(true)}
+                disabled={triggeringCron}
+                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl transition-colors disabled:opacity-50"
+                title="Clears sent memory and re-evaluates all active tasks"
+              >
+                Reset & Rescan
+              </button>
+            </div>
+          </div>
+
+          {cronResult && (
+            <div
+              className={`mt-3 p-3.5 rounded-xl text-xs ${
+                cronResult.success
+                  ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800"
+                  : "bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800"
+              }`}
+            >
+              <div className="font-bold mb-1 flex items-center gap-1.5">
+                <span>{cronResult.success ? "✅ Dispatch Report" : "❌ Dispatch Failed"}</span>
+              </div>
+              <p className="text-xs">{cronResult.message}</p>
+              {cronResult.errors && cronResult.errors.length > 0 && (
+                <div className="mt-2 text-[11px] text-red-600 dark:text-red-400 space-y-0.5">
+                  {cronResult.errors.map((err, idx) => (
+                    <div key={idx}>• {err}</div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

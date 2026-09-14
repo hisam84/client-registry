@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { checkAndSendTaskAlerts } from "@/lib/taskNotificationService";
+import { checkAndSendTaskAlerts, clearPersistedTaskAlerts } from "@/lib/taskNotificationService";
 
 export const dynamic = "force-dynamic";
 
@@ -7,13 +7,31 @@ export async function GET(req: NextRequest) {
   try {
     const authHeader = req.headers.get("authorization");
     const cronSecret = process.env.CRON_SECRET;
+    const isSiteAuth = req.cookies.get("site-auth")?.value === "true";
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    // Allow execution if:
+    // 1. Cron secret matches Bearer header (Vercel Cron)
+    // 2. User is logged in to the app (browser background trigger)
+    // 3. No cronSecret is configured in environment
+    if (cronSecret && authHeader !== `Bearer ${cronSecret}` && !isSiteAuth) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const result = await checkAndSendTaskAlerts();
-    return NextResponse.json({ success: true, timestamp: new Date().toISOString(), ...result });
+    const searchParams = req.nextUrl.searchParams;
+    const reset = searchParams.get("reset") === "true";
+    const force = searchParams.get("force") === "true" || reset;
+
+    if (reset) {
+      await clearPersistedTaskAlerts();
+    }
+
+    const result = await checkAndSendTaskAlerts({ force });
+    return NextResponse.json({
+      success: true,
+      timestamp: new Date().toISOString(),
+      forced: force,
+      ...result,
+    });
   } catch (error: any) {
     console.error("Cron task notification error:", error);
     return NextResponse.json(

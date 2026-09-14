@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
     const priority = params.get("priority");
     const upcoming = params.get("upcoming"); // "true" or "false"
     const overdue = params.get("overdue"); // "true" or "false"
+    const alerts = params.get("alerts"); // "true" or "false" (overdue + tasks due within 24 hours)
     const institutionId = params.get("institutionId");
     const assignedToId = params.get("assignedToId");
     const assignedById = params.get("assignedById");
@@ -34,7 +35,14 @@ export async function GET(req: NextRequest) {
       ];
     }
 
-    if (status && status !== "all") {
+    if (alerts === "true") {
+      const now = new Date();
+      const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      where.dueDate = { lte: in24Hours };
+      if (!status || status === "all") {
+        where.status = { in: ["Pending", "In Progress"] };
+      }
+    } else if (status && status !== "all") {
       if (status === "Overdue") {
         const now = new Date();
         where.dueDate = { lt: now };
@@ -44,7 +52,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    if (overdue === "true") {
+    if (overdue === "true" && alerts !== "true") {
       const now = new Date();
       where.dueDate = { lt: now };
       if (!status || status === "all") {
@@ -60,7 +68,7 @@ export async function GET(req: NextRequest) {
       where.institutionId = institutionId;
     }
 
-    if (upcoming === "true" && status !== "Overdue") {
+    if (upcoming === "true" && status !== "Overdue" && alerts !== "true") {
       const now = new Date();
       where.dueDate = { gte: now };
       if (!status || status === "all") {

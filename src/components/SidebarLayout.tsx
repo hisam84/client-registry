@@ -56,10 +56,10 @@ export function SidebarLayout({
     router.refresh();
   }
 
-  // Load approaching task notifications
+  // Load approaching and overdue task notifications
   async function loadNotifications() {
     try {
-      const res = await fetch("/api/tasks?upcoming=true");
+      const res = await fetch("/api/tasks?alerts=true");
       const data = await res.json();
       if (Array.isArray(data)) {
         const now = new Date();
@@ -68,8 +68,16 @@ export function SidebarLayout({
           const due = new Date(t.dueDate);
           const diffMs = due.getTime() - now.getTime();
           const diffHours = diffMs / (1000 * 60 * 60);
-          return diffHours <= 24;
+          return diffHours <= 24; // Diff <= 24 includes all overdue (<0) and due within next 24h
         });
+
+        // Overdue tasks at the very top, then ascending by nearest deadline
+        urgent.sort((a: any, b: any) => {
+          const dueA = new Date(a.dueDate).getTime();
+          const dueB = new Date(b.dueDate).getTime();
+          return dueA - dueB;
+        });
+
         setUrgentTasks(urgent);
       }
     } catch (err) {
@@ -113,7 +121,8 @@ export function SidebarLayout({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  function handleDismissAlert(taskId: string) {
+  function handleDismissAlert(taskOrId: any) {
+    const taskId = typeof taskOrId === "string" ? taskOrId : taskOrId.id;
     setDismissedAlertIds((prev) => {
       const next = prev.includes(taskId) ? prev : [...prev, taskId];
       try {
@@ -318,7 +327,7 @@ export function SidebarLayout({
 
                 {urgentCount === 0 ? (
                   <div className="py-6 text-center text-xs text-slate-400">
-                    No urgent tasks due within 24 hours.
+                    No urgent or overdue tasks.
                   </div>
                 ) : (
                   <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
@@ -332,10 +341,19 @@ export function SidebarLayout({
                       return (
                         <div
                           key={t.id}
-                          className="p-3 rounded-xl border border-slate-100 dark:border-slate-800/80 bg-slate-50/80 dark:bg-slate-950/80 flex items-start justify-between gap-2 shadow-xs"
+                          className={`p-3 rounded-xl border flex items-start justify-between gap-2 shadow-xs transition-all ${
+                            isOverdue
+                              ? "border-red-300 dark:border-red-900/60 bg-red-50/70 dark:bg-red-950/40"
+                              : "border-slate-100 dark:border-slate-800/80 bg-slate-50/80 dark:bg-slate-950/80"
+                          }`}
                         >
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5">
+                              {isOverdue && (
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-600 text-white uppercase tracking-wider shrink-0">
+                                  Overdue
+                                </span>
+                              )}
                               <span className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
                                 {t.title}
                               </span>
@@ -346,11 +364,12 @@ export function SidebarLayout({
                             <span
                               className={`text-[10px] font-semibold block mt-1 ${
                                 isOverdue
-                                  ? "text-red-500 font-bold"
+                                  ? "text-red-600 dark:text-red-400 font-bold"
                                   : "text-amber-600 dark:text-amber-400"
                               }`}
                             >
-                              {isOverdue ? "Overdue" : "Due soon"}:{" "}
+                              {isOverdue ? "Deadline was: " : "Due: "}
+                              {due.toLocaleDateString([], { month: "short", day: "numeric" })},{" "}
                               {due.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                             </span>
                           </div>
@@ -724,7 +743,7 @@ export function SidebarLayout({
 
                     {urgentCount === 0 ? (
                       <div className="py-6 text-center text-xs text-slate-400">
-                        No urgent tasks due within 24 hours.
+                        No urgent or overdue tasks.
                       </div>
                     ) : (
                       <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
@@ -738,10 +757,19 @@ export function SidebarLayout({
                           return (
                             <div
                               key={t.id}
-                              className="p-3 rounded-xl border border-slate-100 dark:border-slate-800/80 bg-slate-50/80 dark:bg-slate-950/80 flex items-start justify-between gap-2 shadow-xs"
+                              className={`p-3 rounded-xl border flex items-start justify-between gap-2 shadow-xs transition-all ${
+                                isOverdue
+                                  ? "border-red-300 dark:border-red-900/60 bg-red-50/70 dark:bg-red-950/40"
+                                  : "border-slate-100 dark:border-slate-800/80 bg-slate-50/80 dark:bg-slate-950/80"
+                              }`}
                             >
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-1.5">
+                                  {isOverdue && (
+                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-600 text-white uppercase tracking-wider shrink-0">
+                                      Overdue
+                                    </span>
+                                  )}
                                   <span className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
                                     {t.title}
                                   </span>
@@ -752,11 +780,12 @@ export function SidebarLayout({
                                 <span
                                   className={`text-[10px] font-semibold block mt-1 ${
                                     isOverdue
-                                      ? "text-red-500 font-bold"
+                                      ? "text-red-600 dark:text-red-400 font-bold"
                                       : "text-amber-600 dark:text-amber-400"
                                   }`}
                                 >
-                                  {isOverdue ? "Overdue" : "Due soon"}:{" "}
+                                  {isOverdue ? "Deadline was: " : "Due: "}
+                                  {due.toLocaleDateString([], { month: "short", day: "numeric" })},{" "}
                                   {due.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                                 </span>
                               </div>
