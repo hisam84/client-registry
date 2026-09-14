@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter, Noto_Sans_Bengali, IBM_Plex_Mono } from "next/font/google";
 import { AutoLogout } from "@/components/AutoLogout";
+import { BackToTop } from "@/components/BackToTop";
 import "./globals.css";
 
 const display = Fraunces({
@@ -58,6 +59,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <AutoLogout />
         {children}
+        <BackToTop />
       </body>
     </html>
   );
