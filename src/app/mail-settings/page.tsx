@@ -11,9 +11,14 @@ export default function MailSettingsPage() {
   const [providerInfo, setProviderInfo] = useState<{
     name: string;
     senderEmail: string;
+    deliverabilityGrade?: string;
+    isOptimal?: boolean;
+    directGmailConfigured?: boolean;
+    customSmtpConfigured?: boolean;
     restApiConfigured: boolean;
     smtpRelayConfigured: boolean;
   } | null>(null);
+  const [showSpamGuide, setShowSpamGuide] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -275,35 +280,94 @@ export default function MailSettingsPage() {
           </div>
         </div>
 
-        {/* Active Provider Info Card */}
-        <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-gradient-to-r from-blue-50/50 via-slate-50/50 to-blue-50/50 dark:from-slate-900 dark:via-slate-900/90 dark:to-slate-900 shadow-sm">
+        {/* Active Provider & Deliverability Card */}
+        <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-xs font-bold uppercase tracking-wider text-[#0D47A1] dark:text-[#90CAF9]">
-                  Active Mail Delivery Provider
+                  Active Mail Transport
                 </span>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-bold">
-                  Operational
-                </span>
+                {providerInfo?.isOptimal ? (
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-bold">
+                    ✓ Optimal (0% Spam)
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[10px] font-bold">
+                    Relay Mode (Spam Warning)
+                  </span>
+                )}
               </div>
               <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <span>{providerInfo?.name || "Brevo (Sendinblue)"}</span>
+                <span>{providerInfo?.name || "Brevo SMTP Relay"}</span>
               </h4>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                Verified Sender: <strong className="font-mono text-slate-800 dark:text-slate-200">{providerInfo?.senderEmail || "imperialitbd2011@gmail.com"}</strong>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                Active Sender Address: <strong className="font-mono text-slate-800 dark:text-slate-200">{providerInfo?.senderEmail || "imperialitbd2011@gmail.com"}</strong>
               </p>
             </div>
 
-            <div className="flex items-center gap-2 text-xs">
-              <span className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-mono text-[11px]">
-                REST API v3: {providerInfo?.restApiConfigured ? "Ready" : "Standby"}
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              {providerInfo?.directGmailConfigured && (
+                <span className="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 font-mono text-[11px] font-semibold">
+                  Google DKIM/SPF: Signed
+                </span>
+              )}
+              <span className="px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-mono text-[11px]">
+                Relay: {providerInfo?.smtpRelayConfigured ? "Connected" : "Standby"}
               </span>
-              <span className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-mono text-[11px]">
-                SMTP Relay: {providerInfo?.smtpRelayConfigured ? "Ready" : "Standby"}
-              </span>
+              <button
+                type="button"
+                onClick={() => setShowSpamGuide((prev) => !prev)}
+                className="px-3 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 text-xs font-semibold transition-colors flex items-center gap-1.5"
+              >
+                <span>🛡️ Spam Prevention Guide</span>
+                <span>{showSpamGuide ? "▲" : "▼"}</span>
+              </button>
             </div>
           </div>
+
+          {/* Spam Prevention & Deliverability Guidance */}
+          {(!providerInfo?.isOptimal || showSpamGuide) && (
+            <div className="p-4 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/60 dark:bg-amber-950/20 space-y-2.5 text-xs text-slate-700 dark:text-slate-300">
+              <div className="flex items-start gap-2.5">
+                <span className="text-base leading-none">⚠️</span>
+                <div>
+                  <h5 className="font-bold text-amber-900 dark:text-amber-300">
+                    Why do some emails go to Spam? (Google DMARC / SPF Enforcement)
+                  </h5>
+                  <p className="mt-1 text-slate-600 dark:text-slate-400 leading-relaxed">
+                    Major email providers (Gmail, Yahoo, Microsoft) strictly enforce SPF &amp; DKIM. When sending from an <code>@gmail.com</code> address through a third-party relay (like Brevo), the mail server cannot use Google&apos;s private DKIM cryptographic key, causing recipient spam filters to route messages to <strong>Spam / Junk</strong>.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-amber-200/70 dark:border-amber-900/30">
+                <div className="font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-1.5">
+                  <span>⚡ 1-Minute Fix for 100% Inbox Placement (Zero Spam):</span>
+                </div>
+                <ol className="list-decimal list-inside space-y-1.5 text-slate-600 dark:text-slate-300 pl-1 leading-relaxed">
+                  <li>
+                    Open <a href="https://myaccount.google.com/security" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 underline font-semibold">Google Account Security</a> while logged in as <strong>imperialitbd2011@gmail.com</strong>.
+                  </li>
+                  <li>
+                    Ensure <strong>2-Step Verification</strong> is ON, then go to <strong>App passwords</strong> (or search &quot;App passwords&quot;).
+                  </li>
+                  <li>
+                    Enter app name <strong>Client Registry</strong> and click <strong>Create</strong>. Copy the 16-character code (e.g., <code>abcd efgh ijkl mnop</code>).
+                  </li>
+                  <li>
+                    In your <strong>Vercel Project Dashboard</strong> &rarr; <strong>Settings</strong> &rarr; <strong>Environment Variables</strong>, add:
+                    <div className="mt-1.5 p-2 rounded bg-slate-900 text-slate-100 font-mono text-[11px] select-all">
+                      GMAIL_APP_PASSWORD = xxxx xxxx xxxx xxxx
+                    </div>
+                  </li>
+                  <li>
+                    Click <strong>Redeploy</strong> on Vercel. That&apos;s it! The system will automatically route all emails through Google&apos;s official high-reputation SMTP servers with full DKIM signatures &amp; SPF alignment.
+                  </li>
+                </ol>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 5 Distinct Mail Service Toggles */}

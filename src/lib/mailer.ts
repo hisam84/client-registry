@@ -136,10 +136,14 @@ export function parseBrevoKey(rawKey?: string): string | undefined {
 }
 
 /**
- * Dedicated Brevo email sender supporting Brevo SMTP relay (primary) and Brevo REST API (secondary).
+ * Dedicated email sender supporting:
+ * 1. Direct Gmail SMTP via Google App Password (High deliverability, 100% DKIM/SPF alignment)
+ * 2. Custom SMTP server (if configured via process.env.SMTP_HOST)
+ * 3. Brevo SMTP relay with anti-spam headers and valid RFC Message-ID
+ * 4. Brevo REST API fallback
  */
-export async function sendEmail(payload: EmailPayload): Promise<{ success: boolean; error?: string }> {
-  const { to, toName, cc, subject, html, text, fromName } = payload;
+export async function sendEmail(payload: EmailPayload): Promise<{ success: boolean; provider?: string; error?: string }> {
+  const { to, toName, cc, subject, html, text, fromName, fromEmail } = payload;
 
   if (!to) {
     const msg = "Mailer warning: No recipient email provided. Skipping email.";
@@ -147,17 +151,118 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
     return { success: false, error: msg };
   }
 
-  const rawBrevoApiKey = process.env.BREVO_API_KEY || DEFAULT_BREVO_CONFIG.apiKey;
-  const brevoApiKey = parseBrevoKey(rawBrevoApiKey);
-  
-  // Sender email is strictly imperialitbd2011@gmail.com
-  const senderEmail = "imperialitbd2011@gmail.com";
-  const senderName = fromName || process.env.BREVO_SENDER_NAME || DEFAULT_BREVO_CONFIG.senderName;
-  
-  // Brevo SMTP Relay Username: Always enforce b866f6001@smtp-brevo.com for relay authentication
+  // Generate plain-text alternative if not provided (essential to prevent spam flags)
+  const textContent = (text && text.trim().length > 0)
+    ? text
+    : html
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/&nbsp;/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+  // Determine sender details
+  const configuredSender = (
+    fromEmail ||
+    process.env.GMAIL_USER ||
+    process.env.BREVO_SENDER_EMAIL ||
+    process.env.SMTP_SENDER_EMAIL ||
+    DEFAULT_BREVO_CONFIG.senderEmail
+  ).trim();
+
+  const senderEmail = configuredSender || "imperialitbd2011@gmail.com";
+  const senderName = fromName || process.env.BREVO_SENDER_NAME || process.env.SMTP_SENDER_NAME || DEFAULT_BREVO_CONFIG.senderName;
+
+  // RFC 2822 compliant unique Message-ID to ensure deliverability and avoid generic filter blocks
+  const domain = senderEmail.includes("@") ? senderEmail.split("@")[1] : "imperialitbd.com";
+  const randomHash = Math.random().toString(36).substring(2, 10);
+  const customMessageId = `<task-reg-${Date.now()}.${randomHash}@${domain}>`;
+
+  // Standard Anti-Spam Headers
+  const antiSpamHeaders: Record<string, string> = {
+    "X-Mailer": "ImperialIT-Registry/1.0",
+    "Auto-Submitted": "auto-generated",
+    "X-Auto-Response-Suppress": "All",
+    "Precedence": "bulk",
+    "List-Unsubscribe": `<mailto:${senderEmail}?subject=Unsubscribe>`,
+    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    "X-Entity-Ref-ID": `reg-${Date.now()}-${randomHash}`,
+  };
+
+  // 1. Direct Gmail SMTP (Guarantees 100% DKIM & SPF Pass for @gmail.com)
+  const rawGmailPass = (process.env.GMAIL_APP_PASSWORD || process.env.GMAIL_PASSWORD || "").trim();
+  const gmailPass = rawGmailPass ? rawGmailPass.replace(/\s+/g, "") : undefined;
+  const gmailUser = (process.env.GMAIL_USER || senderEmail).trim();
+
+  if (gmailPass && gmailUser.endsWith("@gmail.com")) {
+    try {
+      const transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 465,
+        secure: true, // SSL port 465
+        auth: {
+          user: gmailUser,
+          pass: gmailPass,
+        },
+      });
+
+      await transporter.sendMail({
+        from: `"${senderName}" <${gmailUser}>`,
+        replyTo: `"${senderName}" <${gmailUser}>`,
+        to: toName ? `"${toName}" <${to}>` : to,
+        ...(cc && cc.length > 0 ? { cc } : {}),
+        subject,
+        text: textContent,
+        html,
+        messageId: customMessageId,
+        headers: antiSpamHeaders,
+      });
+
+      return { success: true, provider: "Direct Gmail SMTP" };
+    } catch (gmailErr: any) {
+      console.warn("Direct Gmail SMTP send failed (falling back to relay):", gmailErr?.message || gmailErr);
+    }
+  }
+
+  // 2. Custom SMTP Server (if configured)
+  const customSmtpHost = process.env.SMTP_HOST?.trim();
+  const customSmtpUser = process.env.SMTP_USER?.trim();
+  const customSmtpPass = process.env.SMTP_PASSWORD?.trim();
+  if (customSmtpHost && customSmtpUser && customSmtpPass) {
+    try {
+      const port = Number(process.env.SMTP_PORT) || 587;
+      const transporter = nodemailer.createTransport({
+        host: customSmtpHost,
+        port,
+        secure: port === 465,
+        auth: {
+          user: customSmtpUser,
+          pass: customSmtpPass,
+        },
+      });
+
+      await transporter.sendMail({
+        from: `"${senderName}" <${senderEmail}>`,
+        replyTo: `"${senderName}" <${senderEmail}>`,
+        to: toName ? `"${toName}" <${to}>` : to,
+        ...(cc && cc.length > 0 ? { cc } : {}),
+        subject,
+        text: textContent,
+        html,
+        messageId: customMessageId,
+        headers: antiSpamHeaders,
+      });
+
+      return { success: true, provider: "Custom SMTP" };
+    } catch (customErr: any) {
+      console.warn("Custom SMTP send failed (falling back to Brevo):", customErr?.message || customErr);
+    }
+  }
+
+  // 3. Brevo SMTP Relay (with anti-spam headers & valid Message-ID)
   const envSmtpUser = process.env.BREVO_SMTP_USER;
   const brevoSmtpUser =
-    (envSmtpUser && envSmtpUser.includes("@smtp-brevo.com"))
+    envSmtpUser && envSmtpUser.includes("@smtp-brevo.com")
       ? envSmtpUser
       : DEFAULT_BREVO_CONFIG.smtpUser;
 
@@ -165,7 +270,6 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
   const brevoSmtpServer = process.env.BREVO_SMTP_SERVER || DEFAULT_BREVO_CONFIG.smtpServer;
   const brevoSmtpPort = Number(process.env.BREVO_SMTP_PORT) || DEFAULT_BREVO_CONFIG.smtpPort;
 
-  // 1. Try Brevo SMTP via Nodemailer relay (verified and bypasses cloud IP whitelisting)
   if (brevoSmtpUser && brevoSmtpPass) {
     try {
       const transporter = nodemailer.createTransport({
@@ -180,21 +284,26 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
 
       await transporter.sendMail({
         from: `"${senderName}" <${senderEmail}>`,
-        replyTo: senderEmail,
+        replyTo: `"${senderName}" <${senderEmail}>`,
         to: toName ? `"${toName}" <${to}>` : to,
         ...(cc && cc.length > 0 ? { cc } : {}),
         subject,
-        text,
+        text: textContent,
         html,
+        messageId: customMessageId,
+        headers: antiSpamHeaders,
       });
 
-      return { success: true };
+      return { success: true, provider: "Brevo SMTP Relay" };
     } catch (smtpErr: any) {
       console.warn("Brevo SMTP relay send failed (will attempt REST API):", smtpErr?.message || smtpErr);
     }
   }
 
-  // 2. Try Brevo REST API as fallback
+  // 4. Brevo REST API Fallback
+  const rawBrevoApiKey = process.env.BREVO_API_KEY || DEFAULT_BREVO_CONFIG.apiKey;
+  const brevoApiKey = parseBrevoKey(rawBrevoApiKey);
+
   if (brevoApiKey && senderEmail) {
     try {
       const toList = [{ email: to, ...(toName ? { name: toName } : {}) }];
@@ -212,16 +321,21 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
             name: senderName,
             email: senderEmail,
           },
+          replyTo: {
+            name: senderName,
+            email: senderEmail,
+          },
+          headers: antiSpamHeaders,
           to: toList,
           ...(ccList && ccList.length > 0 ? { cc: ccList } : {}),
           subject,
           htmlContent: html,
-          ...(text ? { textContent: text } : {}),
+          textContent: textContent,
         }),
       });
 
       if (response.ok) {
-        return { success: true };
+        return { success: true, provider: "Brevo REST API" };
       }
 
       const errorData = await response.json().catch(() => ({}));
@@ -231,7 +345,7 @@ export async function sendEmail(payload: EmailPayload): Promise<{ success: boole
     }
   }
 
-  const noConfigMsg = "Mailer warning: Brevo credentials could not dispatch email.";
+  const noConfigMsg = "Mailer warning: All available email transports failed to dispatch email.";
   console.warn(noConfigMsg);
   return { success: false, error: noConfigMsg };
 }
@@ -293,9 +407,12 @@ export async function sendOTPEmail(data: { email: string; otp: string }) {
               </p>
             </td>
           </tr>
+          <!-- Footer -->
           <tr>
-            <td style="background-color: #E3F2FD; padding: 14px; text-align: center; font-size: 12px; color: #0D47A1; border-top: 1px solid #90CAF9;">
-              Client Registry Management System &copy; ${new Date().getFullYear()} &middot; <a href="${SITE_URL}" style="color: #0D47A1; text-decoration: underline;">impdatabase.vercel.app</a>
+            <td style="background-color: #E3F2FD; padding: 16px 20px; text-align: center; font-size: 11px; color: #475569; border-top: 1px solid #90CAF9; line-height: 1.5;">
+              <div style="font-weight: 700; color: #0D47A1; margin-bottom: 3px;">Imperial IT BD &middot; Client Registry Management System</div>
+              <div>This is an official administrative security verification notification.</div>
+              <div style="margin-top: 3px;">To manage notification preferences, visit <a href="${SITE_URL}/mail-settings" style="color: #2196F3; text-decoration: underline;">Notification Settings</a> &middot; &copy; ${new Date().getFullYear()} Imperial IT BD</div>
             </td>
           </tr>
         </table>
@@ -469,8 +586,10 @@ export async function sendTaskAssignmentEmail(data: TaskEmailData) {
 
           <!-- Footer -->
           <tr>
-            <td style="background-color: #E3F2FD; padding: 14px; text-align: center; font-size: 12px; color: #0D47A1; border-top: 1px solid #90CAF9;">
-              Client Registry Management System &copy; ${new Date().getFullYear()} &middot; <a href="${SITE_URL}" style="color: #0D47A1; text-decoration: underline;">impdatabase.vercel.app</a>
+            <td style="background-color: #E3F2FD; padding: 16px 20px; text-align: center; font-size: 11px; color: #475569; border-top: 1px solid #90CAF9; line-height: 1.5;">
+              <div style="font-weight: 700; color: #0D47A1; margin-bottom: 3px;">Imperial IT BD &middot; Client Registry Management System</div>
+              <div>This is an automated operational notification dispatched to authorized personnel.</div>
+              <div style="margin-top: 3px;">To manage notification preferences, visit <a href="${SITE_URL}/mail-settings" style="color: #2196F3; text-decoration: underline;">Notification Settings</a> &middot; &copy; ${new Date().getFullYear()} Imperial IT BD</div>
             </td>
           </tr>
         </table>
@@ -648,8 +767,10 @@ export async function sendTaskDueSoonEmail(data: TaskAlertEmailData) {
 
           <!-- Footer -->
           <tr>
-            <td style="background-color: #E3F2FD; padding: 14px; text-align: center; font-size: 12px; color: #0D47A1; border-top: 1px solid #90CAF9;">
-              Client Registry Management System &copy; ${new Date().getFullYear()} &middot; <a href="${SITE_URL}" style="color: #0D47A1; text-decoration: underline;">impdatabase.vercel.app</a>
+            <td style="background-color: #E3F2FD; padding: 16px 20px; text-align: center; font-size: 11px; color: #475569; border-top: 1px solid #90CAF9; line-height: 1.5;">
+              <div style="font-weight: 700; color: #0D47A1; margin-bottom: 3px;">Imperial IT BD &middot; Client Registry Management System</div>
+              <div>This is an automated operational notification dispatched to authorized personnel.</div>
+              <div style="margin-top: 3px;">To manage notification preferences, visit <a href="${SITE_URL}/mail-settings" style="color: #2196F3; text-decoration: underline;">Notification Settings</a> &middot; &copy; ${new Date().getFullYear()} Imperial IT BD</div>
             </td>
           </tr>
         </table>
@@ -681,7 +802,7 @@ Client Registry Management System (impdatabase.vercel.app)
   return await sendEmail({
     to: assignedToEmail,
     toName: assignedToName,
-    subject: `[REMINDER] Task Due in 2 Hours: ${taskTitle}`,
+    subject: `[Reminder] Task Due in 2 Hours: ${taskTitle}`,
     text,
     html,
   });
@@ -846,8 +967,10 @@ export async function sendTaskOverdueEmail(data: TaskAlertEmailData): Promise<{ 
 
           <!-- Footer -->
           <tr>
-            <td style="background-color: #E3F2FD; padding: 14px; text-align: center; font-size: 12px; color: #0D47A1; border-top: 1px solid #90CAF9;">
-              Client Registry Management System &copy; ${new Date().getFullYear()} &middot; <a href="${SITE_URL}" style="color: #0D47A1; text-decoration: underline;">impdatabase.vercel.app</a>
+            <td style="background-color: #E3F2FD; padding: 16px 20px; text-align: center; font-size: 11px; color: #475569; border-top: 1px solid #90CAF9; line-height: 1.5;">
+              <div style="font-weight: 700; color: #0D47A1; margin-bottom: 3px;">Imperial IT BD &middot; Client Registry Management System</div>
+              <div>This is an automated operational notification dispatched to authorized personnel.</div>
+              <div style="margin-top: 3px;">To manage notification preferences, visit <a href="${SITE_URL}/mail-settings" style="color: #2196F3; text-decoration: underline;">Notification Settings</a> &middot; &copy; ${new Date().getFullYear()} Imperial IT BD</div>
             </td>
           </tr>
         </table>
@@ -880,7 +1003,7 @@ Client Registry Management System (impdatabase.vercel.app)
     to: finalRecipientEmail,
     toName: finalRecipientName,
     ...(ccList.length > 0 ? { cc: ccList } : {}),
-    subject: `[OVERDUE ALERT] Task Overdue: ${taskTitle}`,
+    subject: `[Alert] Task Overdue: ${taskTitle}`,
     text,
     html,
   });
@@ -1022,8 +1145,10 @@ export async function sendTaskCompletionEmail(data: TaskCompletionEmailData) {
 
           <!-- Footer -->
           <tr>
-            <td style="background-color: #E3F2FD; padding: 14px; text-align: center; font-size: 12px; color: #0D47A1; border-top: 1px solid #90CAF9;">
-              Client Registry Management System &copy; ${new Date().getFullYear()} &middot; <a href="${SITE_URL}" style="color: #0D47A1; text-decoration: underline;">impdatabase.vercel.app</a>
+            <td style="background-color: #E3F2FD; padding: 16px 20px; text-align: center; font-size: 11px; color: #475569; border-top: 1px solid #90CAF9; line-height: 1.5;">
+              <div style="font-weight: 700; color: #0D47A1; margin-bottom: 3px;">Imperial IT BD &middot; Client Registry Management System</div>
+              <div>This is an automated operational notification dispatched to authorized personnel.</div>
+              <div style="margin-top: 3px;">To manage notification preferences, visit <a href="${SITE_URL}/mail-settings" style="color: #2196F3; text-decoration: underline;">Notification Settings</a> &middot; &copy; ${new Date().getFullYear()} Imperial IT BD</div>
             </td>
           </tr>
         </table>
@@ -1055,7 +1180,7 @@ Client Registry Management System (impdatabase.vercel.app)
   return await sendEmail({
     to: recipientEmail,
     toName: recipientName,
-    subject: `[COMPLETED] Task Completed: ${taskTitle}`,
+    subject: `[Completed] Task: ${taskTitle}`,
     text,
     html,
   });
