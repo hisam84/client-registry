@@ -65,7 +65,11 @@ export async function GET(req: NextRequest) {
     }
 
     if (priority && priority !== "all") {
-      where.priority = priority;
+      if (priority === "Urgent" || priority === "Argent") {
+        where.priority = { in: ["Urgent", "Argent"] };
+      } else {
+        where.priority = priority;
+      }
     }
 
     if (institutionId) {
@@ -237,7 +241,7 @@ export async function POST(req: NextRequest) {
         description: description?.trim() || null,
         dueDate: new Date(dueDate),
         status: taskStatus,
-        priority: priority || "Medium",
+        priority: priority === "Argent" ? "Urgent" : (priority || "Medium"),
         completionNote: completionNote?.trim() || null,
         progress: progressVal,
         institutionId: institutionId || null,

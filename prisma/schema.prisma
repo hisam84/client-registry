@@ -129,7 +129,7 @@ model Task {
   description     String?
   dueDate         DateTime
   status          String       @default("To Do") // "To Do" | "In Progress" | "In Review" | "Completed" | "Canceled"
-  priority        String       @default("Medium")  // "High" | "Medium" | "Low"
+  priority        String       @default("Medium")  // "Urgent" | "High" | "Medium" | "Low"
   completionNote  String?
   progress        Int          @default(0)
 

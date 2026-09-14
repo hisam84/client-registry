@@ -353,7 +353,13 @@ export async function sendTaskAssignmentEmail(data: TaskEmailData) {
   });
 
   const priorityColor =
-    priority === "High" ? "#EF4444" : priority === "Low" ? "#10B981" : "#2196F3";
+    priority === "Urgent" || priority === "Argent"
+      ? "#DC2626"
+      : priority === "High"
+      ? "#EF4444"
+      : priority === "Low"
+      ? "#10B981"
+      : "#2196F3";
 
   const assignedByText = assignedByName ? assignedByName : "Administrator";
 

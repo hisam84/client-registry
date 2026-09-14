@@ -101,6 +101,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Priority breakdown
+    const urgentPriority = allTasks.filter((t) => (t.priority === "Urgent" || t.priority === "Argent") && !isTerminal(t.status)).length;
     const highPriority = allTasks.filter((t) => t.priority === "High" && !isTerminal(t.status)).length;
     const mediumPriority = allTasks.filter((t) => t.priority === "Medium" && !isTerminal(t.status)).length;
     const lowPriority = allTasks.filter((t) => t.priority === "Low" && !isTerminal(t.status)).length;
@@ -119,6 +120,7 @@ export async function GET(req: NextRequest) {
       upcomingTasks,
       next7Days,
       priorities: {
+        Urgent: urgentPriority,
         High: highPriority,
         Medium: mediumPriority,
         Low: lowPriority,

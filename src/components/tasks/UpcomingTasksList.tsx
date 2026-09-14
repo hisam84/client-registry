@@ -391,7 +391,7 @@ export function UpcomingTasksList({
                     TASK_PRIORITY_COLOR[task.priority] || "bg-slate-700/40 text-slate-400"
                   }`}
                 >
-                  {task.priority} Priority
+                  {task.priority === "Argent" ? "Urgent" : task.priority} Priority
                 </span>
 
                 <span

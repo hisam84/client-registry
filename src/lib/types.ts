@@ -204,7 +204,7 @@ export type TaskStatus =
   | "Canceled"
   | "Cancelled"
   | "Pending";
-export type TaskPriority = "High" | "Medium" | "Low";
+export type TaskPriority = "Urgent" | "High" | "Medium" | "Low" | "Argent";
 
 export const TASK_STATUS_OPTIONS: TaskStatus[] = [
   "To Do",
@@ -213,7 +213,7 @@ export const TASK_STATUS_OPTIONS: TaskStatus[] = [
   "Completed",
   "Canceled",
 ];
-export const TASK_PRIORITY_OPTIONS: TaskPriority[] = ["High", "Medium", "Low"];
+export const TASK_PRIORITY_OPTIONS: TaskPriority[] = ["Urgent", "High", "Medium", "Low"];
 
 export const TASK_STATUS_COLOR: Record<string, string> = {
   "To Do": "bg-amberflag-500/15 text-amberflag-500 border-amberflag-500/30",
@@ -225,7 +225,9 @@ export const TASK_STATUS_COLOR: Record<string, string> = {
   Cancelled: "bg-slate-700/40 text-slate-400 border-slate-600/40",
 };
 
-export const TASK_PRIORITY_COLOR: Record<TaskPriority, string> = {
+export const TASK_PRIORITY_COLOR: Record<string, string> = {
+  Urgent: "bg-red-500/15 text-red-500 border-red-500/30",
+  Argent: "bg-red-500/15 text-red-500 border-red-500/30",
   High: "bg-rust-500/15 text-rust-400 border-rust-500/30",
   Medium: "bg-brass-500/15 text-brass-400 border-brass-500/30",
   Low: "bg-slate-700/40 text-slate-400 border-slate-600/40",

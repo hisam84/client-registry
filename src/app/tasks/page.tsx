@@ -585,6 +585,7 @@ export default function TasksPage() {
               className="rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none font-medium"
             >
               <option value="all">All Priorities</option>
+              <option value="Urgent">Urgent Priority</option>
               <option value="High">High Priority</option>
               <option value="Medium">Medium Priority</option>
               <option value="Low">Low Priority</option>

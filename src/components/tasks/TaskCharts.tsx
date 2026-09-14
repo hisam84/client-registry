@@ -14,6 +14,7 @@ interface DashboardMetrics {
   upcomingTasks: number;
   next7Days: { label: string; count: number; date: string }[];
   priorities: {
+    Urgent?: number;
     High: number;
     Medium: number;
     Low: number;

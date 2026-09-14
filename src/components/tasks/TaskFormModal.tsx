@@ -44,7 +44,8 @@ export function TaskFormModal({
     ? (initialTask.status === "Pending" ? "To Do" : (initialTask.status === "Cancelled" ? "Canceled" : initialTask.status))
     : "To Do";
   const [status, setStatus] = useState<TaskStatus>(normalizedInitialStatus);
-  const [priority, setPriority] = useState<TaskPriority>(initialTask?.priority || "Medium");
+  const normalizedInitialPriority: TaskPriority = initialTask?.priority === "Argent" ? "Urgent" : (initialTask?.priority || "Medium");
+  const [priority, setPriority] = useState<TaskPriority>(normalizedInitialPriority);
   const [completionNote, setCompletionNote] = useState(initialTask?.completionNote || "");
   const [progress, setProgress] = useState<number>(initialTask?.progress ?? (initialTask?.status === "Completed" ? 100 : 0));
 
@@ -236,10 +237,11 @@ export function TaskFormModal({
               Priority
             </label>
             <select
-              value={priority}
+              value={priority === "Argent" ? "Urgent" : priority}
               onChange={(e) => setPriority(e.target.value as TaskPriority)}
               className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#2196F3] font-medium"
             >
+              <option value="Urgent">Urgent</option>
               <option value="High">High</option>
               <option value="Medium">Medium</option>
               <option value="Low">Low</option>

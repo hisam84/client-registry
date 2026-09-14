@@ -72,7 +72,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (description !== undefined) data.description = description ? description.trim() : null;
     if (dueDate !== undefined) data.dueDate = new Date(dueDate);
     if (status !== undefined) data.status = status;
-    if (priority !== undefined) data.priority = priority;
+    if (priority !== undefined) data.priority = priority === "Argent" ? "Urgent" : priority;
     if (completionNote !== undefined) data.completionNote = completionNote ? completionNote.trim() : null;
 
     if (progress !== undefined) {
