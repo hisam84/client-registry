@@ -38,9 +38,12 @@ export function TaskFormModal({
   
   // Format datetime-local string in browser's local timezone (YYYY-MM-DDTHH:mm)
   const defaultDueDate = formatToLocalDateTimeInput(initialTask?.dueDate);
-
   const [dueDate, setDueDate] = useState(defaultDueDate);
-  const [status, setStatus] = useState<TaskStatus>(initialTask?.status || "Pending");
+
+  const normalizedInitialStatus: TaskStatus = initialTask?.status
+    ? (initialTask.status === "Pending" ? "To Do" : (initialTask.status === "Cancelled" ? "Canceled" : initialTask.status))
+    : "To Do";
+  const [status, setStatus] = useState<TaskStatus>(normalizedInitialStatus);
   const [priority, setPriority] = useState<TaskPriority>(initialTask?.priority || "Medium");
   const [completionNote, setCompletionNote] = useState(initialTask?.completionNote || "");
   const [progress, setProgress] = useState<number>(initialTask?.progress ?? (initialTask?.status === "Completed" ? 100 : 0));
@@ -248,25 +251,26 @@ export function TaskFormModal({
               Status
             </label>
             <select
-              value={status}
+              value={status === "Pending" ? "To Do" : (status === "Cancelled" ? "Canceled" : status)}
               onChange={(e) => {
                 const s = e.target.value as TaskStatus;
                 setStatus(s);
                 if (s === "Completed") setProgress(100);
-                else if (s === "Pending" && progress === 100) setProgress(0);
+                else if ((s === "To Do" || s === "Pending") && progress === 100) setProgress(0);
               }}
               className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#2196F3] font-medium"
             >
-              <option value="Pending">Pending</option>
+              <option value="To Do">To Do</option>
               <option value="In Progress">In Progress</option>
+              <option value="In Review">In Review</option>
               <option value="Completed">Completed</option>
-              <option value="Cancelled">Cancelled</option>
+              <option value="Canceled">Canceled</option>
             </select>
           </div>
         </div>
 
         {/* Completion Progress % - only shown if editing or in progress */}
-        {(Boolean(initialTask) || status === "In Progress") && (
+        {(Boolean(initialTask) || status === "In Progress" || status === "In Review") && (
           <div>
             <div className="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               <span>Progress</span>
@@ -283,7 +287,7 @@ export function TaskFormModal({
                   const val = Number(e.target.value);
                   setProgress(val);
                   if (val === 100) setStatus("Completed");
-                  else if (val > 0 && status === "Pending") setStatus("In Progress");
+                  else if (val > 0 && (status === "To Do" || status === "Pending")) setStatus("In Progress");
                 }}
                 className="flex-1 accent-[#2196F3] cursor-pointer h-2 bg-slate-200 dark:bg-slate-700 rounded-lg"
               />
@@ -306,11 +310,11 @@ export function TaskFormModal({
           />
         </div>
 
-        {/* Completion / Outcome Remarks - only shown if editing or if Cancelled / Completed */}
-        {(Boolean(initialTask) || status === "Cancelled" || status === "Completed") && (
+        {/* Completion / Outcome Remarks - only shown if editing or if Canceled / Cancelled / Completed */}
+        {(Boolean(initialTask) || status === "Canceled" || status === "Cancelled" || status === "Completed") && (
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              {status === "Cancelled" ? "Cancellation Reason" : "Outcome / Remarks"}
+              {status === "Canceled" || status === "Cancelled" ? "Cancellation Reason" : "Outcome / Remarks"}
             </label>
             <textarea
               value={completionNote}

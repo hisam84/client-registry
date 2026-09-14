@@ -5,7 +5,9 @@ interface DashboardMetrics {
   totalTasks: number;
   completedTasks: number;
   pendingTasks: number;
+  todoTasks?: number;
   inProgressTasks: number;
+  inReviewTasks?: number;
   cancelledTasks: number;
   overdueTasks: number;
   tasksToday: number;
@@ -187,15 +189,24 @@ export function TaskCharts({ metrics }: TaskChartsProps) {
             </div>
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50"></span>
-              <span className="text-slate-600 dark:text-slate-300">Pending:</span>
+              <span className="text-slate-600 dark:text-slate-300">To Do:</span>
               <strong className="text-slate-900 dark:text-slate-100 font-mono ml-auto">
-                {pendingTasks} <span className="text-[10px] text-slate-400">({pPending.toFixed(0)}%)</span>
+                {metrics.todoTasks ?? pendingTasks} <span className="text-[10px] text-slate-400">({pPending.toFixed(0)}%)</span>
               </strong>
             </div>
+            {(metrics.inReviewTasks !== undefined && metrics.inReviewTasks > 0) && (
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm shadow-purple-500/50"></span>
+                <span className="text-slate-600 dark:text-slate-300">In Review:</span>
+                <strong className="text-slate-900 dark:text-slate-100 font-mono ml-auto">
+                  {metrics.inReviewTasks}
+                </strong>
+              </div>
+            )}
             {cancelledTasks > 0 && (
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-slate-500 shadow-sm shadow-slate-500/50"></span>
-                <span className="text-slate-600 dark:text-slate-300">Cancelled:</span>
+                <span className="text-slate-600 dark:text-slate-300">Canceled:</span>
                 <strong className="text-slate-900 dark:text-slate-100 font-mono ml-auto">
                   {cancelledTasks} <span className="text-[10px] text-slate-400">({pCancelled.toFixed(0)}%)</span>
                 </strong>

@@ -60,7 +60,7 @@ export function RescheduleModal({ task, onClose, onSaved }: RescheduleModalProps
         body: JSON.stringify({
           dueDate: new Date(dueDate).toISOString(),
           completionNote: updatedNote || null,
-          status: task.status === "Completed" ? "Pending" : task.status,
+          status: task.status === "Completed" ? "To Do" : task.status,
         }),
       });
 

@@ -16,7 +16,10 @@ export function StatusNoteModal({
   onClose,
   onSaved,
 }: StatusNoteModalProps) {
-  const [status, setStatus] = useState<TaskStatus>(targetStatus || task.status);
+  const normalizedInitialStatus: TaskStatus = targetStatus
+    ? (targetStatus === "Pending" ? "To Do" : (targetStatus === "Cancelled" ? "Canceled" : targetStatus))
+    : (task.status === "Pending" ? "To Do" : (task.status === "Cancelled" ? "Canceled" : task.status));
+  const [status, setStatus] = useState<TaskStatus>(normalizedInitialStatus);
   const [note, setNote] = useState<string>(task.completionNote || "");
   const [progress, setProgress] = useState<number>(task.progress ?? (task.status === "Completed" ? 100 : 0));
   const [sendCompletionEmail, setSendCompletionEmail] = useState<boolean>(false);
@@ -81,12 +84,12 @@ export function StatusNoteModal({
             Task Status
           </label>
           <select
-            value={status}
+            value={status === "Pending" ? "To Do" : (status === "Cancelled" ? "Canceled" : status)}
             onChange={(e) => {
               const s = e.target.value as TaskStatus;
               setStatus(s);
               if (s === "Completed") setProgress(100);
-              else if (s === "Pending" && progress === 100) setProgress(0);
+              else if ((s === "To Do" || s === "Pending") && progress === 100) setProgress(0);
             }}
             className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brass-500 font-medium"
           >
@@ -115,7 +118,7 @@ export function StatusNoteModal({
                 const val = Number(e.target.value);
                 setProgress(val);
                 if (val === 100) setStatus("Completed");
-                else if (val > 0 && status === "Pending") setStatus("In Progress");
+                else if (val > 0 && (status === "To Do" || status === "Pending")) setStatus("In Progress");
               }}
               className="flex-1 accent-brass-500 cursor-pointer h-2 bg-slate-200 dark:bg-slate-700 rounded-lg"
             />
@@ -128,7 +131,7 @@ export function StatusNoteModal({
                 const val = Math.min(100, Math.max(0, Number(e.target.value)));
                 setProgress(val);
                 if (val === 100) setStatus("Completed");
-                else if (val > 0 && status === "Pending") setStatus("In Progress");
+                else if (val > 0 && (status === "To Do" || status === "Pending")) setStatus("In Progress");
               }}
               className="w-16 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1 text-center text-xs font-mono font-bold text-slate-900 dark:text-slate-100"
             />
@@ -141,7 +144,7 @@ export function StatusNoteModal({
                 onClick={() => {
                   setProgress(p);
                   if (p === 100) setStatus("Completed");
-                  else if (p > 0 && status === "Pending") setStatus("In Progress");
+                  else if (p > 0 && (status === "To Do" || status === "Pending")) setStatus("In Progress");
                 }}
                 className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
                   progress === p

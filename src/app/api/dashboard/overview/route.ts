@@ -178,21 +178,23 @@ export async function GET() {
       }
     }
 
+    const isTerminal = (s: string) => s === "Completed" || s === "Canceled" || s === "Cancelled";
+
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter((t) => t.status === "Completed").length;
     const overdueTasks = tasks.filter(
-      (t) => new Date(t.dueDate) < now && t.status !== "Completed" && t.status !== "Cancelled"
+      (t) => new Date(t.dueDate) < now && !isTerminal(t.status)
     ).length;
     const tasksToday = tasks.filter((t) => {
       const d = new Date(t.dueDate);
-      return d >= startOfToday && d <= endOfToday && t.status !== "Completed";
+      return d >= startOfToday && d <= endOfToday && !isTerminal(t.status);
     }).length;
     const upcomingTasksCount = tasks.filter(
-      (t) => new Date(t.dueDate) >= now && t.status !== "Completed" && t.status !== "Cancelled"
+      (t) => new Date(t.dueDate) >= now && !isTerminal(t.status)
     ).length;
 
     const upcomingTasksList = tasks
-      .filter((t) => t.status !== "Completed" && t.status !== "Cancelled")
+      .filter((t) => !isTerminal(t.status))
       .slice(0, 5);
 
     return NextResponse.json({

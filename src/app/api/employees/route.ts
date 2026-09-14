@@ -28,8 +28,11 @@ export async function GET(request: Request) {
         taskStats = {
           total: tasks.length,
           completed: tasks.filter((t: any) => t.status === "Completed").length,
-          pending: tasks.filter((t: any) => t.status === "Pending").length,
+          todo: tasks.filter((t: any) => t.status === "To Do" || t.status === "Pending").length,
+          pending: tasks.filter((t: any) => t.status === "To Do" || t.status === "Pending").length,
           inProgress: tasks.filter((t: any) => t.status === "In Progress").length,
+          inReview: tasks.filter((t: any) => t.status === "In Review").length,
+          cancelled: tasks.filter((t: any) => t.status === "Canceled" || t.status === "Cancelled").length,
         };
       }
       const { assignedTasks, password: _pw, ...empData } = emp;

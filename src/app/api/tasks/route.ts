@@ -40,13 +40,17 @@ export async function GET(req: NextRequest) {
       const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
       where.dueDate = { lte: in24Hours };
       if (!status || status === "all") {
-        where.status = { in: ["Pending", "In Progress"] };
+        where.status = { in: ["To Do", "In Progress", "In Review", "Pending"] };
       }
     } else if (status && status !== "all") {
       if (status === "Overdue") {
         const now = new Date();
         where.dueDate = { lt: now };
-        where.status = { notIn: ["Completed", "Cancelled"] };
+        where.status = { notIn: ["Completed", "Canceled", "Cancelled"] };
+      } else if (status === "To Do") {
+        where.status = { in: ["To Do", "Pending"] };
+      } else if (status === "Canceled" || status === "Cancelled") {
+        where.status = { in: ["Canceled", "Cancelled"] };
       } else {
         where.status = status;
       }
@@ -56,7 +60,7 @@ export async function GET(req: NextRequest) {
       const now = new Date();
       where.dueDate = { lt: now };
       if (!status || status === "all") {
-        where.status = { notIn: ["Completed", "Cancelled"] };
+        where.status = { notIn: ["Completed", "Canceled", "Cancelled"] };
       }
     }
 
@@ -72,7 +76,7 @@ export async function GET(req: NextRequest) {
       const now = new Date();
       where.dueDate = { gte: now };
       if (!status || status === "all") {
-        where.status = { in: ["Pending", "In Progress"] };
+        where.status = { in: ["To Do", "In Progress", "In Review", "Pending"] };
       }
     }
 
@@ -164,9 +168,9 @@ export async function GET(req: NextRequest) {
     // Within each tier: Recent tasks on top (createdAt desc, fallback to dueDate desc)
     tasks.sort((a: any, b: any) => {
       const getRank = (t: any) => {
-        if (t.status === "Cancelled") return 2; // Cancelled at the very bottom
+        if (t.status === "Canceled" || t.status === "Cancelled") return 2; // Canceled at the very bottom
         if (t.status === "Completed") return 1; // Completed in middle
-        return 0; // To-Do & Overdue on top
+        return 0; // To-Do, In Progress, In Review, Overdue on top
       };
 
       const rankA = getRank(a);
@@ -224,7 +228,7 @@ export async function POST(req: NextRequest) {
       if (inst) finalInstName = inst.instituteName;
     }
 
-    const taskStatus = status || "Pending";
+    const taskStatus = status || "To Do";
     let progressVal = progress !== undefined ? Math.min(100, Math.max(0, Number(progress))) : (taskStatus === "Completed" ? 100 : 0);
 
     const task = await (prisma as any).task.create({

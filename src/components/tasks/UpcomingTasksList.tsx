@@ -167,7 +167,7 @@ export function UpcomingTasksList({
       grp.stats.total += 1;
 
       const isCompleted = task.status === "Completed";
-      const isCancelled = task.status === "Cancelled";
+      const isCancelled = task.status === "Canceled" || task.status === "Cancelled";
       const due = new Date(task.dueDate);
       const isOverdue = !isCompleted && !isCancelled && !isNaN(due.getTime()) && due.getTime() < Date.now();
 
@@ -214,7 +214,7 @@ export function UpcomingTasksList({
 
   function renderTaskCard(task: TaskItem) {
     const isCompleted = task.status === "Completed";
-    const isCancelled = task.status === "Cancelled";
+    const isCancelled = task.status === "Canceled" || task.status === "Cancelled";
     const instName = task.institution?.instituteName || task.institutionName || "General Task";
     const due = new Date(task.dueDate);
     const isOverdue = !isCompleted && !isCancelled && due.getTime() < Date.now();
@@ -399,7 +399,7 @@ export function UpcomingTasksList({
                     TASK_STATUS_COLOR[task.status] || "bg-slate-700/40 text-slate-400"
                   }`}
                 >
-                  {task.status}
+                  {task.status === "Pending" ? "To Do" : (task.status === "Cancelled" ? "Canceled" : task.status)}
                 </span>
               </div>
             </div>

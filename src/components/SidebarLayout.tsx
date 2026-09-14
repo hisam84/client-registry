@@ -64,7 +64,7 @@ export function SidebarLayout({
       if (Array.isArray(data)) {
         const now = new Date();
         const urgent = data.filter((t: any) => {
-          if (t.status === "Completed" || t.status === "Cancelled") return false;
+          if (t.status === "Completed" || t.status === "Canceled" || t.status === "Cancelled") return false;
           const due = new Date(t.dueDate);
           const diffMs = due.getTime() - now.getTime();
           const diffHours = diffMs / (1000 * 60 * 60);

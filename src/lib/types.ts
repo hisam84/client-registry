@@ -196,16 +196,32 @@ export interface TargetedClient {
   deletedAt: string | null;
 }
 
-export type TaskStatus = "Pending" | "In Progress" | "Completed" | "Cancelled";
+export type TaskStatus =
+  | "To Do"
+  | "In Progress"
+  | "In Review"
+  | "Completed"
+  | "Canceled"
+  | "Cancelled"
+  | "Pending";
 export type TaskPriority = "High" | "Medium" | "Low";
 
-export const TASK_STATUS_OPTIONS: TaskStatus[] = ["Pending", "In Progress", "Completed", "Cancelled"];
+export const TASK_STATUS_OPTIONS: TaskStatus[] = [
+  "To Do",
+  "In Progress",
+  "In Review",
+  "Completed",
+  "Canceled",
+];
 export const TASK_PRIORITY_OPTIONS: TaskPriority[] = ["High", "Medium", "Low"];
 
-export const TASK_STATUS_COLOR: Record<TaskStatus, string> = {
+export const TASK_STATUS_COLOR: Record<string, string> = {
+  "To Do": "bg-amberflag-500/15 text-amberflag-500 border-amberflag-500/30",
   Pending: "bg-amberflag-500/15 text-amberflag-500 border-amberflag-500/30",
   "In Progress": "bg-sky-500/15 text-sky-400 border-sky-500/30",
+  "In Review": "bg-purple-500/15 text-purple-400 border-purple-500/30",
   Completed: "bg-moss-500/15 text-moss-400 border-moss-500/30",
+  Canceled: "bg-slate-700/40 text-slate-400 border-slate-600/40",
   Cancelled: "bg-slate-700/40 text-slate-400 border-slate-600/40",
 };
 

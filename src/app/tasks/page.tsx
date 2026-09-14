@@ -48,8 +48,10 @@ export default function TasksPage() {
   const [metrics, setMetrics] = useState({
     totalTasks: 0,
     completedTasks: 0,
+    todoTasks: 0,
     pendingTasks: 0,
     inProgressTasks: 0,
+    inReviewTasks: 0,
     cancelledTasks: 0,
     unassignedTasks: 0,
     overdueTasks: 0,
@@ -122,9 +124,9 @@ export default function TasksPage() {
       if (Array.isArray(data)) {
         const sorted = [...data].sort((a: TaskItem, b: TaskItem) => {
           const getRank = (t: TaskItem) => {
-            if (t.status === "Cancelled") return 2; // Cancelled at the very bottom
+            if (t.status === "Canceled" || t.status === "Cancelled") return 2; // Canceled at the very bottom
             if (t.status === "Completed") return 1; // Completed in middle
-            return 0; // To-Do & Overdue on top
+            return 0; // To-Do, In Progress, In Review, Overdue on top
           };
 
           const rankA = getRank(a);
@@ -200,7 +202,7 @@ export default function TasksPage() {
   }
 
   async function handleToggleComplete(task: TaskItem) {
-    const newStatus: TaskStatus = task.status === "Completed" ? "Pending" : "Completed";
+    const newStatus: TaskStatus = task.status === "Completed" ? "To Do" : "Completed";
     try {
       await fetch(`/api/tasks/${task.id}`, {
         method: "PUT",
@@ -570,10 +572,11 @@ export default function TasksPage() {
             >
               <option value="all">All Statuses</option>
               <option value="Overdue">Overdue ({metrics.overdueTasks})</option>
-              <option value="Pending">Pending</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Completed">Completed</option>
-              <option value="Cancelled">Cancelled</option>
+              <option value="To Do">To Do ({(metrics as any).todoTasks ?? metrics.pendingTasks})</option>
+              <option value="In Progress">In Progress ({metrics.inProgressTasks})</option>
+              <option value="In Review">In Review ({(metrics as any).inReviewTasks ?? 0})</option>
+              <option value="Completed">Completed ({metrics.completedTasks})</option>
+              <option value="Canceled">Canceled ({metrics.cancelledTasks})</option>
             </select>
 
             <select

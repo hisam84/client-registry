@@ -109,7 +109,7 @@ export async function checkAndSendTaskAlerts(options?: { force?: boolean }): Pro
     const tasks: any[] = await (prisma as any).task.findMany({
       where: {
         deletedAt: null,
-        status: { in: ["Pending", "In Progress"] },
+        status: { in: ["To Do", "In Progress", "In Review", "Pending"] },
       },
       include: {
         assignedTo: {

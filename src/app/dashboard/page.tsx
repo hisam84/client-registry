@@ -104,7 +104,7 @@ export default function DashboardPage() {
   }, []);
 
   async function handleToggleTaskComplete(taskId: string, currentStatus: string) {
-    const newStatus = currentStatus === "Completed" ? "Pending" : "Completed";
+    const newStatus = currentStatus === "Completed" ? "To Do" : "Completed";
 
     // Optimistic UI update
     setData((prev) => {

@@ -61,24 +61,28 @@ export async function GET(req: NextRequest) {
       orderBy: { dueDate: "asc" },
     });
 
+    const isTerminal = (status: string) => status === "Completed" || status === "Canceled" || status === "Cancelled";
+
     const totalTasks = allTasks.length;
     const completedTasks = allTasks.filter((t) => t.status === "Completed").length;
-    const pendingTasks = allTasks.filter((t) => t.status === "Pending").length;
+    const todoTasks = allTasks.filter((t) => t.status === "To Do" || t.status === "Pending").length;
+    const pendingTasks = todoTasks; // backward compatibility alias
     const inProgressTasks = allTasks.filter((t) => t.status === "In Progress").length;
-    const cancelledTasks = allTasks.filter((t) => t.status === "Cancelled").length;
+    const inReviewTasks = allTasks.filter((t) => t.status === "In Review").length;
+    const cancelledTasks = allTasks.filter((t) => t.status === "Canceled" || t.status === "Cancelled").length;
     const unassignedTasks = allTasks.filter((t) => !t.assignedToId).length;
 
     const overdueTasks = allTasks.filter(
-      (t) => new Date(t.dueDate) < now && t.status !== "Completed" && t.status !== "Cancelled"
+      (t) => new Date(t.dueDate) < now && !isTerminal(t.status)
     ).length;
 
     const tasksToday = allTasks.filter((t) => {
       const d = new Date(t.dueDate);
-      return d >= startOfToday && d <= endOfToday && t.status !== "Completed" && t.status !== "Cancelled";
+      return d >= startOfToday && d <= endOfToday && !isTerminal(t.status);
     }).length;
 
     const upcomingTasks = allTasks.filter(
-      (t) => new Date(t.dueDate) >= now && t.status !== "Completed" && t.status !== "Cancelled"
+      (t) => new Date(t.dueDate) >= now && !isTerminal(t.status)
     ).length;
 
     // Daily breakdown for the next 7 days
@@ -97,15 +101,17 @@ export async function GET(req: NextRequest) {
     });
 
     // Priority breakdown
-    const highPriority = allTasks.filter((t) => t.priority === "High" && t.status !== "Completed").length;
-    const mediumPriority = allTasks.filter((t) => t.priority === "Medium" && t.status !== "Completed").length;
-    const lowPriority = allTasks.filter((t) => t.priority === "Low" && t.status !== "Completed").length;
+    const highPriority = allTasks.filter((t) => t.priority === "High" && !isTerminal(t.status)).length;
+    const mediumPriority = allTasks.filter((t) => t.priority === "Medium" && !isTerminal(t.status)).length;
+    const lowPriority = allTasks.filter((t) => t.priority === "Low" && !isTerminal(t.status)).length;
 
     return NextResponse.json({
       totalTasks,
       completedTasks,
+      todoTasks,
       pendingTasks,
       inProgressTasks,
+      inReviewTasks,
       cancelledTasks,
       unassignedTasks,
       overdueTasks,
