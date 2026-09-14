@@ -42,21 +42,16 @@ export async function POST(request: Request) {
 
     const result = await sendEmail({
       to: recipient,
-      subject: "Test Email: Client Registry Mail Service",
+      subject: "Test Email from Client Registry (Brevo Mailer)",
       html,
-      text: "Test email successfully delivered from Client Registry Management System.",
+      text: "Test email successfully received from Brevo Mailer on Client Registry.",
     });
 
     if (!result.success) {
       return NextResponse.json({ success: false, message: result.error || "Failed to deliver test email" }, { status: 500 });
     }
 
-    const providerMsg = result.provider ? ` via ${result.provider}` : "";
-    return NextResponse.json({
-      success: true,
-      message: `Test email successfully delivered to ${recipient}${providerMsg}! Please check your Inbox.`,
-      provider: result.provider,
-    });
+    return NextResponse.json({ success: true, message: `Test email successfully sent to ${recipient}` });
   } catch (error: any) {
     console.error("POST /api/mail-settings/test error:", error);
     return NextResponse.json({ success: false, message: error?.message || "Failed to send test email" }, { status: 500 });
