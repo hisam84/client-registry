@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
   computeStatus,
   DETAIL_FIELD_ORDER,
@@ -21,6 +22,74 @@ function getDomainUrl(domain: string | null): string {
   const trimmed = domain.trim();
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
   return `https://${trimmed}`;
+}
+
+function TableTooltip({
+  text,
+  children,
+  className = "",
+}: {
+  text: string | null | undefined;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const [show, setShow] = useState(false);
+  const [coords, setCoords] = useState<{ top: number; left: number; placeAbove: boolean }>({
+    top: 0,
+    left: 0,
+    placeAbove: false,
+  });
+  const triggerRef = useRef<HTMLDivElement>(null);
+
+  if (!text) {
+    return <div className={`min-w-0 max-w-full truncate ${className}`}>{children}</div>;
+  }
+
+  const handleMouseEnter = () => {
+    if (!triggerRef.current) return;
+    const el = triggerRef.current;
+    const isTruncated =
+      el.scrollWidth > el.clientWidth ||
+      (el.firstElementChild && el.firstElementChild.scrollWidth > el.firstElementChild.clientWidth);
+    if (!isTruncated) return;
+
+    const rect = el.getBoundingClientRect();
+    const placeAbove = rect.bottom + 65 > window.innerHeight;
+    setCoords({
+      top: placeAbove ? rect.top - 6 : rect.bottom + 6,
+      left: Math.max(12, Math.min(rect.left, window.innerWidth - 320)),
+      placeAbove,
+    });
+    setShow(true);
+  };
+
+  return (
+    <div
+      ref={triggerRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={() => setShow(false)}
+      className={`min-w-0 max-w-full truncate ${className}`}
+      title={text}
+    >
+      {children}
+      {show &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            style={{
+              position: "fixed",
+              top: coords.placeAbove ? undefined : `${coords.top}px`,
+              bottom: coords.placeAbove ? `${window.innerHeight - coords.top}px` : undefined,
+              left: `${coords.left}px`,
+            }}
+            className="z-[9999] pointer-events-none max-w-sm rounded-lg bg-slate-900/95 text-white text-xs px-3 py-1.5 shadow-2xl border border-slate-700/80 backdrop-blur-sm whitespace-normal break-words leading-relaxed"
+          >
+            {text}
+          </div>,
+          document.body
+        )}
+    </div>
+  );
 }
 
 export function InstitutionTable({
@@ -50,18 +119,18 @@ export function InstitutionTable({
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-      <table className="w-full border-collapse text-sm">
+    <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+      <table className="w-full border-collapse text-sm table-fixed min-w-[850px]">
         <thead>
           <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900/80 text-left text-xs uppercase tracking-wide text-slate-600 dark:text-slate-400">
             <th className="w-12 px-3 py-3 text-center">SL #</th>
             <th className="w-8 px-2 py-3"></th>
-            <th className="px-3 py-3">Institute Name</th>
-            <th className="hidden md:table-cell px-3 py-3">Website / Domain</th>
-            <th className="hidden md:table-cell px-3 py-3">Issue Date</th>
-            <th className="hidden md:table-cell px-3 py-3">Expire Date</th>
-            <th className="hidden md:table-cell px-3 py-3">Status</th>
-            <th className="hidden md:table-cell px-3 py-3 text-right">Actions</th>
+            <th className="w-[34%] max-w-[320px] px-3 py-3">Institute Name</th>
+            <th className="hidden md:table-cell w-[22%] max-w-[210px] px-3 py-3">Website / Domain</th>
+            <th className="hidden md:table-cell w-28 px-3 py-3">Issue Date</th>
+            <th className="hidden md:table-cell w-28 px-3 py-3">Expire Date</th>
+            <th className="hidden md:table-cell w-28 px-3 py-3">Status</th>
+            <th className="hidden md:table-cell w-36 px-3 py-3 text-right">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-200 dark:divide-slate-800/70">
@@ -81,61 +150,66 @@ export function InstitutionTable({
                   }`}
                   onClick={() => setExpanded(isOpen ? null : inst.id)}
                 >
-                  <td className="px-3 py-3 text-center text-xs font-mono text-slate-500 dark:text-slate-400 font-medium">
+                  <td className="w-12 px-3 py-3 text-center text-xs font-mono text-slate-500 dark:text-slate-400 font-medium">
                     {index + 1}
                   </td>
-                  <td className="px-2 py-3 text-slate-400 dark:text-slate-500">
+                  <td className="w-8 px-2 py-3 text-slate-400 dark:text-slate-500">
                     <span className={`inline-block transition-transform ${isOpen ? "rotate-90" : ""}`}>›</span>
                   </td>
-                  <td className="px-3 py-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <div>
-                        <div className="font-medium text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                          <span>{inst.instituteName}</span>
+                  <td className="w-[34%] max-w-[320px] px-3 py-3 overflow-hidden">
+                    <div className="flex items-center justify-between gap-2 min-w-0">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <TableTooltip text={inst.instituteName} className="font-medium text-slate-900 dark:text-slate-100">
+                            <span className="truncate block">{inst.instituteName}</span>
+                          </TableTooltip>
                           {isDeactivated && (
-                            <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700">
+                            <span className="shrink-0 text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700">
                               Deactivated
                             </span>
                           )}
                         </div>
                         {inst.instituteNameBangla && (
-                          <div className="bn text-xs text-slate-600 dark:text-slate-400">{inst.instituteNameBangla}</div>
+                          <TableTooltip text={inst.instituteNameBangla} className="bn text-xs text-slate-600 dark:text-slate-400">
+                            <span className="truncate block">{inst.instituteNameBangla}</span>
+                          </TableTooltip>
                         )}
-                        <div className="mt-0.5 text-xs text-slate-500">
-                          {inst.instituteType} · {inst.category}
-                        </div>
+                        <TableTooltip text={`${inst.instituteType} · ${inst.category}`} className="mt-0.5 text-xs text-slate-500">
+                          <span className="truncate block">{inst.instituteType} · {inst.category}</span>
+                        </TableTooltip>
                       </div>
                       {/* Mobile indicator badge */}
-                      <div className="md:hidden">
+                      <div className="md:hidden shrink-0">
                         <Badge className={STATUS_COLOR[status]}>{STATUS_LABEL[status]}</Badge>
                       </div>
                     </div>
                   </td>
-                  <td className="hidden md:table-cell px-3 py-3 font-mono text-xs text-slate-700 dark:text-slate-300">
+                  <td className="hidden md:table-cell w-[22%] max-w-[210px] px-3 py-3 font-mono text-xs text-slate-700 dark:text-slate-300 overflow-hidden">
                     {inst.domain ? (
-                      <a
-                        href={domainUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-brass-600 dark:text-brass-400 hover:underline font-medium"
-                        onClick={(e) => e.stopPropagation()}
-                        title={`Open ${inst.domain} in a new tab`}
-                      >
-                        <span>{inst.domain}</span>
-                        <svg className="w-3 h-3 opacity-80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                      </a>
+                      <TableTooltip text={inst.domain}>
+                        <a
+                          href={domainUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-brass-600 dark:text-brass-400 hover:underline font-medium max-w-full"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <span className="truncate">{inst.domain}</span>
+                          <svg className="w-3 h-3 opacity-80 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </a>
+                      </TableTooltip>
                     ) : (
                       <span className="text-slate-400 dark:text-slate-500">—</span>
                     )}
                   </td>
-                  <td className="hidden md:table-cell px-3 py-3 text-slate-700 dark:text-slate-300">{fmtDate(inst.issueDate)}</td>
-                  <td className="hidden md:table-cell px-3 py-3 text-slate-700 dark:text-slate-300">{fmtDate(inst.expireDate)}</td>
-                  <td className="hidden md:table-cell px-3 py-3">
+                  <td className="hidden md:table-cell w-28 px-3 py-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">{fmtDate(inst.issueDate)}</td>
+                  <td className="hidden md:table-cell w-28 px-3 py-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">{fmtDate(inst.expireDate)}</td>
+                  <td className="hidden md:table-cell w-28 px-3 py-3 whitespace-nowrap">
                     <Badge className={STATUS_COLOR[status]}>{STATUS_LABEL[status]}</Badge>
                   </td>
-                  <td className="hidden md:table-cell px-3 py-3">
+                  <td className="hidden md:table-cell w-36 px-3 py-3 whitespace-nowrap">
                     <div className="flex justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
                       {onAddTask && (
                         <button
