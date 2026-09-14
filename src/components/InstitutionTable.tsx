@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, Fragment } from "react";
 import { createPortal } from "react-dom";
 import {
   computeStatus,
@@ -122,14 +122,14 @@ export function InstitutionTable({
     <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
       <table className="w-full border-collapse text-sm table-fixed min-w-[980px]">
         <thead>
-          <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900/80 text-left text-xs uppercase tracking-wide text-slate-600 dark:text-slate-400">
+          <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900/80 text-xs uppercase tracking-wide text-slate-600 dark:text-slate-400">
             <th className="w-12 px-3 py-3 text-center">SL #</th>
-            <th className="w-8 px-2 py-3"></th>
-            <th className="w-[400px] max-w-[400px] px-3 py-3">Institute Name</th>
-            <th className="hidden md:table-cell w-[22%] max-w-[210px] px-3 py-3">Website / Domain</th>
-            <th className="hidden md:table-cell w-28 px-3 py-3">Issue Date</th>
-            <th className="hidden md:table-cell w-28 px-3 py-3">Expire Date</th>
-            <th className="hidden md:table-cell w-28 px-3 py-3">Status</th>
+            <th className="w-8 px-2 py-3 text-center"></th>
+            <th className="w-[400px] px-3 py-3 text-left">Institute Name</th>
+            <th className="hidden md:table-cell px-3 py-3 text-left">Website / Domain</th>
+            <th className="hidden md:table-cell w-28 px-3 py-3 text-center">Issue Date</th>
+            <th className="hidden md:table-cell w-28 px-3 py-3 text-center">Expire Date</th>
+            <th className="hidden md:table-cell w-32 px-3 py-3 text-center">Status</th>
             <th className="hidden md:table-cell w-36 px-3 py-3 text-right">Actions</th>
           </tr>
         </thead>
@@ -141,7 +141,7 @@ export function InstitutionTable({
             const domainUrl = getDomainUrl(inst.domain);
 
             return (
-              <tr key={inst.id} className="contents">
+              <Fragment key={inst.id}>
                 <tr
                   className={`cursor-pointer border-b border-slate-200 dark:border-slate-800/70 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60 ${
                     isDeactivated ? "opacity-75 bg-slate-50/40 dark:bg-slate-900/40" : ""
@@ -153,10 +153,10 @@ export function InstitutionTable({
                   <td className="w-12 px-3 py-3 text-center text-xs font-mono text-slate-500 dark:text-slate-400 font-medium">
                     {index + 1}
                   </td>
-                  <td className="w-8 px-2 py-3 text-slate-400 dark:text-slate-500">
+                  <td className="w-8 px-2 py-3 text-center text-slate-400 dark:text-slate-500">
                     <span className={`inline-block transition-transform ${isOpen ? "rotate-90" : ""}`}>›</span>
                   </td>
-                  <td className="w-[400px] max-w-[400px] px-3 py-3 overflow-hidden">
+                  <td className="w-[400px] px-3 py-3 overflow-hidden text-left">
                     <div className="flex items-center justify-between gap-2 min-w-0">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 min-w-0">
@@ -184,7 +184,7 @@ export function InstitutionTable({
                       </div>
                     </div>
                   </td>
-                  <td className="hidden md:table-cell w-[22%] max-w-[210px] px-3 py-3 font-mono text-xs text-slate-700 dark:text-slate-300 overflow-hidden">
+                  <td className="hidden md:table-cell px-3 py-3 font-mono text-xs text-slate-700 dark:text-slate-300 overflow-hidden text-left">
                     {inst.domain ? (
                       <TableTooltip text={inst.domain}>
                         <a
@@ -204,9 +204,9 @@ export function InstitutionTable({
                       <span className="text-slate-400 dark:text-slate-500">—</span>
                     )}
                   </td>
-                  <td className="hidden md:table-cell w-28 px-3 py-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">{fmtDate(inst.issueDate)}</td>
-                  <td className="hidden md:table-cell w-28 px-3 py-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">{fmtDate(inst.expireDate)}</td>
-                  <td className="hidden md:table-cell w-28 px-3 py-3 whitespace-nowrap">
+                  <td className="hidden md:table-cell w-28 px-3 py-3 text-center text-slate-700 dark:text-slate-300 whitespace-nowrap">{fmtDate(inst.issueDate)}</td>
+                  <td className="hidden md:table-cell w-28 px-3 py-3 text-center text-slate-700 dark:text-slate-300 whitespace-nowrap">{fmtDate(inst.expireDate)}</td>
+                  <td className="hidden md:table-cell w-32 px-3 py-3 text-center whitespace-nowrap">
                     <Badge className={STATUS_COLOR[status]}>{STATUS_LABEL[status]}</Badge>
                   </td>
                   <td className="hidden md:table-cell w-36 px-3 py-3 whitespace-nowrap">
@@ -405,7 +405,7 @@ export function InstitutionTable({
                     </td>
                   </tr>
                 )}
-              </tr>
+              </Fragment>
             );
           })}
         </tbody>
