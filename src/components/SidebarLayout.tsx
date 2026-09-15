@@ -501,7 +501,13 @@ export function SidebarLayout({
             </nav>
           </div>
 
-          <div className="border-t border-slate-200 dark:border-slate-800 pt-3 mt-6">
+          <div className="border-t border-slate-200 dark:border-slate-800 pt-3 mt-6 space-y-3">
+            {/* Theme Mode Switch in Mobile Drawer Sidebar */}
+            <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70 shadow-xs">
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Theme</span>
+              <ThemeToggle />
+            </div>
+
             <Link
               href="/profile"
               onClick={() => setMobileMenuOpen(false)}
@@ -602,8 +608,14 @@ export function SidebarLayout({
           </nav>
         </div>
 
-        {/* User Profile Footer Card with Logout Button */}
-        <div className="p-3 border-t border-slate-200 dark:border-slate-800">
+        {/* User Profile & Theme Mode Footer Card */}
+        <div className="p-3 border-t border-slate-200 dark:border-slate-800 space-y-2.5">
+          {/* Theme Mode Toggle in Desktop Sidebar */}
+          <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70 shadow-xs">
+            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Theme</span>
+            <ThemeToggle />
+          </div>
+
           <div className="flex items-center justify-between gap-1.5 p-2 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70 hover:border-brass-500/30 transition-all">
             <Link
               href="/profile"
@@ -654,7 +666,7 @@ export function SidebarLayout({
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 md:pl-60 flex flex-col min-h-screen min-w-0 max-w-full">
         <main className="mx-auto w-full max-w-7xl px-3 py-6 sm:px-6 lg:px-8 flex-1 min-w-0 max-w-full">
-          {/* Header section inside main content with Notification Bell, Theme Switch, and Logout top right */}
+          {/* Header section inside main content with Notification Bell and Logout top right */}
           <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800/80 pb-4">
             <div>
               {title && (
@@ -676,9 +688,6 @@ export function SidebarLayout({
 
             <div className="flex flex-wrap items-center gap-2.5 justify-start sm:justify-end">
               {headerActions}
-
-              {/* Mode Switch (Dark / Light Mode) */}
-              <ThemeToggle />
 
               {/* Logout Button */}
               <button
