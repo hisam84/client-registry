@@ -652,8 +652,8 @@ export function SidebarLayout({
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 md:pl-60 flex flex-col min-h-screen">
-        <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 flex-1">
+      <div className="flex-1 md:pl-60 flex flex-col min-h-screen min-w-0 max-w-full">
+        <main className="mx-auto w-full max-w-7xl px-3 py-6 sm:px-6 lg:px-8 flex-1 min-w-0 max-w-full">
           {/* Header section inside main content with Notification Bell, Theme Switch, and Logout top right */}
           <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800/80 pb-4">
             <div>

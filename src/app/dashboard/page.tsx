@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { TaskFormModal } from "@/components/tasks/TaskFormModal";
+import { TaskCompletionModal } from "@/components/tasks/TaskCompletionModal";
 import { Button } from "@/components/ui";
 import { useUserSession } from "@/lib/userSession";
 import { ROLE_OPTIONS } from "@/lib/types";
@@ -57,6 +58,7 @@ export default function DashboardPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [completingTask, setCompletingTask] = useState<any | null>(null);
 
   async function loadOverview(showLoading = false) {
     if (showLoading && !data) setLoading(true);
@@ -729,13 +731,19 @@ export default function DashboardPage() {
                       >
                         <div className="flex items-start gap-2.5 min-w-0">
                           <button
-                            onClick={() => handleToggleTaskComplete(task.id, task.status)}
+                            onClick={() => {
+                              if (task.status === "Completed") {
+                                handleToggleTaskComplete(task.id, task.status);
+                              } else {
+                                setCompletingTask(task as any);
+                              }
+                            }}
                             className={`mt-0.5 h-4 w-4 shrink-0 rounded border flex items-center justify-center transition-colors ${
                               task.status === "Completed"
                                 ? "bg-brass-500 border-brass-500 text-slate-950"
                                 : "border-slate-300 dark:border-slate-600 hover:border-brass-500 text-brass-500"
                             }`}
-                            title={task.status === "Completed" ? "Mark pending" : "Mark complete"}
+                            title={task.status === "Completed" ? "Mark pending" : "Mark complete (opens confirmation modal)"}
                           >
                             {task.status === "Completed" && (
                               <svg className="w-3 h-3 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -778,6 +786,18 @@ export default function DashboardPage() {
           onSaved={() => {
             setShowTaskModal(false);
             loadOverview();
+          }}
+        />
+      )}
+
+      {/* Task Completion Modal with Confirmation Email */}
+      {completingTask && (
+        <TaskCompletionModal
+          task={completingTask}
+          onClose={() => setCompletingTask(null)}
+          onCompleted={() => {
+            loadOverview(false);
+            setCompletingTask(null);
           }}
         />
       )}

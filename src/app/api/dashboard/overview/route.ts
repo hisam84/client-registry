@@ -164,6 +164,12 @@ export async function GET() {
           institution: {
             select: { id: true, instituteName: true },
           },
+          assignedTo: {
+            select: { id: true, name: true, email: true, orderSerial: true },
+          },
+          assignedBy: {
+            select: { id: true, name: true, email: true, orderSerial: true },
+          },
         },
         orderBy: { dueDate: "asc" },
       });

@@ -4,7 +4,7 @@ import { TaskItem } from "@/lib/types";
 import { Button, Modal } from "@/components/ui";
 
 interface TaskCompletionModalProps {
-  task: TaskItem;
+  task: any;
   onClose: () => void;
   onCompleted: () => void;
 }
@@ -15,7 +15,7 @@ export function TaskCompletionModal({
   onCompleted,
 }: TaskCompletionModalProps) {
   const [note, setNote] = useState<string>(task.completionNote || "");
-  const [sendEmailNotification, setSendEmailNotification] = useState<boolean>(false);
+  const [sendEmailNotification, setSendEmailNotification] = useState<boolean>(true);
   const defaultRecipient =
     task.assignedBy?.email || "imperialitbd2011@gmail.com";
   const [customRecipient, setCustomRecipient] = useState<string>(defaultRecipient);
@@ -61,7 +61,7 @@ export function TaskCompletionModal({
   }
 
   return (
-    <Modal title="Complete Task" onClose={onClose}>
+    <Modal title="Task Completion & Confirmation Mail" onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-3.5">
         {error && (
           <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-2.5 text-xs text-red-600 dark:text-red-400 font-medium">

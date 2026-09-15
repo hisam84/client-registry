@@ -119,18 +119,18 @@ export function InstitutionTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-      <table className="w-full border-collapse text-sm table-fixed min-w-[980px]">
+    <div className="w-full max-w-full overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+      <table className="w-full border-collapse text-sm md:table-fixed md:min-w-[980px]">
         <thead>
           <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900/80 text-xs uppercase tracking-wide text-slate-600 dark:text-slate-400">
-            <th className="w-12 px-3 py-3 text-center">SL #</th>
-            <th className="w-8 px-2 py-3 text-center"></th>
-            <th className="w-[400px] px-3 py-3 text-left">Institute Name</th>
+            <th className="w-8 sm:w-10 md:w-12 px-1.5 sm:px-3 py-3 text-center">SL #</th>
+            <th className="w-5 sm:w-8 px-1 sm:px-2 py-3 text-center"></th>
+            <th className="px-2 sm:px-3 py-3 text-left md:w-[380px] lg:w-[400px]">Institute Name</th>
             <th className="hidden md:table-cell px-3 py-3 text-left">Website / Domain</th>
             <th className="hidden md:table-cell w-28 px-3 py-3 text-center">Issue Date</th>
             <th className="hidden md:table-cell w-28 px-3 py-3 text-center">Expire Date</th>
             <th className="hidden md:table-cell w-32 px-3 py-3 text-center">Status</th>
-            <th className="hidden md:table-cell w-36 px-3 py-3 text-right">Actions</th>
+            <th className="w-24 sm:w-28 md:w-36 px-1.5 sm:px-3 py-3 text-right">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-200 dark:divide-slate-800/70">
@@ -150,37 +150,35 @@ export function InstitutionTable({
                   }`}
                   onClick={() => setExpanded(isOpen ? null : inst.id)}
                 >
-                  <td className="w-12 px-3 py-3 text-center text-xs font-mono text-slate-500 dark:text-slate-400 font-medium">
+                  <td className="w-8 sm:w-10 md:w-12 px-1.5 sm:px-3 py-3 text-center text-xs font-mono text-slate-500 dark:text-slate-400 font-medium">
                     {index + 1}
                   </td>
-                  <td className="w-8 px-2 py-3 text-center text-slate-400 dark:text-slate-500">
-                    <span className={`inline-block transition-transform ${isOpen ? "rotate-90" : ""}`}>›</span>
+                  <td className="w-5 sm:w-8 px-1 sm:px-2 py-3 text-center text-slate-400 dark:text-slate-500">
+                    <span className={`inline-block transition-transform text-sm sm:text-base ${isOpen ? "rotate-90 text-blue-600 dark:text-blue-400 font-bold" : ""}`}>›</span>
                   </td>
-                  <td className="w-[400px] px-3 py-3 overflow-hidden text-left">
-                    <div className="flex items-center justify-between gap-2 min-w-0">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <TableTooltip text={inst.instituteName} className="font-medium text-slate-900 dark:text-slate-100">
-                            <span className="truncate block">{inst.instituteName}</span>
-                          </TableTooltip>
-                          {isDeactivated && (
-                            <span className="shrink-0 text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700">
-                              Deactivated
-                            </span>
-                          )}
-                        </div>
-                        {inst.instituteNameBangla && (
-                          <TableTooltip text={inst.instituteNameBangla} className="bn text-xs text-slate-600 dark:text-slate-400">
-                            <span className="truncate block">{inst.instituteNameBangla}</span>
-                          </TableTooltip>
-                        )}
-                        <TableTooltip text={`${inst.instituteType} · ${inst.category}`} className="mt-0.5 text-xs text-slate-500">
-                          <span className="truncate block">{inst.instituteType} · {inst.category}</span>
+                  <td className="px-2 sm:px-3 py-3 overflow-hidden text-left md:w-[380px] lg:w-[400px]">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <TableTooltip text={inst.instituteName} className="font-medium text-slate-900 dark:text-slate-100">
+                          <span className="truncate block text-xs sm:text-sm font-semibold">{inst.instituteName}</span>
                         </TableTooltip>
+                        {isDeactivated && (
+                          <span className="shrink-0 text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700">
+                            Deactivated
+                          </span>
+                        )}
                       </div>
-                      {/* Mobile indicator badge */}
-                      <div className="md:hidden shrink-0">
-                        <Badge className={STATUS_COLOR[status]}>{STATUS_LABEL[status]}</Badge>
+                      {inst.instituteNameBangla && (
+                        <TableTooltip text={inst.instituteNameBangla} className="bn text-[11px] sm:text-xs text-slate-600 dark:text-slate-400">
+                          <span className="truncate block">{inst.instituteNameBangla}</span>
+                        </TableTooltip>
+                      )}
+                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[11px] sm:text-xs text-slate-500">
+                        <span className="truncate">{inst.instituteType} · {inst.category}</span>
+                        {/* Mobile indicator badge next to category */}
+                        <span className="md:hidden shrink-0">
+                          <Badge className={`text-[10px] px-1.5 py-0 ${STATUS_COLOR[status]}`}>{STATUS_LABEL[status]}</Badge>
+                        </span>
                       </div>
                     </div>
                   </td>
@@ -209,17 +207,17 @@ export function InstitutionTable({
                   <td className="hidden md:table-cell w-32 px-3 py-3 text-center whitespace-nowrap">
                     <Badge className={STATUS_COLOR[status]}>{STATUS_LABEL[status]}</Badge>
                   </td>
-                  <td className="hidden md:table-cell w-36 px-3 py-3 whitespace-nowrap">
-                    <div className="flex justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
+                  <td className="w-24 sm:w-28 md:w-36 px-1.5 sm:px-3 py-3 whitespace-nowrap text-right">
+                    <div className="flex justify-end gap-1 sm:gap-1.5" onClick={(e) => e.stopPropagation()}>
                       {onAddTask && (
                         <button
                           type="button"
                           onClick={() => onAddTask(inst)}
-                          className="p-1.5 text-xs rounded-md bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-colors flex items-center justify-center"
+                          className="p-1 sm:p-1.5 text-xs rounded-md bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-colors flex items-center justify-center shrink-0"
                           title="Add Task"
                           aria-label="Add Task"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                           </svg>
                         </button>
@@ -228,7 +226,7 @@ export function InstitutionTable({
                         <button
                           type="button"
                           onClick={() => onToggleDeactivate(inst)}
-                          className={`p-1.5 text-xs rounded-md border transition-colors flex items-center justify-center ${
+                          className={`p-1 sm:p-1.5 text-xs rounded-md border transition-colors flex items-center justify-center shrink-0 ${
                             isDeactivated
                               ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
                               : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 hover:bg-amber-500/20"
@@ -237,11 +235,11 @@ export function InstitutionTable({
                           aria-label={isDeactivated ? "Activate Client" : "Deactivate Client"}
                         >
                           {isDeactivated ? (
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                           ) : (
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                             </svg>
                           )}
@@ -250,22 +248,22 @@ export function InstitutionTable({
                       <button
                         type="button"
                         onClick={() => onEdit(inst)}
-                        className="p-1.5 text-xs rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center"
+                        className="p-1 sm:p-1.5 text-xs rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center shrink-0"
                         title="Edit Institution"
                         aria-label="Edit Institution"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                       </button>
                       <button
                         type="button"
                         onClick={() => onDelete(inst)}
-                        className="p-1.5 text-xs rounded-md bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors flex items-center justify-center"
+                        className="p-1 sm:p-1.5 text-xs rounded-md bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors flex items-center justify-center shrink-0"
                         title="Delete Institution"
                         aria-label="Delete Institution"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>
@@ -274,98 +272,118 @@ export function InstitutionTable({
                 </tr>
                 {isOpen && (
                   <tr className="border-b border-slate-200 dark:border-slate-800/70 bg-slate-50/70 dark:bg-slate-950/60">
-                    <td colSpan={8} className="px-4 sm:px-6 py-5">
-                      {/* Mobile Dropdown Overview Box */}
-                      <div className="mb-5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-4 md:hidden">
-                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800/80 pb-3 mb-3">
+                    <td colSpan={8} className="p-3 sm:px-6 sm:py-5">
+                      {/* Mobile Dropdown Overview & Action Box */}
+                      <div className="mb-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 shadow-sm md:hidden">
+                        <div className="flex items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-2.5 mb-3">
                           <div className="flex items-center gap-2">
                             <span className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 font-medium">Status:</span>
                             <Badge className={STATUS_COLOR[status]}>{STATUS_LABEL[status]}</Badge>
                           </div>
-                          <div className="flex gap-1.5">
-                            {onAddTask && (
-                              <button
-                                type="button"
-                                onClick={() => onAddTask(inst)}
-                                className="p-1.5 rounded-md bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 hover:bg-blue-100 transition-colors flex items-center justify-center"
-                                title="Add Task"
-                                aria-label="Add Task"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                </svg>
-                              </button>
-                            )}
-                            {onToggleDeactivate && (
-                              <button
-                                type="button"
-                                onClick={() => onToggleDeactivate(inst)}
-                                className={`p-1.5 rounded-md border transition-colors flex items-center justify-center ${
-                                  isDeactivated
-                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
-                                    : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 hover:bg-amber-500/20"
-                                }`}
-                                title={isDeactivated ? "Activate Client" : "Deactivate Client"}
-                                aria-label={isDeactivated ? "Activate Client" : "Deactivate Client"}
-                              >
-                                {isDeactivated ? (
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  </svg>
-                                ) : (
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                                  </svg>
-                                )}
-                              </button>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => onEdit(inst)}
-                              className="p-1.5 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-blue-600 transition-colors flex items-center justify-center"
-                              title="Edit"
-                              aria-label="Edit"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                              </svg>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => onDelete(inst)}
-                              className="p-1.5 rounded-md bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors flex items-center justify-center"
-                              title="Delete"
-                              aria-label="Delete"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
-                          </div>
+                          {isDeactivated && (
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-500">
+                              Deactivated
+                            </span>
+                          )}
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        {/* Prominent Action Buttons for Mobile */}
+                        <div className="grid grid-cols-2 gap-2 mb-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+                          {onAddTask && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onAddTask(inst);
+                              }}
+                              className="py-2 px-2.5 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 hover:bg-blue-100 font-medium text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+                            >
+                              <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                              </svg>
+                              <span>Add Task</span>
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEdit(inst);
+                            }}
+                            className="py-2 px-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:text-blue-600 font-medium text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+                          >
+                            <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            <span>Edit Info</span>
+                          </button>
+                          {onToggleDeactivate && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onToggleDeactivate(inst);
+                              }}
+                              className={`py-2 px-2.5 rounded-lg border font-medium text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors ${
+                                isDeactivated
+                                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
+                                  : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 hover:bg-amber-500/20"
+                              }`}
+                            >
+                              {isDeactivated ? (
+                                <>
+                                  <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <span>Activate</span>
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                  </svg>
+                                  <span>Deactivate</span>
+                                </>
+                              )}
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDelete(inst);
+                            }}
+                            className="py-2 px-2.5 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 hover:bg-red-500/20 font-medium text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+                          >
+                            <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            <span>Delete</span>
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 text-xs">
                           <div>
-                            <span className="text-slate-500 uppercase tracking-wide font-medium">Issue Date</span>
-                            <div className="text-slate-800 dark:text-slate-200 mt-0.5 text-sm">{fmtDate(inst.issueDate)}</div>
+                            <span className="text-slate-500 dark:text-slate-400 uppercase tracking-wide font-medium text-[10px]">Issue Date</span>
+                            <div className="text-slate-800 dark:text-slate-200 mt-0.5 text-xs font-semibold">{fmtDate(inst.issueDate)}</div>
                           </div>
                           <div>
-                            <span className="text-slate-500 uppercase tracking-wide font-medium">Expire Date</span>
-                            <div className="text-slate-800 dark:text-slate-200 mt-0.5 text-sm">{fmtDate(inst.expireDate)}</div>
+                            <span className="text-slate-500 dark:text-slate-400 uppercase tracking-wide font-medium text-[10px]">Expire Date</span>
+                            <div className="text-slate-800 dark:text-slate-200 mt-0.5 text-xs font-semibold">{fmtDate(inst.expireDate)}</div>
                           </div>
                           {inst.domain && (
-                            <div className="col-span-1 sm:col-span-2 pt-1 border-t border-slate-200 dark:border-slate-800/60">
-                              <span className="text-slate-500 uppercase tracking-wide font-medium">Website / Domain</span>
+                            <div className="col-span-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                              <span className="text-slate-500 dark:text-slate-400 uppercase tracking-wide font-medium text-[10px]">Website / Domain</span>
                               <div className="mt-0.5">
                                 <a
                                   href={domainUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1.5 text-brass-600 dark:text-brass-400 hover:underline font-mono text-sm"
+                                  className="inline-flex items-center gap-1.5 text-brass-600 dark:text-brass-400 hover:underline font-mono text-xs break-all"
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   <span>{inst.domain}</span>
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <svg className="w-3.5 h-3.5 shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                   </svg>
                                 </a>
