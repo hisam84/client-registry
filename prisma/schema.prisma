@@ -38,8 +38,6 @@ model Institution {
   inChargeTeacher         String?
   designation             String?
   inChargeTeacherContact  String?
-  inChargeTeacher2        String?
-  inChargeTeacher2Contact String?
 
   subDistrict             String?
   district                String?

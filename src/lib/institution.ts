@@ -74,8 +74,6 @@ export function buildInstitutionData(body: any) {
     inChargeTeacher: strOrNull(body.inChargeTeacher),
     designation: strOrNull(body.designation),
     inChargeTeacherContact: strOrNull(body.inChargeTeacherContact),
-    inChargeTeacher2,
-    inChargeTeacher2Contact,
     subDistrict: strOrNull(body.subDistrict),
     district: strOrNull(body.district),
     address: strOrNull(body.address),

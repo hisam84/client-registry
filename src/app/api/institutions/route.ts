@@ -27,8 +27,6 @@ export async function GET(req: NextRequest) {
         { contact2: { contains: search, mode: "insensitive" } },
         { inChargeTeacher: { contains: search, mode: "insensitive" } },
         { inChargeTeacherContact: { contains: search, mode: "insensitive" } },
-        { inChargeTeacher2: { contains: search, mode: "insensitive" } },
-        { inChargeTeacher2Contact: { contains: search, mode: "insensitive" } },
       ],
     });
   }
@@ -55,12 +53,31 @@ export async function GET(req: NextRequest) {
     orderBy: { instituteName: "asc" },
   });
 
+  let mapped = institutions.map((inst) => {
+    const cf = (inst.customFields as any) || {};
+    return {
+      ...inst,
+      inChargeTeacher2:
+        cf.inChargeTeacher2 ||
+        cf.cf_in_charge_2 ||
+        cf.in_charge_2 ||
+        cf["IN CHARGE 2"] ||
+        null,
+      inChargeTeacher2Contact:
+        cf.inChargeTeacher2Contact ||
+        cf.cf_in_charge_2_contact ||
+        cf.in_charge_2_contact ||
+        cf["IN CHARGE 2 CONTACT"] ||
+        null,
+    };
+  });
+
   if (status === "deactivated") {
-    institutions = institutions.filter(
+    mapped = mapped.filter(
       (inst) => (inst.customFields as any)?.isDeactivated === true || (inst.customFields as any)?.isDeactivated === "true"
     );
   } else if (status === "active") {
-    institutions = institutions.filter(
+    mapped = mapped.filter(
       (inst) => (inst.customFields as any)?.isDeactivated !== true && (inst.customFields as any)?.isDeactivated !== "true"
     );
   }
@@ -75,14 +92,14 @@ export async function GET(req: NextRequest) {
     "Other": 7
   };
 
-  institutions.sort((a, b) => {
+  mapped.sort((a, b) => {
     const pA = TYPE_PRIORITY[a.instituteType] || 99;
     const pB = TYPE_PRIORITY[b.instituteType] || 99;
     if (pA !== pB) return pA - pB;
     return a.instituteName.localeCompare(b.instituteName);
   });
 
-  return NextResponse.json(institutions);
+  return NextResponse.json(mapped);
 }
 
 // POST /api/institutions

@@ -5,7 +5,22 @@ import { buildInstitutionData } from "@/lib/institution";
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   const institution = await prisma.institution.findUnique({ where: { id: params.id } });
   if (!institution) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(institution);
+  const cf = (institution.customFields as any) || {};
+  return NextResponse.json({
+    ...institution,
+    inChargeTeacher2:
+      cf.inChargeTeacher2 ||
+      cf.cf_in_charge_2 ||
+      cf.in_charge_2 ||
+      cf["IN CHARGE 2"] ||
+      null,
+    inChargeTeacher2Contact:
+      cf.inChargeTeacher2Contact ||
+      cf.cf_in_charge_2_contact ||
+      cf.in_charge_2_contact ||
+      cf["IN CHARGE 2 CONTACT"] ||
+      null,
+  });
 }
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
@@ -53,7 +68,22 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   try {
     const data = buildInstitutionData(body);
     const updated = await prisma.institution.update({ where: { id: params.id }, data });
-    return NextResponse.json(updated);
+    const cf = (updated.customFields as any) || {};
+    return NextResponse.json({
+      ...updated,
+      inChargeTeacher2:
+        cf.inChargeTeacher2 ||
+        cf.cf_in_charge_2 ||
+        cf.in_charge_2 ||
+        cf["IN CHARGE 2"] ||
+        null,
+      inChargeTeacher2Contact:
+        cf.inChargeTeacher2Contact ||
+        cf.cf_in_charge_2_contact ||
+        cf.in_charge_2_contact ||
+        cf["IN CHARGE 2 CONTACT"] ||
+        null,
+    });
   } catch (err) {
     return NextResponse.json({ error: "Institution not found." }, { status: 404 });
   }

@@ -58,29 +58,43 @@ function InstitutionsLedgerContent() {
   const router = useRouter();
 
   async function loadCustomFields() {
-    const res = await fetch("/api/custom-fields");
-    setCustomFields(await res.json());
+    try {
+      const res = await fetch("/api/custom-fields");
+      const data = await res.json();
+      setCustomFields(Array.isArray(data) ? data : []);
+    } catch {
+      setCustomFields([]);
+    }
   }
 
   async function loadAll() {
-    const res = await fetch("/api/institutions");
-    const data = await res.json();
-    setAllInstitutions(data);
+    try {
+      const res = await fetch("/api/institutions");
+      const data = await res.json();
+      setAllInstitutions(Array.isArray(data) ? data : []);
+    } catch {
+      setAllInstitutions([]);
+    }
   }
 
   async function loadFiltered() {
     setLoading(true);
-    const params = new URLSearchParams();
-    if (filters.search) params.set("search", filters.search);
-    if (filters.type) params.set("type", filters.type);
-    if (filters.category) params.set("category", filters.category);
-    if (filters.subDistrict) params.set("subDistrict", filters.subDistrict);
-    if (filters.district) params.set("district", filters.district);
-    if (filters.status) params.set("status", filters.status);
-    const res = await fetch(`/api/institutions?${params.toString()}`);
-    const data = await res.json();
-    setInstitutions(data);
-    setLoading(false);
+    try {
+      const params = new URLSearchParams();
+      if (filters.search) params.set("search", filters.search);
+      if (filters.type) params.set("type", filters.type);
+      if (filters.category) params.set("category", filters.category);
+      if (filters.subDistrict) params.set("subDistrict", filters.subDistrict);
+      if (filters.district) params.set("district", filters.district);
+      if (filters.status) params.set("status", filters.status);
+      const res = await fetch(`/api/institutions?${params.toString()}`);
+      const data = await res.json();
+      setInstitutions(Array.isArray(data) ? data : []);
+    } catch {
+      setInstitutions([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
