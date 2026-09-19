@@ -180,6 +180,8 @@ export default function TargetedClientsPage() {
         inChargeTeacher: "",
         designation: "",
         inChargeTeacherContact: "",
+        inChargeTeacher2: "",
+        inChargeTeacher2Contact: "",
         subDistrict: convertingClient.subDistrict ?? "",
         district: convertingClient.district ?? "",
         address: convertingClient.address ?? "",

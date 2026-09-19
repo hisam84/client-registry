@@ -30,10 +30,26 @@ const empty = {
   inChargeTeacher: "",
   designation: "",
   inChargeTeacherContact: "",
+  inChargeTeacher2: "",
+  inChargeTeacher2Contact: "",
   subDistrict: "",
   district: "",
   address: "",
 };
+
+function isInternalOrMigrated(key: string) {
+  return (
+    key === "isDeactivated" ||
+    key === "inChargeTeacher2" ||
+    key === "inChargeTeacher2Contact" ||
+    key === "cf_in_charge_2" ||
+    key === "in_charge_2" ||
+    key === "cf_in_charge_2_contact" ||
+    key === "in_charge_2_contact" ||
+    key === "IN CHARGE 2" ||
+    key === "IN CHARGE 2 CONTACT"
+  );
+}
 
 export function InstitutionForm({
   initial,
@@ -46,27 +62,124 @@ export function InstitutionForm({
   customFieldDefs: CustomFieldDef[];
   onClose: () => void;
   onSaved: () => void;
-  onRequestAddField: () => void;
+  onRequestAddField?: () => void;
 }) {
+  const initialInChargeTeacher2 =
+    initial?.inChargeTeacher2 ||
+    (initial?.customFields as any)?.inChargeTeacher2 ||
+    (initial?.customFields as any)?.cf_in_charge_2 ||
+    (initial?.customFields as any)?.in_charge_2 ||
+    (initial?.customFields as any)?.["IN CHARGE 2"] ||
+    "";
+
+  const initialInChargeTeacher2Contact =
+    initial?.inChargeTeacher2Contact ||
+    (initial?.customFields as any)?.inChargeTeacher2Contact ||
+    (initial?.customFields as any)?.cf_in_charge_2_contact ||
+    (initial?.customFields as any)?.in_charge_2_contact ||
+    (initial?.customFields as any)?.["IN CHARGE 2 CONTACT"] ||
+    "";
+
   const [form, setForm] = useState<any>(
     initial
       ? {
           ...empty,
           ...initial,
+          inChargeTeacher2: initialInChargeTeacher2,
+          inChargeTeacher2Contact: initialInChargeTeacher2Contact,
           issueDate: toDateInput(initial.issueDate),
           expireDate: toDateInput(initial.expireDate),
           actualExpireDate: toDateInput(initial.actualExpireDate),
         }
       : empty
   );
+
   const [customValues, setCustomValues] = useState<Record<string, string>>(
-    initial?.customFields ?? {}
+    (initial?.customFields as any) ?? {}
   );
+
+  // Only show custom fields that actually have non-empty values on THIS institution
+  const [activeKeys, setActiveKeys] = useState<string[]>(() => {
+    if (!initial?.customFields) return [];
+    return Object.keys(initial.customFields).filter((k) => {
+      if (isInternalOrMigrated(k)) return false;
+      const val = (initial.customFields as any)[k];
+      return val !== undefined && val !== null && String(val).trim() !== "";
+    });
+  });
+
+  const [localDefs, setLocalDefs] = useState<Record<string, { label: string; fieldType: string }>>({});
+  const [showAddPanel, setShowAddPanel] = useState(false);
+  const [selectedExistingKey, setSelectedExistingKey] = useState("");
+  const [newLabel, setNewLabel] = useState("");
+  const [newType, setNewType] = useState<"text" | "number" | "date">("text");
+  const [addingNewDef, setAddingNewDef] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   function set(key: string, value: string) {
     setForm((f: any) => ({ ...f, [key]: value }));
+  }
+
+  function getFieldMeta(key: string) {
+    const def = customFieldDefs.find((d) => d.key === key) || localDefs[key];
+    if (def) return { label: def.label, fieldType: def.fieldType };
+    const label = key.replace(/^cf_/, "").replace(/_/g, " ");
+    return {
+      label: label.charAt(0).toUpperCase() + label.slice(1),
+      fieldType: "text",
+    };
+  }
+
+  // Fields from global definitions not currently added to this institution
+  const availableExistingDefs = customFieldDefs.filter(
+    (d) => !isInternalOrMigrated(d.key) && !activeKeys.includes(d.key)
+  );
+
+  function handleAddExistingField() {
+    if (!selectedExistingKey) return;
+    if (!activeKeys.includes(selectedExistingKey)) {
+      setActiveKeys((prev) => [...prev, selectedExistingKey]);
+    }
+    setSelectedExistingKey("");
+    setShowAddPanel(false);
+  }
+
+  async function handleCreateAndAddField(e?: React.SyntheticEvent) {
+    if (e) e.preventDefault();
+    if (!newLabel.trim()) return;
+    setAddingNewDef(true);
+    try {
+      const res = await fetch("/api/custom-fields", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ label: newLabel.trim(), fieldType: newType }),
+      });
+      if (!res.ok) throw new Error("Could not add custom field.");
+      const created = await res.json();
+      setLocalDefs((prev) => ({
+        ...prev,
+        [created.key]: { label: created.label, fieldType: created.fieldType },
+      }));
+      if (!activeKeys.includes(created.key)) {
+        setActiveKeys((prev) => [...prev, created.key]);
+      }
+      setNewLabel("");
+      setShowAddPanel(false);
+    } catch (err: any) {
+      setError(err.message || "Failed to create custom field.");
+    } finally {
+      setAddingNewDef(false);
+    }
+  }
+
+  function handleRemoveCustomField(key: string) {
+    setActiveKeys((prev) => prev.filter((k) => k !== key));
+    setCustomValues((prev) => {
+      const copy = { ...prev };
+      delete copy[key];
+      return copy;
+    });
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -77,7 +190,20 @@ export function InstitutionForm({
     }
     setSaving(true);
     setError("");
-    const payload = { ...form, customFields: customValues };
+
+    // Build scoped customFields for this institution only
+    const cleanedCustom: Record<string, any> = {};
+    if (customValues.isDeactivated) {
+      cleanedCustom.isDeactivated = customValues.isDeactivated;
+    }
+    activeKeys.forEach((key) => {
+      const v = customValues[key];
+      if (v !== undefined && v !== null && String(v).trim() !== "") {
+        cleanedCustom[key] = String(v).trim();
+      }
+    });
+
+    const payload = { ...form, customFields: cleanedCustom };
     const isEditing = Boolean(initial && initial.id);
     const url = isEditing ? `/api/institutions/${initial!.id}` : "/api/institutions";
     const method = isEditing ? "PUT" : "POST";
@@ -246,6 +372,22 @@ export function InstitutionForm({
               onChange={(e) => set("inChargeTeacherContact", e.target.value)}
             />
           </Field>
+          <Field label="In Charge Teacher 2">
+            <input
+              className={inputClass}
+              value={form.inChargeTeacher2 ?? ""}
+              onChange={(e) => set("inChargeTeacher2", e.target.value)}
+              placeholder="e.g. In Charge Teacher Name"
+            />
+          </Field>
+          <Field label="In Charge Teacher 2 Contact">
+            <input
+              className={inputClass}
+              value={form.inChargeTeacher2Contact ?? ""}
+              onChange={(e) => set("inChargeTeacher2Contact", e.target.value)}
+              placeholder="e.g. 017XXXXXXXX"
+            />
+          </Field>
         </Section>
 
         <Section title="Location">
@@ -265,28 +407,153 @@ export function InstitutionForm({
           </Field>
         </Section>
 
-        {customFieldDefs.length > 0 && (
-          <Section title="Custom Fields">
-            {customFieldDefs.map((f) => (
-              <Field key={f.id} label={f.label}>
-                <input
-                  type={f.fieldType === "date" ? "date" : f.fieldType === "number" ? "number" : "text"}
-                  className={inputClass}
-                  value={customValues[f.key] ?? ""}
-                  onChange={(e) => setCustomValues((v) => ({ ...v, [f.key]: e.target.value }))}
-                />
-              </Field>
-            ))}
-          </Section>
-        )}
+        {/* Custom Fields - ONLY for this specific institution */}
+        <fieldset className="flex flex-col gap-4">
+          <legend className="mb-1 font-display text-sm text-brass-400">
+            Custom Fields {activeKeys.length > 0 && `(${activeKeys.length})`}
+          </legend>
 
-        <button
-          type="button"
-          onClick={onRequestAddField}
-          className="self-start text-sm text-brass-400 hover:text-brass-300 hover:underline"
-        >
-          + Add a custom field
-        </button>
+          {activeKeys.length === 0 && !showAddPanel && (
+            <p className="text-xs text-slate-500 italic">
+              No custom fields added for this institution yet.
+            </p>
+          )}
+
+          {activeKeys.length > 0 && (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {activeKeys.map((key) => {
+                const meta = getFieldMeta(key);
+                return (
+                  <div key={key} className="flex items-end gap-2">
+                    <div className="flex-1 min-w-0">
+                      <Field label={meta.label}>
+                        <input
+                          type={meta.fieldType === "date" ? "date" : meta.fieldType === "number" ? "number" : "text"}
+                          className={inputClass}
+                          value={customValues[key] ?? ""}
+                          onChange={(e) => setCustomValues((v) => ({ ...v, [key]: e.target.value }))}
+                          placeholder={`Enter ${meta.label.toLowerCase()}`}
+                        />
+                      </Field>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveCustomField(key)}
+                      title="Remove field from this institution"
+                      className="mb-1 p-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-500 hover:border-red-300 dark:hover:border-red-800/50 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors shrink-0"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Inline Add Custom Field Panel */}
+          {showAddPanel && (
+            <div className="p-4 rounded-xl border border-blue-200 dark:border-blue-900/50 bg-blue-50/40 dark:bg-blue-950/20 flex flex-col gap-4 mt-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wider">
+                  Add Custom Field to this Institution
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowAddPanel(false)}
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm font-semibold"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {availableExistingDefs.length > 0 && (
+                <div className="flex flex-col gap-2 pb-3 border-b border-blue-200/60 dark:border-blue-900/40">
+                  <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                    Select an existing custom field:
+                  </label>
+                  <div className="flex gap-2">
+                    <select
+                      className={`${inputClass} flex-1`}
+                      value={selectedExistingKey}
+                      onChange={(e) => setSelectedExistingKey(e.target.value)}
+                    >
+                      <option value="">-- Choose field --</option>
+                      {availableExistingDefs.map((d) => (
+                        <option key={d.key} value={d.key}>
+                          {d.label} ({d.fieldType})
+                        </option>
+                      ))}
+                    </select>
+                    <Button
+                      type="button"
+                      variant="primary"
+                      disabled={!selectedExistingKey}
+                      onClick={handleAddExistingField}
+                    >
+                      Add Field
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                  Or create a new custom field:
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div className="sm:col-span-2">
+                    <input
+                      className={inputClass}
+                      placeholder="Field name (e.g. Note, Contact- 2)"
+                      value={newLabel}
+                      onChange={(e) => setNewLabel(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <select
+                      className={inputClass}
+                      value={newType}
+                      onChange={(e) => setNewType(e.target.value as any)}
+                    >
+                      <option value="text">Text</option>
+                      <option value="number">Number</option>
+                      <option value="date">Date</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 mt-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setShowAddPanel(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="primary"
+                    disabled={addingNewDef || !newLabel.trim()}
+                    onClick={handleCreateAndAddField}
+                  >
+                    {addingNewDef ? "Creating..." : "Create & Add"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!showAddPanel && (
+            <button
+              type="button"
+              onClick={() => setShowAddPanel(true)}
+              className="self-start text-sm text-brass-400 hover:text-brass-300 hover:underline flex items-center gap-1 font-medium"
+            >
+              <span>+ Add a custom field</span>
+            </button>
+          )}
+        </fieldset>
 
         <div className="flex justify-end gap-2 border-t border-slate-800 pt-4">
           <Button variant="ghost" onClick={onClose}>
@@ -309,3 +576,4 @@ function Section({ title, children }: { title: string; children?: ReactNode }) {
     </fieldset>
   );
 }
+

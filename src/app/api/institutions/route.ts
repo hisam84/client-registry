@@ -27,6 +27,8 @@ export async function GET(req: NextRequest) {
         { contact2: { contains: search, mode: "insensitive" } },
         { inChargeTeacher: { contains: search, mode: "insensitive" } },
         { inChargeTeacherContact: { contains: search, mode: "insensitive" } },
+        { inChargeTeacher2: { contains: search, mode: "insensitive" } },
+        { inChargeTeacher2Contact: { contains: search, mode: "insensitive" } },
       ],
     });
   }

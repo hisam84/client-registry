@@ -9,7 +9,7 @@ const templateHeaders = [
   "issueDate", "expireDate", "actualExpireDate", "student", "condition", 
   "btclUsername", "btclPassword", "btclMobileNo", "btclEmail", "btclEmailPassword", 
   "instituteHead", "contact1", "contact2", "inChargeTeacher", "designation", 
-  "inChargeTeacherContact", "subDistrict", "district", "address"
+  "inChargeTeacherContact", "inChargeTeacher2", "inChargeTeacher2Contact", "subDistrict", "district", "address"
 ];
 
 export function BulkUpload({

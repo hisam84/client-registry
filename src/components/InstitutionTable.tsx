@@ -6,6 +6,7 @@ import {
   DETAIL_FIELD_ORDER,
   FIELD_LABELS,
   Institution,
+  isInternalOrMigratedCustomField,
   STATUS_COLOR,
   STATUS_LABEL,
 } from "@/lib/types";
@@ -22,6 +23,30 @@ function getDomainUrl(domain: string | null): string {
   const trimmed = domain.trim();
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
   return `https://${trimmed}`;
+}
+
+function getInstitutionFieldValue(inst: any, key: string) {
+  if (key === "inChargeTeacher2") {
+    return (
+      inst.inChargeTeacher2 ||
+      inst.customFields?.inChargeTeacher2 ||
+      inst.customFields?.cf_in_charge_2 ||
+      inst.customFields?.in_charge_2 ||
+      inst.customFields?.["IN CHARGE 2"] ||
+      null
+    );
+  }
+  if (key === "inChargeTeacher2Contact") {
+    return (
+      inst.inChargeTeacher2Contact ||
+      inst.customFields?.inChargeTeacher2Contact ||
+      inst.customFields?.cf_in_charge_2_contact ||
+      inst.customFields?.in_charge_2_contact ||
+      inst.customFields?.["IN CHARGE 2 CONTACT"] ||
+      null
+    );
+  }
+  return inst[key];
 }
 
 function TableTooltip({
@@ -308,12 +333,12 @@ export function InstitutionTable({
                   {/* Detailed Fields Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2.5 gap-x-4 text-xs">
                     {DETAIL_FIELD_ORDER.map((key) => {
-                      const value = (inst as any)[key];
+                      const value = getInstitutionFieldValue(inst, key);
                       if (!value) return null;
                       return (
                         <div key={key} className="min-w-0">
                           <div className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold">
-                            {FIELD_LABELS[key]}
+                            {FIELD_LABELS[key] || key}
                           </div>
                           <div className="mt-0.5 font-medium text-slate-900 dark:text-slate-100 break-words break-all text-xs">
                             {fmtMaybeDate(key, value)}
@@ -322,6 +347,7 @@ export function InstitutionTable({
                       );
                     })}
                     {customFieldDefs.map((f) => {
+                      if (isInternalOrMigratedCustomField(f.key)) return null;
                       const value = inst.customFields?.[f.key];
                       if (!value) return null;
                       return (
@@ -331,6 +357,21 @@ export function InstitutionTable({
                           </div>
                           <div className="mt-0.5 font-medium text-slate-900 dark:text-slate-100 break-words break-all text-xs">
                             {value}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {/* Render any institution-specific custom fields not in global defs */}
+                    {Object.entries(inst.customFields || {}).map(([k, val]) => {
+                      if (!val || isInternalOrMigratedCustomField(k) || customFieldDefs.some((d) => d.key === k)) return null;
+                      const label = k.replace(/^cf_/, "").replace(/_/g, " ").toUpperCase();
+                      return (
+                        <div key={k} className="min-w-0">
+                          <div className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold">
+                            {label}
+                          </div>
+                          <div className="mt-0.5 font-medium text-slate-900 dark:text-slate-100 break-words break-all text-xs">
+                            {String(val)}
                           </div>
                         </div>
                       );
@@ -499,18 +540,19 @@ export function InstitutionTable({
                         {/* Detailed Fields Grid for Desktop */}
                         <div className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
                           {DETAIL_FIELD_ORDER.map((key) => {
-                            const value = (inst as any)[key];
+                            const value = getInstitutionFieldValue(inst, key);
                             if (!value) return null;
                             return (
                               <div key={key}>
                                 <div className="text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-300 font-bold">
-                                  {FIELD_LABELS[key]}
+                                  {FIELD_LABELS[key] || key}
                                 </div>
                                 <div className="mt-0.5 font-semibold text-slate-900 dark:text-slate-100">{fmtMaybeDate(key, value)}</div>
                               </div>
                             );
                           })}
                           {customFieldDefs.map((f) => {
+                            if (isInternalOrMigratedCustomField(f.key)) return null;
                             const value = inst.customFields?.[f.key];
                             if (!value) return null;
                             return (
@@ -519,6 +561,19 @@ export function InstitutionTable({
                                   {f.label}
                                 </div>
                                 <div className="mt-0.5 font-semibold text-slate-900 dark:text-slate-100">{value}</div>
+                              </div>
+                            );
+                          })}
+                          {/* Render any institution-specific custom fields not in global defs */}
+                          {Object.entries(inst.customFields || {}).map(([k, val]) => {
+                            if (!val || isInternalOrMigratedCustomField(k) || customFieldDefs.some((d) => d.key === k)) return null;
+                            const label = k.replace(/^cf_/, "").replace(/_/g, " ").toUpperCase();
+                            return (
+                              <div key={k}>
+                                <div className="text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-300 font-bold">
+                                  {label}
+                                </div>
+                                <div className="mt-0.5 font-semibold text-slate-900 dark:text-slate-100">{String(val)}</div>
                               </div>
                             );
                           })}

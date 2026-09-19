@@ -38,6 +38,20 @@ export function exportInstitutionsToExcel(
       "In Charge Teacher": inst.inChargeTeacher || "",
       "Designation": inst.designation || "",
       "In Charge Teacher Contact": inst.inChargeTeacherContact || "",
+      "In Charge Teacher 2":
+        inst.inChargeTeacher2 ||
+        (inst.customFields as any)?.inChargeTeacher2 ||
+        (inst.customFields as any)?.cf_in_charge_2 ||
+        (inst.customFields as any)?.in_charge_2 ||
+        (inst.customFields as any)?.["IN CHARGE 2"] ||
+        "",
+      "In Charge Teacher 2 Contact":
+        inst.inChargeTeacher2Contact ||
+        (inst.customFields as any)?.inChargeTeacher2Contact ||
+        (inst.customFields as any)?.cf_in_charge_2_contact ||
+        (inst.customFields as any)?.in_charge_2_contact ||
+        (inst.customFields as any)?.["IN CHARGE 2 CONTACT"] ||
+        "",
       "Sub District": inst.subDistrict || "",
       "District": inst.district || "",
       "Address": inst.address || "",
@@ -48,9 +62,22 @@ export function exportInstitutionsToExcel(
       "BTCL E-mail Password": inst.btclEmailPassword || "",
     };
 
-    // Add custom fields
+    // Add custom fields (skip migrated internal fields)
     if (customFieldDefs && customFieldDefs.length > 0) {
       customFieldDefs.forEach((field) => {
+        if (
+          field.key === "inChargeTeacher2" ||
+          field.key === "inChargeTeacher2Contact" ||
+          field.key === "cf_in_charge_2" ||
+          field.key === "in_charge_2" ||
+          field.key === "cf_in_charge_2_contact" ||
+          field.key === "in_charge_2_contact" ||
+          field.key === "IN CHARGE 2" ||
+          field.key === "IN CHARGE 2 CONTACT" ||
+          field.key === "isDeactivated"
+        ) {
+          return;
+        }
         const val = inst.customFields?.[field.key] || "";
         rowObj[field.label] = field.fieldType === "date" ? formatDate(val) : val;
       });

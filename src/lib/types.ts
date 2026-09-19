@@ -95,6 +95,8 @@ export const FIELD_LABELS: Record<string, string> = {
   inChargeTeacher: "In Charge Teacher",
   designation: "Designation",
   inChargeTeacherContact: "In Charge Teacher Contact",
+  inChargeTeacher2: "In Charge Teacher 2",
+  inChargeTeacher2Contact: "In Charge Teacher 2 Contact",
   subDistrict: "Sub District",
   district: "District",
   address: "Address",
@@ -113,6 +115,8 @@ export const DETAIL_FIELD_ORDER = [
   "inChargeTeacher",
   "designation",
   "inChargeTeacherContact",
+  "inChargeTeacher2",
+  "inChargeTeacher2Contact",
   "subDistrict",
   "district",
   "address",
@@ -122,6 +126,20 @@ export const DETAIL_FIELD_ORDER = [
   "btclEmail",
   "btclEmailPassword",
 ];
+
+export function isInternalOrMigratedCustomField(key: string) {
+  return (
+    key === "isDeactivated" ||
+    key === "inChargeTeacher2" ||
+    key === "inChargeTeacher2Contact" ||
+    key === "cf_in_charge_2" ||
+    key === "in_charge_2" ||
+    key === "cf_in_charge_2_contact" ||
+    key === "in_charge_2_contact" ||
+    key === "IN CHARGE 2" ||
+    key === "IN CHARGE 2 CONTACT"
+  );
+}
 
 export interface CustomFieldDef {
   id: string;
@@ -153,6 +171,8 @@ export interface Institution {
   inChargeTeacher: string | null;
   designation: string | null;
   inChargeTeacherContact: string | null;
+  inChargeTeacher2: string | null;
+  inChargeTeacher2Contact: string | null;
   subDistrict: string | null;
   district: string | null;
   address: string | null;
