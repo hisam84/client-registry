@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Institution } from "@/lib/types";
 import { inputClass, Modal } from "./ui";
+import { formatDhakaDate } from "@/lib/dateUtils";
 
 interface TrashedInstitution extends Institution {
   daysRemaining: number;
@@ -289,7 +290,7 @@ export function TrashModal({
                         <div className="text-slate-500 dark:text-slate-400 text-[11px]">{item.instituteType}</div>
                       </td>
                       <td className="px-4 py-3 text-slate-600 dark:text-slate-400 font-mono">
-                        {item.deletedAt ? new Date(item.deletedAt).toLocaleDateString("en-GB") : "—"}
+                        {formatDhakaDate(item.deletedAt)}
                       </td>
                       <td className="px-4 py-3">
                         <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 whitespace-nowrap">

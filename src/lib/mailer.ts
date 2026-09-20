@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import { prisma } from "@/lib/prisma";
 import { MailServiceSettings, DEFAULT_MAIL_SETTINGS } from "@/lib/mailTypes";
+import { formatDhakaDateTime } from "@/lib/dateUtils";
 
 export { type MailServiceSettings, DEFAULT_MAIL_SETTINGS };
 
@@ -347,10 +348,7 @@ export async function sendTaskAssignmentEmail(data: TaskEmailData) {
 
   if (!assignedToEmail) return;
 
-  const formattedDate = new Date(dueDate).toLocaleString("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+  const formattedDate = formatDhakaDateTime(dueDate);
 
   const priorityColor =
     priority === "Urgent" || priority === "Argent"
@@ -533,10 +531,7 @@ export async function sendTaskDueSoonEmail(data: TaskAlertEmailData) {
     return { success: false, error: "No recipient email address provided." };
   }
 
-  const formattedDate = new Date(dueDate).toLocaleString("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+  const formattedDate = formatDhakaDateTime(dueDate);
 
   const assignedByText = assignedByName || "Administrator";
 
@@ -730,10 +725,7 @@ export async function sendTaskOverdueEmail(data: TaskAlertEmailData): Promise<{ 
     ccList.push(defaultAdmin);
   }
 
-  const formattedDate = new Date(dueDate).toLocaleString("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+  const formattedDate = formatDhakaDateTime(dueDate);
 
   const assignedByText = assignedByName || "Administrator";
   const overdueInfo = timeOverdueText || "This task has exceeded its scheduled deadline.";
@@ -910,15 +902,9 @@ export async function sendTaskCompletionEmail(data: TaskCompletionEmailData) {
 
   if (!recipientEmail) return;
 
-  const formattedDueDate = new Date(dueDate).toLocaleString("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+  const formattedDueDate = formatDhakaDateTime(dueDate);
 
-  const completionDate = new Date().toLocaleString("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+  const completionDate = formatDhakaDateTime(new Date());
 
   const html = `
 <!DOCTYPE html>

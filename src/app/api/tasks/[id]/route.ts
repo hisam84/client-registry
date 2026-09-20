@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendTaskAssignmentEmail, sendTaskCompletionEmail } from "@/lib/mailer";
+import { parseDhakaDateTimeInput } from "@/lib/dateUtils";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -70,7 +71,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     const data: any = {};
     if (title !== undefined) data.title = title.trim();
     if (description !== undefined) data.description = description ? description.trim() : null;
-    if (dueDate !== undefined) data.dueDate = new Date(dueDate);
+    if (dueDate !== undefined) data.dueDate = parseDhakaDateTimeInput(dueDate);
     if (status !== undefined) data.status = status;
     if (priority !== undefined) data.priority = priority === "Argent" ? "Urgent" : priority;
     if (completionNote !== undefined) data.completionNote = completionNote ? completionNote.trim() : null;

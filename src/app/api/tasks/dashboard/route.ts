@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getDhakaStartOfDay, getDhakaEndOfDay, formatDhakaDate } from "@/lib/dateUtils";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -12,8 +13,8 @@ export async function GET(req: NextRequest) {
     const taskCategory = params.get("taskCategory");
 
     const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    const startOfToday = getDhakaStartOfDay(now);
+    const endOfToday = getDhakaEndOfDay(now);
 
     const where: any = { deletedAt: null };
 
@@ -85,19 +86,19 @@ export async function GET(req: NextRequest) {
       (t) => new Date(t.dueDate) >= now && !isTerminal(t.status)
     ).length;
 
-    // Daily breakdown for the next 7 days
+    // Daily breakdown for the next 7 days (Dhaka timezone)
     const next7Days = Array.from({ length: 7 }, (_, i) => {
-      const dayDate = new Date(startOfToday);
-      dayDate.setDate(dayDate.getDate() + i);
-      const dayEnd = new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate(), 23, 59, 59, 999);
+      const dayDate = new Date(startOfToday.getTime() + i * 24 * 60 * 60 * 1000);
+      const dayStart = getDhakaStartOfDay(dayDate);
+      const dayEnd = getDhakaEndOfDay(dayDate);
 
       const count = allTasks.filter((t) => {
         const d = new Date(t.dueDate);
-        return d >= dayDate && d <= dayEnd;
+        return d >= dayStart && d <= dayEnd;
       }).length;
 
-      const dayLabel = dayDate.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-      return { label: dayLabel, count, date: dayDate.toISOString() };
+      const dayLabel = formatDhakaDate(dayDate, { weekday: "short", month: "short", day: "numeric" }, "en-US");
+      return { label: dayLabel, count, date: dayStart.toISOString() };
     });
 
     // Priority breakdown

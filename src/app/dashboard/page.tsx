@@ -7,6 +7,7 @@ import { TaskCompletionModal } from "@/components/tasks/TaskCompletionModal";
 import { Button } from "@/components/ui";
 import { useUserSession } from "@/lib/userSession";
 import { ROLE_OPTIONS } from "@/lib/types";
+import { formatDhakaDate } from "@/lib/dateUtils";
 
 interface DashboardData {
   institutions: {
@@ -658,7 +659,7 @@ export default function DashboardPage() {
               ) : (
                 <div className="space-y-2.5">
                   {inst?.expiringSoonList.map((item) => {
-                    const expDate = new Date(item.expireDate).toLocaleDateString("en-GB", {
+                    const expDate = formatDhakaDate(item.expireDate, {
                       day: "2-digit",
                       month: "short",
                       year: "numeric",
@@ -716,7 +717,7 @@ export default function DashboardPage() {
                 <div className="space-y-2.5">
                   {tsk?.upcomingList.map((task) => {
                     const due = new Date(task.dueDate);
-                    const formattedDue = due.toLocaleDateString("en-GB", {
+                    const formattedDue = formatDhakaDate(due, {
                       month: "short",
                       day: "numeric",
                       hour: "2-digit",

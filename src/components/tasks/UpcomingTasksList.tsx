@@ -5,6 +5,12 @@ import { useUserSession } from "@/lib/userSession";
 import { StatusNoteModal } from "./StatusNoteModal";
 import { RescheduleModal } from "./RescheduleModal";
 import { TaskCompletionModal } from "./TaskCompletionModal";
+import {
+  formatDhakaDate,
+  formatDhakaTime,
+  getDhakaDayDiff,
+  getDhakaMonthKeyAndLabel,
+} from "@/lib/dateUtils";
 
 interface UpcomingTasksListProps {
   tasks: TaskItem[];
@@ -71,18 +77,14 @@ export function UpcomingTasksList({
     const due = new Date(dueDateStr);
     const now = new Date();
 
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const dueDayStart = new Date(due.getFullYear(), due.getMonth(), due.getDate());
-
-    const diffTime = dueDayStart.getTime() - todayStart.getTime();
-    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-    const timeStr = due.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const diffDays = getDhakaDayDiff(due, now);
+    const timeStr = formatDhakaTime(due, { hour: "2-digit", minute: "2-digit" });
 
     if (diffDays < 0) {
       const absDays = Math.abs(diffDays);
       return (
         <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30 whitespace-nowrap">
-          Overdue by {absDays}d ({due.toLocaleDateString([], { month: "short", day: "numeric" })})
+          Overdue by {absDays}d ({formatDhakaDate(due, { month: "short", day: "numeric" })})
         </span>
       );
     }
@@ -113,7 +115,7 @@ export function UpcomingTasksList({
 
     return (
       <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 whitespace-nowrap">
-        In {diffDays} days ({due.toLocaleDateString([], { month: "short", day: "numeric" })})
+        In {diffDays} days ({formatDhakaDate(due, { month: "short", day: "numeric" })})
       </span>
     );
   }
@@ -121,7 +123,7 @@ export function UpcomingTasksList({
   // Group tasks by Month
   const monthGroups = useMemo(() => {
     const now = new Date();
-    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const currentMonthKey = getDhakaMonthKeyAndLabel(now).key;
 
     const groupsMap = new Map<
       string,
@@ -145,11 +147,9 @@ export function UpcomingTasksList({
       let label = "Undated Tasks";
 
       if (task.dueDate) {
-        const d = new Date(task.dueDate);
-        if (!isNaN(d.getTime())) {
-          monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-          label = d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
-        }
+        const { key, label: mLabel } = getDhakaMonthKeyAndLabel(task.dueDate);
+        monthKey = key;
+        label = mLabel;
       }
 
       if (!groupsMap.has(monthKey)) {

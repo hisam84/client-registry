@@ -1,3 +1,5 @@
+import { getDhakaDayDiff, getDhakaEndOfDay } from "./dateUtils";
+
 export const CATEGORY_OPTIONS = ["Website", "Software"] as const;
 
 export const INSTITUTE_TYPE_OPTIONS = [
@@ -50,15 +52,14 @@ export function computeStatus(
 
   const now = new Date();
   if (actExpDate) {
-    const actExp = new Date(actExpDate);
+    const actExp = getDhakaEndOfDay(actExpDate);
     if (actExp.getTime() < now.getTime()) {
       return "actual_expired";
     }
   }
 
   if (!expireDate) return "unknown";
-  const exp = new Date(expireDate);
-  const diffDays = Math.ceil((exp.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  const diffDays = getDhakaDayDiff(expireDate, now);
   if (diffDays < 0) return "expired";
   if (diffDays <= threshold) return "expiring_soon";
   return "active";

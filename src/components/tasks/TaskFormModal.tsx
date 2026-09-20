@@ -4,6 +4,7 @@ import { CustomInstituteSelect } from "@/components/CustomInstituteSelect";
 import { Employee, Institution, TaskItem, TaskPriority, TaskStatus } from "@/lib/types";
 import { Button, Input, Modal } from "@/components/ui";
 import { useUserSession } from "@/lib/userSession";
+import { formatToDhakaDateTimeInput, parseDhakaDateTimeInput } from "@/lib/dateUtils";
 
 interface TaskFormModalProps {
   initialTask?: TaskItem | null;
@@ -13,17 +14,7 @@ interface TaskFormModalProps {
   onSaved: () => void;
 }
 
-function formatToLocalDateTimeInput(dateStr?: string | Date | null): string {
-  const d = dateStr ? new Date(dateStr) : new Date(Date.now() + 24 * 60 * 60 * 1000);
-  if (isNaN(d.getTime())) return "";
-  const pad = (n: number) => n.toString().padStart(2, "0");
-  const year = d.getFullYear();
-  const month = pad(d.getMonth() + 1);
-  const day = pad(d.getDate());
-  const hours = pad(d.getHours());
-  const minutes = pad(d.getMinutes());
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-}
+
 
 export function TaskFormModal({
   initialTask,
@@ -36,8 +27,8 @@ export function TaskFormModal({
   const [title, setTitle] = useState(initialTask?.title || "");
   const [description, setDescription] = useState(initialTask?.description || "");
   
-  // Format datetime-local string in browser's local timezone (YYYY-MM-DDTHH:mm)
-  const defaultDueDate = formatToLocalDateTimeInput(initialTask?.dueDate);
+  // Format datetime-local string in Asia/Dhaka timezone (YYYY-MM-DDTHH:mm)
+  const defaultDueDate = formatToDhakaDateTimeInput(initialTask?.dueDate);
   const [dueDate, setDueDate] = useState(defaultDueDate);
 
   const normalizedInitialStatus: TaskStatus = initialTask?.status
@@ -108,7 +99,7 @@ export function TaskFormModal({
       const payload = {
         title: title.trim(),
         description: description.trim() || null,
-        dueDate: new Date(dueDate).toISOString(),
+        dueDate: parseDhakaDateTimeInput(dueDate).toISOString(),
         status,
         priority,
         completionNote: completionNote.trim() || null,

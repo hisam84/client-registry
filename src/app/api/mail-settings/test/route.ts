@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/mailer";
+import { formatDhakaDateTime } from "@/lib/dateUtils";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
       <div style="background-color: #f1f5f9; border-left: 4px solid #2196F3; padding: 12px 16px; border-radius: 4px; font-size: 13px; color: #1e293b; margin-bottom: 20px;">
         <div><strong>Status:</strong> Connected & Operational</div>
         <div><strong>Provider:</strong> Brevo (Sendinblue)</div>
-        <div><strong>Timestamp:</strong> ${new Date().toLocaleString()}</div>
+        <div><strong>Timestamp:</strong> ${formatDhakaDateTime(new Date())} (BST / Dhaka)</div>
       </div>
       <p style="font-size: 12px; color: #64748b; margin: 0;">
         Your Brevo mailing configuration is active and ready to deliver task alerts, reminders, and verification codes.

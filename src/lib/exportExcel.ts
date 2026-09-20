@@ -1,15 +1,10 @@
 import * as XLSX from "xlsx";
 import { computeStatus, CustomFieldDef, Institution, STATUS_LABEL } from "./types";
+import { formatDhakaDate } from "./dateUtils";
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return "";
-  try {
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return dateStr;
-    return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
-  } catch {
-    return dateStr;
-  }
+  return formatDhakaDate(dateStr, { day: "2-digit", month: "short", year: "numeric" });
 }
 
 export function exportInstitutionsToExcel(

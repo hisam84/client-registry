@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendTaskAssignmentEmail } from "@/lib/mailer";
+import { parseDhakaDateTimeInput } from "@/lib/dateUtils";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -239,7 +240,7 @@ export async function POST(req: NextRequest) {
       data: {
         title: title.trim(),
         description: description?.trim() || null,
-        dueDate: new Date(dueDate),
+        dueDate: parseDhakaDateTimeInput(dueDate),
         status: taskStatus,
         priority: priority === "Argent" ? "Urgent" : (priority || "Medium"),
         completionNote: completionNote?.trim() || null,

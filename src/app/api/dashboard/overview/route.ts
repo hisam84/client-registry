@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getDhakaStartOfDay, getDhakaEndOfDay } from "@/lib/dateUtils";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -153,8 +154,8 @@ export async function GET() {
     const targetedArchived = targetedClients.filter((c) => c.isArchived).length;
 
     // 3. Fetch Tasks safely
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    const startOfToday = getDhakaStartOfDay(now);
+    const endOfToday = getDhakaEndOfDay(now);
 
     let tasks: any[] = [];
     try {

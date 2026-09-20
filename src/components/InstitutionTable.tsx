@@ -12,10 +12,10 @@ import {
 } from "@/lib/types";
 import { Badge, Button } from "./ui";
 import { CustomFieldDef } from "@/lib/types";
+import { formatDhakaDate } from "@/lib/dateUtils";
 
 function fmtDate(v: string | null) {
-  if (!v) return "—";
-  return new Date(v).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  return formatDhakaDate(v, { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function getDomainUrl(domain: string | null): string {

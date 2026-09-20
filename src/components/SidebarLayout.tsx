@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useUserSession, clearStoredUser } from "@/lib/userSession";
+import { formatDhakaDate, formatDhakaTime } from "@/lib/dateUtils";
 
 interface SidebarLayoutProps {
   children: ReactNode;
@@ -369,8 +370,8 @@ export function SidebarLayout({
                               }`}
                             >
                               {isOverdue ? "Deadline was: " : "Due: "}
-                              {due.toLocaleDateString([], { month: "short", day: "numeric" })},{" "}
-                              {due.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                              {formatDhakaDate(due, { month: "short", day: "numeric" })},{" "}
+                              {formatDhakaTime(due, { hour: "2-digit", minute: "2-digit" })}
                             </span>
                           </div>
 
@@ -794,8 +795,8 @@ export function SidebarLayout({
                                   }`}
                                 >
                                   {isOverdue ? "Deadline was: " : "Due: "}
-                                  {due.toLocaleDateString([], { month: "short", day: "numeric" })},{" "}
-                                  {due.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                  {formatDhakaDate(due, { month: "short", day: "numeric" })},{" "}
+                                  {formatDhakaTime(due, { hour: "2-digit", minute: "2-digit" })}
                                 </span>
                               </div>
 

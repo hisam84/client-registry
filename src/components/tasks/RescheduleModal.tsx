@@ -2,6 +2,11 @@
 import React, { useState } from "react";
 import { TaskItem } from "@/lib/types";
 import { Button, Modal } from "@/components/ui";
+import {
+  formatDhakaDate,
+  formatToDhakaDateTimeInput,
+  parseDhakaDateTimeInput,
+} from "@/lib/dateUtils";
 
 interface RescheduleModalProps {
   task: TaskItem;
@@ -9,30 +14,20 @@ interface RescheduleModalProps {
   onSaved: () => void;
 }
 
-function formatToLocalDateTimeInput(dateStr?: string | Date | null): string {
-  const d = dateStr ? new Date(dateStr) : new Date(Date.now() + 24 * 60 * 60 * 1000);
-  if (isNaN(d.getTime())) return "";
-  const pad = (n: number) => n.toString().padStart(2, "0");
-  const year = d.getFullYear();
-  const month = pad(d.getMonth() + 1);
-  const day = pad(d.getDate());
-  const hours = pad(d.getHours());
-  const minutes = pad(d.getMinutes());
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-}
+
 
 export function RescheduleModal({ task, onClose, onSaved }: RescheduleModalProps) {
   const [dueDate, setDueDate] = useState<string>(
-    formatToLocalDateTimeInput(task.dueDate)
+    formatToDhakaDateTimeInput(task.dueDate)
   );
   const [reason, setReason] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   function addDays(days: number) {
-    const current = dueDate ? new Date(dueDate) : new Date();
+    const current = dueDate ? parseDhakaDateTimeInput(dueDate) : new Date();
     const target = new Date(current.getTime() + days * 24 * 60 * 60 * 1000);
-    setDueDate(formatToLocalDateTimeInput(target));
+    setDueDate(formatToDhakaDateTimeInput(target));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -49,7 +44,7 @@ export function RescheduleModal({ task, onClose, onSaved }: RescheduleModalProps
       // Append reschedule reason to existing completionNote if provided
       let updatedNote = task.completionNote || "";
       if (reason.trim()) {
-        const timeBadge = new Date().toLocaleDateString([], { month: "short", day: "numeric" });
+        const timeBadge = formatDhakaDate(new Date(), { month: "short", day: "numeric" });
         const entry = `[Rescheduled on ${timeBadge}]: ${reason.trim()}`;
         updatedNote = updatedNote ? `${updatedNote}\n${entry}` : entry;
       }
@@ -58,7 +53,7 @@ export function RescheduleModal({ task, onClose, onSaved }: RescheduleModalProps
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          dueDate: new Date(dueDate).toISOString(),
+          dueDate: parseDhakaDateTimeInput(dueDate).toISOString(),
           completionNote: updatedNote || null,
           status: task.status === "Completed" ? "To Do" : task.status,
         }),

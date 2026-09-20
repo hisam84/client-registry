@@ -2,27 +2,30 @@
 
 import { useState } from "react";
 import { exportInstitutionsToExcel } from "@/lib/exportExcel";
+import { getDhakaDateString } from "@/lib/dateUtils";
 import { CustomFieldDef, Institution } from "@/lib/types";
 import { Button, Modal } from "./ui";
+
+interface ExportModalProps {
+  filteredInstitutions: Institution[];
+  allInstitutions: Institution[];
+  customFieldDefs: CustomFieldDef[];
+  onClose: () => void;
+}
 
 export function ExportModal({
   filteredInstitutions,
   allInstitutions,
   customFieldDefs,
   onClose,
-}: {
-  filteredInstitutions: Institution[];
-  allInstitutions: Institution[];
-  customFieldDefs: CustomFieldDef[];
-  onClose: () => void;
-}) {
+}: ExportModalProps) {
   const [exporting, setExporting] = useState(false);
 
   const handleExport = (type: "filtered" | "all") => {
     setExporting(true);
     try {
       const dataToExport = type === "filtered" ? filteredInstitutions : allInstitutions;
-      const today = new Date().toISOString().split("T")[0];
+      const today = getDhakaDateString();
       const filename =
         type === "filtered"
           ? `Client_Registry_Filtered_${today}`

@@ -7,6 +7,7 @@ import { UpcomingTasksList } from "@/components/tasks/UpcomingTasksList";
 import { Employee, TaskItem, TaskPriority, TaskStatus } from "@/lib/types";
 import { Button, Input } from "@/components/ui";
 import { useUserSession } from "@/lib/userSession";
+import { getDhakaMonthKeyAndLabel } from "@/lib/dateUtils";
 
 type MainTab = "my_tasks" | "all_tasks";
 type TaskCategoryTab = "all" | "my_tasks" | "self" | "assigned_by_others" | "assigned_to_others" | "unassigned";
@@ -152,15 +153,13 @@ export default function TasksPage() {
     }
   }
 
-  // Derive all unique months present in tasks
+  // Derive all unique months present in tasks (Dhaka timezone)
   const availableMonths = useMemo(() => {
     const map = new Map<string, { key: string; label: string; count: number }>();
     tasks.forEach((t) => {
       if (!t.dueDate) return;
-      const d = new Date(t.dueDate);
-      if (isNaN(d.getTime())) return;
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      const label = d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+      const { key, label } = getDhakaMonthKeyAndLabel(t.dueDate);
+      if (key === "undated") return;
       const existing = map.get(key);
       if (existing) {
         existing.count += 1;
@@ -177,9 +176,7 @@ export default function TasksPage() {
     if (selectedMonthFilter === "all") return tasks;
     return tasks.filter((t) => {
       if (!t.dueDate) return selectedMonthFilter === "undated";
-      const d = new Date(t.dueDate);
-      if (isNaN(d.getTime())) return selectedMonthFilter === "undated";
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      const { key } = getDhakaMonthKeyAndLabel(t.dueDate);
       return key === selectedMonthFilter;
     });
   }, [tasks, selectedMonthFilter]);
