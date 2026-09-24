@@ -4,10 +4,8 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  // Vercel's Neon integration (Storage/Marketplace tab) auto-injects these
-  // two env vars when you connect a database to your Vercel project.
   url       = env("DATABASE_URL")
-  directUrl = env("DATABASE_URL_UNPOOLED")
+  directUrl = env("DATABASE_URL")
 }
 
 model Institution {
@@ -153,6 +151,75 @@ model Task {
   @@index([institutionId])
   @@index([assignedToId])
   @@index([assignedById])
+  @@index([deletedAt])
+}
+
+model Software {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  code         String?
+  category     String?  // Desktop App | Web App | SaaS | Mobile App
+  description  String?
+  defaultPrice Float?
+  status       String   @default("Active") // Active | Inactive
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  subscriptions CompanySubscription[]
+
+  @@index([deletedAt])
+  @@index([status])
+}
+
+model Company {
+  id                String   @id @default(cuid())
+  companyName       String
+  companyNameBangla String?
+  contactPerson     String?
+  designation       String?
+  phone             String?
+  email             String?
+  address           String?
+  district          String?
+  subDistrict       String?
+  website           String?
+  notes             String?
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+
+  subscriptions     CompanySubscription[]
+
+  @@index([deletedAt])
+  @@index([district])
+}
+
+model CompanySubscription {
+  id               String    @id @default(cuid())
+  companyId        String
+  company          Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  softwareId       String
+  software         Software  @relation(fields: [softwareId], references: [id], onDelete: Cascade)
+
+  billingCycle     String    @default("Yearly") // Monthly | Half-Yearly | Yearly | One-Time | Lifetime
+  price            Float?
+  status           String    @default("Active") // Active | Expiring Soon | Expired | Deactivated | Cancelled
+
+  startDate        DateTime?
+  expireDate       DateTime?
+  actualExpireDate DateTime?
+  notes            String?
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  @@index([companyId])
+  @@index([softwareId])
+  @@index([expireDate])
   @@index([deletedAt])
 }
 

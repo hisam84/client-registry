@@ -42,6 +42,7 @@ export function HeaderNav({ onAddTaskClick, title, subtitle, totalCountText }: H
   }
 
   const isInstitutions = pathname === "/";
+  const isCompanies = pathname.startsWith("/companies");
   const isTargeted = pathname.startsWith("/targeted-clients");
   const isTasks = pathname.startsWith("/tasks");
   const isEmployees = pathname.startsWith("/employees");
@@ -78,6 +79,19 @@ export function HeaderNav({ onAddTaskClick, title, subtitle, totalCountText }: H
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0V5" />
             </svg>
             <span>Institutions</span>
+          </Link>
+          <Link
+            href="/companies"
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+              isCompanies
+                ? "bg-brass-500/15 text-brass-600 dark:text-brass-400 border border-brass-500/30"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <span>Company Ledger</span>
           </Link>
           <Link
             href="/targeted-clients"

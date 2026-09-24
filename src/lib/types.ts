@@ -320,3 +320,88 @@ export interface TaskItem {
   updatedAt: string;
   deletedAt: string | null;
 }
+
+export const SOFTWARE_CATEGORY_OPTIONS = [
+  "Desktop App",
+  "Web App",
+  "SaaS",
+  "Mobile App",
+  "Other",
+] as const;
+
+export const BILLING_CYCLE_OPTIONS = [
+  "Monthly",
+  "Half-Yearly",
+  "Yearly",
+  "One-Time",
+  "Lifetime",
+] as const;
+
+export const SUBSCRIPTION_STATUS_OPTIONS = [
+  "Active",
+  "Expiring Soon",
+  "Expired",
+  "Deactivated",
+  "Cancelled",
+] as const;
+
+export const SUBSCRIPTION_STATUS_COLOR: Record<string, string> = {
+  Active: "bg-moss-500/15 text-moss-400 border-moss-500/30",
+  "Expiring Soon": "bg-amberflag-500/15 text-amberflag-500 border-amberflag-500/30",
+  Expired: "bg-rust-500/15 text-rust-400 border-rust-500/30",
+  Deactivated: "bg-slate-500/15 text-slate-400 border-slate-400/30",
+  Cancelled: "bg-slate-700/40 text-slate-400 border-slate-600/40",
+};
+
+export interface Software {
+  id: string;
+  name: string;
+  code?: string | null;
+  category?: string | null;
+  description?: string | null;
+  defaultPrice?: number | null;
+  status: "Active" | "Inactive";
+  createdAt?: string;
+  updatedAt?: string;
+  deletedAt?: string | null;
+  _count?: {
+    subscriptions: number;
+  };
+}
+
+export interface CompanySubscription {
+  id: string;
+  companyId: string;
+  softwareId: string;
+  software?: Software;
+  billingCycle: string;
+  price?: number | null;
+  status: string;
+  startDate?: string | null;
+  expireDate?: string | null;
+  actualExpireDate?: string | null;
+  notes?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  deletedAt?: string | null;
+}
+
+export interface Company {
+  id: string;
+  companyName: string;
+  companyNameBangla?: string | null;
+  contactPerson?: string | null;
+  designation?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  district?: string | null;
+  subDistrict?: string | null;
+  website?: string | null;
+  notes?: string | null;
+  subscriptions?: CompanySubscription[];
+  createdAt?: string;
+  updatedAt?: string;
+  deletedAt?: string | null;
+}
+
