@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { ensureCompanyTables } from "@/lib/ensureCompanyTables";
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   try {
+    await ensureCompanyTables();
+
     const body = await req.json();
     const {
       softwareId,

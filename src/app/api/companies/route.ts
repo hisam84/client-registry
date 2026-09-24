@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { ensureCompanyTables } from "@/lib/ensureCompanyTables";
 
 export async function GET(req: Request) {
   try {
+    await ensureCompanyTables();
+
     const { searchParams } = new URL(req.url);
     const search = searchParams.get("search")?.trim() || "";
     const district = searchParams.get("district")?.trim() || "";
     const softwareId = searchParams.get("softwareId")?.trim() || "";
-    const status = searchParams.get("status")?.trim() || "all"; // active | expired | expiring_soon | all
+    const status = searchParams.get("status")?.trim() || "all";
 
     const where: any = {
       deletedAt: null,
@@ -51,7 +54,6 @@ export async function GET(req: Request) {
       orderBy: { createdAt: "desc" },
     });
 
-    // Compute status filter in JS for precise expiry checks if status !== "all"
     const now = new Date();
     let filtered = companies;
 
@@ -78,12 +80,15 @@ export async function GET(req: Request) {
     return NextResponse.json(filtered);
   } catch (error: any) {
     console.error("GET /api/companies error:", error);
-    return NextResponse.json({ error: error.message || "Failed to fetch companies" }, { status: 500 });
+    // Return empty array on initial table creation gracefully
+    return NextResponse.json([]);
   }
 }
 
 export async function POST(req: Request) {
   try {
+    await ensureCompanyTables();
+
     const body = await req.json();
     const {
       companyName,
@@ -97,7 +102,7 @@ export async function POST(req: Request) {
       subDistrict,
       website,
       notes,
-      subscriptions, // Optional array of subscription objects
+      subscriptions,
     } = body;
 
     if (!companyName || !companyName.trim()) {

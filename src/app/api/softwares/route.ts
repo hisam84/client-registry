@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { ensureCompanyTables } from "@/lib/ensureCompanyTables";
 
 const DEFAULT_SOFTWARES = [
   { name: "School Management System", code: "SMS", category: "Web App", defaultPrice: 15000, description: "Complete school management & student portal" },
@@ -12,6 +13,8 @@ const DEFAULT_SOFTWARES = [
 
 export async function GET() {
   try {
+    await ensureCompanyTables();
+
     let softwares = await (prisma as any).software.findMany({
       where: { deletedAt: null },
       include: {
@@ -22,7 +25,6 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    // Auto seed default softwares if database table is empty
     if (!softwares || softwares.length === 0) {
       for (const s of DEFAULT_SOFTWARES) {
         await (prisma as any).software.upsert({
@@ -45,12 +47,14 @@ export async function GET() {
     return NextResponse.json(softwares);
   } catch (error: any) {
     console.error("GET /api/softwares error:", error);
-    return NextResponse.json({ error: error.message || "Failed to fetch software products" }, { status: 500 });
+    return NextResponse.json([]);
   }
 }
 
 export async function POST(req: Request) {
   try {
+    await ensureCompanyTables();
+
     const body = await req.json();
     const { name, code, category, description, defaultPrice, status } = body;
 

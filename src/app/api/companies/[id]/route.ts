@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { ensureCompanyTables } from "@/lib/ensureCompanyTables";
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
+    await ensureCompanyTables();
+
     const company = await (prisma as any).company.findUnique({
       where: { id: params.id },
       include: {
@@ -29,6 +32,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   try {
+    await ensureCompanyTables();
+
     const body = await req.json();
     const {
       companyName,
@@ -86,6 +91,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   try {
+    await ensureCompanyTables();
+
     const existing = await (prisma as any).company.findUnique({
       where: { id: params.id },
     });
