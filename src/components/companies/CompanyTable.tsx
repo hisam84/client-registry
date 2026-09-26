@@ -130,7 +130,8 @@ export function CompanyTable({
                       {subscriptions.map((sub) => {
                         const swName = sub.software?.name || "Software";
                         const swCode = sub.software?.code;
-                        const statusColor = SUBSCRIPTION_STATUS_COLOR[sub.status] || SUBSCRIPTION_STATUS_COLOR["Active"];
+                        const displayStatus = sub.effectiveStatus || sub.status;
+                        const statusColor = SUBSCRIPTION_STATUS_COLOR[displayStatus] || SUBSCRIPTION_STATUS_COLOR["Active"];
 
                         const expireDateObj = sub.expireDate ? new Date(sub.expireDate) : null;
                         const formattedExpire = expireDateObj ? formatDhakaDate(expireDateObj, { year: "numeric", month: "short", day: "numeric" }) : "No Expiry";
@@ -151,7 +152,7 @@ export function CompanyTable({
                                   </span>
                                 )}
                                 <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold border ${statusColor}`}>
-                                  {sub.status}
+                                  {displayStatus}
                                 </span>
                               </div>
 

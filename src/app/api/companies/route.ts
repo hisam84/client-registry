@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ensureCompanyTables } from "@/lib/ensureCompanyTables";
+import {
+  getSubscriptionExpirySettings,
+  computeEffectiveSubscriptionStatus,
+} from "@/lib/subscriptionSettings";
 
 export async function GET(req: Request) {
   try {
@@ -54,7 +58,16 @@ export async function GET(req: Request) {
       orderBy: { createdAt: "desc" },
     });
 
+    const expirySettings = await getSubscriptionExpirySettings();
     const now = new Date();
+
+    // Attach effectiveStatus to all subscriptions for consistent UI rendering
+    companies.forEach((comp: any) => {
+      (comp.subscriptions || []).forEach((sub: any) => {
+        sub.effectiveStatus = computeEffectiveSubscriptionStatus(sub, expirySettings, now);
+      });
+    });
+
     let filtered = companies;
 
     if (status && status !== "all") {
@@ -63,15 +76,11 @@ export async function GET(req: Request) {
         if (subs.length === 0) return status === "no_subscription";
 
         return subs.some((sub: any) => {
-          if (!sub.expireDate) return status === "active";
-          const exp = new Date(sub.expireDate);
-          const diffMs = exp.getTime() - now.getTime();
-          const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-
-          if (status === "active") return diffDays > 60 && sub.status !== "Deactivated" && sub.status !== "Cancelled";
-          if (status === "expiring_soon") return diffDays >= 0 && diffDays <= 60 && sub.status !== "Deactivated" && sub.status !== "Cancelled";
-          if (status === "expired") return diffDays < 0 && sub.status !== "Deactivated" && sub.status !== "Cancelled";
-          if (status === "deactivated") return sub.status === "Deactivated" || sub.status === "Cancelled";
+          const eff = sub.effectiveStatus || computeEffectiveSubscriptionStatus(sub, expirySettings, now);
+          if (status === "active") return eff === "Active";
+          if (status === "expiring_soon") return eff === "Expiring Soon";
+          if (status === "expired") return eff === "Expired";
+          if (status === "deactivated") return eff === "Deactivated" || eff === "Cancelled";
           return true;
         });
       });

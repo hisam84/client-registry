@@ -377,6 +377,7 @@ export interface CompanySubscription {
   billingCycle: string;
   price?: number | null;
   status: string;
+  effectiveStatus?: string;
   startDate?: string | null;
   expireDate?: string | null;
   actualExpireDate?: string | null;

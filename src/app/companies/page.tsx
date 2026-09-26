@@ -7,7 +7,12 @@ import { CompanyTable } from "@/components/companies/CompanyTable";
 import { CompanyFormModal } from "@/components/companies/CompanyFormModal";
 import { SubscriptionModal } from "@/components/companies/SubscriptionModal";
 import { SoftwareManagementModal } from "@/components/companies/SoftwareManagementModal";
+import { SubscriptionSettingsModal } from "@/components/companies/SubscriptionSettingsModal";
 import { TaskFormModal } from "@/components/tasks/TaskFormModal";
+import {
+  SubscriptionExpirySettings,
+  getExpiryThresholdForCycle,
+} from "@/lib/subscriptionSettings";
 
 const initialFilters: CompanyFilters = {
   search: "",
@@ -33,9 +38,23 @@ export default function CompanyLedgerPage() {
   const [editingSubscription, setEditingSubscription] = useState<CompanySubscription | null>(null);
 
   const [showSoftwareCatalog, setShowSoftwareCatalog] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [expirySettings, setExpirySettings] = useState<SubscriptionExpirySettings | null>(null);
 
   // Task modal
   const [showTaskModal, setShowTaskModal] = useState(false);
+
+  async function loadExpirySettings() {
+    try {
+      const res = await fetch("/api/subscription-settings");
+      const data = await res.json();
+      if (res.ok && data.success && data.settings) {
+        setExpirySettings(data.settings);
+      }
+    } catch (err) {
+      console.error("Failed to load subscription expiry settings:", err);
+    }
+  }
 
   async function loadSoftwares() {
     try {
@@ -88,6 +107,7 @@ export default function CompanyLedgerPage() {
   }
 
   useEffect(() => {
+    loadExpirySettings();
     loadSoftwares();
     loadAllCompanies();
   }, []);
@@ -104,6 +124,7 @@ export default function CompanyLedgerPage() {
     setShowSubscriptionModal(false);
     setSubTargetCompany(null);
     setEditingSubscription(null);
+    loadExpirySettings();
     loadSoftwares();
     loadAllCompanies();
     loadFilteredCompanies();
@@ -114,7 +135,7 @@ export default function CompanyLedgerPage() {
     [allCompanies]
   );
 
-  // Compute metrics
+  // Compute metrics using dynamic expiry threshold based on billing cycle
   const totalCompaniesCount = allCompanies.length;
   let activeSubsCount = 0;
   let expiringSoonCount = 0;
@@ -122,12 +143,16 @@ export default function CompanyLedgerPage() {
   const now = new Date();
   allCompanies.forEach((c) => {
     (c.subscriptions || []).forEach((sub) => {
-      if (sub.status === "Active") {
+      const isDeactivated = sub.status === "Deactivated" || sub.status === "Cancelled";
+      if (!isDeactivated) {
         activeSubsCount++;
         if (sub.expireDate) {
           const exp = new Date(sub.expireDate);
           const diffDays = Math.ceil((exp.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-          if (diffDays >= 0 && diffDays <= 60) {
+          const threshold = expirySettings
+            ? getExpiryThresholdForCycle(sub.billingCycle, expirySettings)
+            : 30;
+          if (diffDays >= 0 && diffDays <= threshold) {
             expiringSoonCount++;
           }
         }
@@ -169,6 +194,15 @@ export default function CompanyLedgerPage() {
   const headerActions = (
     <>
       <button
+        onClick={() => setShowSettingsModal(true)}
+        className="px-3 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 font-semibold text-xs rounded-xl transition-all border border-amber-500/30 flex items-center gap-1.5"
+        title="সেটিংস: মাসিক, হাফ ইয়ারলি ও ইয়ারলি Expiring Soon কত দিনে দেখাবে"
+      >
+        <span>⏱️</span>
+        <span>Expiry Settings</span>
+      </button>
+
+      <button
         onClick={() => setShowSoftwareCatalog(true)}
         className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold text-xs rounded-xl transition-all border border-slate-200/80 dark:border-slate-800 flex items-center gap-1.5"
       >
@@ -203,6 +237,7 @@ export default function CompanyLedgerPage() {
           onReset={() => setFilters(initialFilters)}
           softwares={softwares}
           districts={districts}
+          expirySettings={expirySettings}
         />
       </div>
 
@@ -285,6 +320,16 @@ export default function CompanyLedgerPage() {
         <TaskFormModal
           onClose={() => setShowTaskModal(false)}
           onSaved={() => setShowTaskModal(false)}
+        />
+      )}
+
+      {showSettingsModal && (
+        <SubscriptionSettingsModal
+          onClose={() => setShowSettingsModal(false)}
+          onSaved={(newSettings) => {
+            setExpirySettings(newSettings);
+            refreshData();
+          }}
         />
       )}
     </SidebarLayout>

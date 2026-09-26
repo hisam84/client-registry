@@ -14,6 +14,11 @@ interface CompanyFilterBarProps {
   onReset: () => void;
   softwares: Software[];
   districts: string[];
+  expirySettings?: {
+    monthlyDays: number;
+    halfYearlyDays: number;
+    yearlyDays: number;
+  } | null;
 }
 
 export function CompanyFilterBar({
@@ -22,6 +27,7 @@ export function CompanyFilterBar({
   onReset,
   softwares,
   districts,
+  expirySettings,
 }: CompanyFilterBarProps) {
   return (
     <div className="p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 shadow-sm backdrop-blur-md space-y-3">
@@ -74,7 +80,9 @@ export function CompanyFilterBar({
           >
             <option value="all">All Statuses</option>
             <option value="active">Active</option>
-            <option value="expiring_soon">Expiring Soon (≤60d)</option>
+            <option value="expiring_soon">
+              Expiring Soon{expirySettings ? ` (M: ≤${expirySettings.monthlyDays}d, H: ≤${expirySettings.halfYearlyDays}d, Y: ≤${expirySettings.yearlyDays}d)` : " (Expiring Soon)"}
+            </option>
             <option value="expired">Expired</option>
             <option value="deactivated">Deactivated / Cancelled</option>
             <option value="no_subscription">No Subscription</option>
