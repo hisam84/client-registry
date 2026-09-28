@@ -34,6 +34,7 @@ export function CompanyTable({
       <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
         <thead className="bg-slate-100/80 dark:bg-slate-800/80 uppercase font-semibold text-[11px] text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
           <tr>
+            <th className="p-4 text-center w-16">SL No.</th>
             <th className="p-4">Company / Organization</th>
             <th className="p-4">Contact Info</th>
             <th className="p-4">Location</th>
@@ -42,11 +43,16 @@ export function CompanyTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-          {companies.map((company) => {
+          {companies.map((company, index) => {
             const subscriptions = company.subscriptions || [];
 
             return (
               <tr key={company.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                {/* Serial Number */}
+                <td className="p-4 align-top text-center font-mono font-semibold text-xs text-slate-500 dark:text-slate-400">
+                  {index + 1}
+                </td>
+
                 {/* Company Name & Details */}
                 <td className="p-4 align-top">
                   <div className="font-bold text-sm text-slate-900 dark:text-slate-100">

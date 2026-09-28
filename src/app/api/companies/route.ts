@@ -6,6 +6,8 @@ import {
   computeEffectiveSubscriptionStatus,
 } from "@/lib/subscriptionSettings";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: Request) {
   try {
     await ensureCompanyTables();
@@ -52,10 +54,10 @@ export async function GET(req: Request) {
           include: {
             software: true,
           },
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: "asc" },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: "asc" },
     });
 
     const expirySettings = await getSubscriptionExpirySettings();

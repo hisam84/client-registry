@@ -141,6 +141,8 @@ model Task {
   assignedById    String?
   assignedBy      Employee?    @relation("CreatedTasks", fields: [assignedById], references: [id], onDelete: SetNull)
 
+  subtasks        Subtask[]
+
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
   deletedAt       DateTime?
@@ -152,6 +154,22 @@ model Task {
   @@index([assignedToId])
   @@index([assignedById])
   @@index([deletedAt])
+}
+
+model Subtask {
+  id              String    @id @default(cuid())
+  taskId          String
+  task            Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  title           String
+  isCompleted     Boolean   @default(false)
+  completedAt     DateTime?
+  completedById   String?
+  createdById     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([taskId])
+  @@index([isCompleted])
 }
 
 model Software {

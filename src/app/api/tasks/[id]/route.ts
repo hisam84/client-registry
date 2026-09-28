@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendTaskAssignmentEmail, sendTaskCompletionEmail } from "@/lib/mailer";
 import { parseDhakaDateTimeInput } from "@/lib/dateUtils";
+import { ensureSubtaskTable } from "@/lib/ensureSubtaskTable";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
+    await ensureSubtaskTable();
     const task = await (prisma as any).task.findUnique({
       where: { id: params.id },
       include: {
@@ -38,6 +40,11 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
             avatarColor: true,
           },
         },
+        subtasks: {
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
       },
     });
 
@@ -53,6 +60,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
+    await ensureSubtaskTable();
     const body = await req.json();
     const {
       title,
@@ -133,6 +141,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
             designation: true,
             phone: true,
             avatarColor: true,
+          },
+        },
+        subtasks: {
+          orderBy: {
+            createdAt: "asc",
           },
         },
       },

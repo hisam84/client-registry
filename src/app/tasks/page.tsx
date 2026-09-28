@@ -102,8 +102,8 @@ export default function TasksPage() {
     }
   }
 
-  async function loadTasks() {
-    setLoading(true);
+  async function loadTasks(silent = false) {
+    if (!silent) setLoading(true);
     try {
       const params = new URLSearchParams();
       if (search.trim()) params.set("search", search.trim());
@@ -186,8 +186,31 @@ export default function TasksPage() {
   }, [selectedEmployeeFilter, activeTab, currentUser.id]);
 
   useEffect(() => {
-    const t = setTimeout(loadTasks, search ? 300 : 0);
+    const t = setTimeout(() => loadTasks(false), search ? 300 : 0);
     return () => clearTimeout(t);
+  }, [search, statusFilter, priorityFilter, upcomingOnly, selectedEmployeeFilter, activeTab, currentUser.id]);
+
+  // Real-time synchronization for task assigner and employees
+  useEffect(() => {
+    function handleSync() {
+      loadDashboardMetrics();
+      loadTasks(true);
+    }
+
+    window.addEventListener("task-changed", handleSync);
+    window.addEventListener("focus", handleSync);
+
+    // Auto-poll in background every 6 seconds for live updates
+    const pollTimer = setInterval(() => {
+      loadDashboardMetrics();
+      loadTasks(true);
+    }, 6000);
+
+    return () => {
+      window.removeEventListener("task-changed", handleSync);
+      window.removeEventListener("focus", handleSync);
+      clearInterval(pollTimer);
+    };
   }, [search, statusFilter, priorityFilter, upcomingOnly, selectedEmployeeFilter, activeTab, currentUser.id]);
 
   function handleRefresh() {
@@ -195,7 +218,7 @@ export default function TasksPage() {
       window.dispatchEvent(new CustomEvent("task-changed"));
     }
     loadDashboardMetrics();
-    loadTasks();
+    loadTasks(false);
   }
 
   async function handleToggleComplete(task: TaskItem) {

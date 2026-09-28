@@ -316,9 +316,22 @@ export interface TaskItem {
   assignedTo?: Employee | null;
   assignedById?: string | null;
   assignedBy?: Employee | null;
+  subtasks?: SubtaskItem[];
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
+}
+
+export interface SubtaskItem {
+  id: string;
+  taskId: string;
+  title: string;
+  isCompleted: boolean;
+  completedAt?: string | null;
+  completedById?: string | null;
+  createdById?: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export const SOFTWARE_CATEGORY_OPTIONS = [

@@ -40,6 +40,15 @@ export function TaskFormModal({
   const [completionNote, setCompletionNote] = useState(initialTask?.completionNote || "");
   const [progress, setProgress] = useState<number>(initialTask?.progress ?? (initialTask?.status === "Completed" ? 100 : 0));
 
+  // Subtasks State
+  const [subtasks, setSubtasks] = useState<string[]>(() => {
+    if (initialTask?.subtasks && Array.isArray(initialTask.subtasks)) {
+      return initialTask.subtasks.map((s) => s.title);
+    }
+    return [];
+  });
+  const [newSubtaskInput, setNewSubtaskInput] = useState("");
+
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [selectedInstId, setSelectedInstId] = useState<string>(
     initialTask?.institutionId || prefilledInstitutionId || ""
@@ -108,6 +117,7 @@ export function TaskFormModal({
         institutionName: customInstName.trim() || null,
         assignedToId: assignedToId || null,
         assignedById: initialTask?.assignedById || currentUser.id,
+        subtasks: subtasks.filter((s) => s.trim().length > 0),
       };
 
       const url = initialTask ? `/api/tasks/${initialTask.id}` : "/api/tasks";
@@ -301,6 +311,85 @@ export function TaskFormModal({
             placeholder="Details (optional)"
             className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#2196F3]"
           />
+        </div>
+
+        {/* Subtasks Section */}
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 p-3.5 space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+              <svg className="w-4 h-4 text-[#2196F3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+              <span>Subtasks / সাবটাস্ক তালিকা</span>
+              {subtasks.length > 0 && (
+                <span className="ml-1 text-[11px] font-mono px-2 py-0.2 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-full font-semibold">
+                  {subtasks.length}
+                </span>
+              )}
+            </label>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+              Optional checklist
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={newSubtaskInput}
+              onChange={(e) => setNewSubtaskInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  if (newSubtaskInput.trim()) {
+                    setSubtasks([...subtasks, newSubtaskInput.trim()]);
+                    setNewSubtaskInput("");
+                  }
+                }
+              }}
+              placeholder="সাবটাস্কের শিরোনাম লিখে Enter চাপুন..."
+              className="flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#2196F3]"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (newSubtaskInput.trim()) {
+                  setSubtasks([...subtasks, newSubtaskInput.trim()]);
+                  setNewSubtaskInput("");
+                }
+              }}
+              className="px-3 py-1.5 rounded-lg bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 text-xs font-semibold hover:bg-blue-500/25 transition-colors whitespace-nowrap"
+            >
+              + Add
+            </button>
+          </div>
+
+          {subtasks.length > 0 && (
+            <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
+              {subtasks.map((st, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between gap-2 p-2 rounded-lg bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 text-xs shadow-xs"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 flex items-center justify-center font-mono text-[10px] font-bold shrink-0">
+                      {idx + 1}
+                    </span>
+                    <span className="text-slate-800 dark:text-slate-200 truncate">{st}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSubtasks(subtasks.filter((_, i) => i !== idx))}
+                    className="p-1 text-slate-400 hover:text-red-500 transition-colors shrink-0"
+                    title="Remove subtask"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Completion / Outcome Remarks - only shown if editing or if Canceled / Cancelled / Completed */}

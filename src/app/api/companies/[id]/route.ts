@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ensureCompanyTables } from "@/lib/ensureCompanyTables";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
     await ensureCompanyTables();
@@ -14,7 +16,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
           include: {
             software: true,
           },
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: "asc" },
         },
       },
     });

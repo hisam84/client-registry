@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendTaskAssignmentEmail } from "@/lib/mailer";
 import { parseDhakaDateTimeInput } from "@/lib/dateUtils";
+import { ensureSubtaskTable } from "@/lib/ensureSubtaskTable";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -9,6 +10,7 @@ export const revalidate = 0;
 // GET /api/tasks?search=&status=&priority=&upcoming=&institutionId=&assignedToId=&assignedById=&taskCategory=&currentUserId=&employeeId=
 export async function GET(req: NextRequest) {
   try {
+    await ensureSubtaskTable();
     const params = req.nextUrl.searchParams;
     const search = params.get("search")?.trim();
     const status = params.get("status");
@@ -160,6 +162,11 @@ export async function GET(req: NextRequest) {
             avatarColor: true,
           },
         },
+        subtasks: {
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
       },
       orderBy: {
         dueDate: "asc",
@@ -198,9 +205,9 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST /api/tasks
 export async function POST(req: NextRequest) {
   try {
+    await ensureSubtaskTable();
     const body = await req.json();
     const {
       title,
@@ -214,6 +221,7 @@ export async function POST(req: NextRequest) {
       institutionName,
       assignedToId,
       assignedById,
+      subtasks,
     } = body;
 
     if (!title || typeof title !== "string" || !title.trim()) {
@@ -234,22 +242,42 @@ export async function POST(req: NextRequest) {
     }
 
     const taskStatus = status || "To Do";
-    let progressVal = progress !== undefined ? Math.min(100, Math.max(0, Number(progress))) : (taskStatus === "Completed" ? 100 : 0);
+    const validSubtasks: string[] = Array.isArray(subtasks)
+      ? subtasks
+          .map((s: any) => (typeof s === "string" ? s.trim() : (s?.title ? String(s.title).trim() : "")))
+          .filter(Boolean)
+      : [];
+
+    let progressVal = progress !== undefined
+      ? Math.min(100, Math.max(0, Number(progress)))
+      : (taskStatus === "Completed" ? 100 : 0);
+
+    const taskData: any = {
+      title: title.trim(),
+      description: description?.trim() || null,
+      dueDate: parseDhakaDateTimeInput(dueDate),
+      status: taskStatus,
+      priority: priority === "Argent" ? "Urgent" : (priority || "Medium"),
+      completionNote: completionNote?.trim() || null,
+      progress: progressVal,
+      institutionId: institutionId || null,
+      institutionName: finalInstName || null,
+      assignedToId: assignedToId || null,
+      assignedById: assignedById || null,
+    };
+
+    if (validSubtasks.length > 0) {
+      taskData.subtasks = {
+        create: validSubtasks.map((stTitle) => ({
+          title: stTitle,
+          createdById: assignedById || null,
+          isCompleted: false,
+        })),
+      };
+    }
 
     const task = await (prisma as any).task.create({
-      data: {
-        title: title.trim(),
-        description: description?.trim() || null,
-        dueDate: parseDhakaDateTimeInput(dueDate),
-        status: taskStatus,
-        priority: priority === "Argent" ? "Urgent" : (priority || "Medium"),
-        completionNote: completionNote?.trim() || null,
-        progress: progressVal,
-        institutionId: institutionId || null,
-        institutionName: finalInstName || null,
-        assignedToId: assignedToId || null,
-        assignedById: assignedById || null,
-      },
+      data: taskData,
       include: {
         institution: {
           select: {
@@ -279,6 +307,11 @@ export async function POST(req: NextRequest) {
             designation: true,
             phone: true,
             avatarColor: true,
+          },
+        },
+        subtasks: {
+          orderBy: {
+            createdAt: "asc",
           },
         },
       },
