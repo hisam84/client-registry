@@ -407,6 +407,10 @@ export function UpcomingTasksList({
                 const subtasks = task.subtasks || [];
                 const completedCount = subtasks.filter((s) => s.isCompleted).length;
                 const totalCount = subtasks.length;
+
+                // If task is completed and has no subtasks, do not show subtasks section at all
+                if (isCompleted && totalCount === 0) return null;
+
                 const isExpanded = expandedSubtasks[task.id] !== false;
                 const isAllCompleted = totalCount > 0 && completedCount === totalCount;
 
@@ -474,7 +478,7 @@ export function UpcomingTasksList({
                                     <input
                                       type="checkbox"
                                       checked={st.isCompleted}
-                                      disabled={isUpdating}
+                                      disabled={isCompleted || isUpdating}
                                       onChange={() => handleToggleSubtask(task, st.id, st.isCompleted)}
                                       className="mt-0.5 w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer shrink-0"
                                     />
@@ -494,16 +498,18 @@ export function UpcomingTasksList({
                                     </div>
                                   </label>
 
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDeleteSubtask(task.id, st.id)}
-                                    className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 transition-all shrink-0"
-                                    title="Delete subtask"
-                                  >
-                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                  </button>
+                                  {!isCompleted && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteSubtask(task.id, st.id)}
+                                      className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 transition-all shrink-0"
+                                      title="Delete subtask"
+                                    >
+                                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                      </svg>
+                                    </button>
+                                  )}
                                 </div>
                               );
                             })}
@@ -531,32 +537,34 @@ export function UpcomingTasksList({
                           </div>
                         )}
 
-                        {/* Quick Inline Add Subtask Input */}
-                        <div className="flex items-center gap-1.5 pt-1">
-                          <input
-                            type="text"
-                            value={subtaskInputs[task.id] || ""}
-                            onChange={(e) =>
-                              setSubtaskInputs((prev) => ({ ...prev, [task.id]: e.target.value }))
-                            }
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                e.preventDefault();
-                                handleAddSubtask(task.id);
+                        {/* Quick Inline Add Subtask Input - Hidden on completed tasks */}
+                        {!isCompleted && (
+                          <div className="flex items-center gap-1.5 pt-1">
+                            <input
+                              type="text"
+                              value={subtaskInputs[task.id] || ""}
+                              onChange={(e) =>
+                                setSubtaskInputs((prev) => ({ ...prev, [task.id]: e.target.value }))
                               }
-                            }}
-                            placeholder="নতুন সাবটাস্ক যোগ করুন (Enter)..."
-                            className="flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#2196F3]"
-                          />
-                          <button
-                            type="button"
-                            disabled={addingSubtaskForTask === task.id || !(subtaskInputs[task.id] || "").trim()}
-                            onClick={() => handleAddSubtask(task.id)}
-                            className="px-2.5 py-1 rounded-lg bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 text-xs font-semibold hover:bg-blue-500/25 disabled:opacity-50 transition-colors whitespace-nowrap"
-                          >
-                            {addingSubtaskForTask === task.id ? "Adding..." : "+ Add"}
-                          </button>
-                        </div>
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  handleAddSubtask(task.id);
+                                }
+                              }}
+                              placeholder="নতুন সাবটাস্ক যোগ করুন (Enter)..."
+                              className="flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#2196F3]"
+                            />
+                            <button
+                              type="button"
+                              disabled={addingSubtaskForTask === task.id || !(subtaskInputs[task.id] || "").trim()}
+                              onClick={() => handleAddSubtask(task.id)}
+                              className="px-2.5 py-1 rounded-lg bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 text-xs font-semibold hover:bg-blue-500/25 disabled:opacity-50 transition-colors whitespace-nowrap"
+                            >
+                              {addingSubtaskForTask === task.id ? "Adding..." : "+ Add"}
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
