@@ -86,7 +86,7 @@ export function TaskCompletionModal({
             <div className="mt-2 p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs text-purple-700 dark:text-purple-300 flex items-center gap-2">
               <span className="text-base">🔁</span>
               <div>
-                <span className="font-bold">মাসিক টাস্ক (Monthly Recurring):</span> এই টাস্কটি সম্পন্ন হলে পরবর্তী মাসের জন্য স্বয়ংক্রিয়ভাবে নতুন টাস্ক শিডিউল তৈরি হয়ে যাবে।
+                <span className="font-bold">Monthly Recurring Task:</span> Completing this task will automatically create and schedule next month&apos;s task instance.
               </div>
             </div>
           )}

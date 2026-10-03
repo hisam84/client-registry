@@ -39,7 +39,7 @@ export function SubscriptionSettingsModal({
           setDefaultDays(data.settings.defaultDays ?? DEFAULT_SUBSCRIPTION_EXPIRY_SETTINGS.defaultDays);
         }
       } catch (err: any) {
-        setErrorMsg("সেটিংস লোড করতে সমস্যা হয়েছে।");
+        setErrorMsg("Failed to load settings.");
       } finally {
         setLoading(false);
       }
@@ -61,7 +61,7 @@ export function SubscriptionSettingsModal({
     setSuccessMsg("");
 
     if (monthlyDays < 0 || halfYearlyDays < 0 || yearlyDays < 0 || defaultDays < 0) {
-      setErrorMsg("সবগুলো সংখ্যা ০ বা তার বেশি হতে হবে।");
+      setErrorMsg("All threshold days must be 0 or greater.");
       setSaving(false);
       return;
     }
@@ -80,16 +80,16 @@ export function SubscriptionSettingsModal({
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.error || "সেটিংস সংরক্ষণ ব্যর্থ হয়েছে।");
+        throw new Error(data.error || "Failed to save settings.");
       }
 
-      setSuccessMsg("সেটিংস সফলভাবে সংরক্ষিত হয়েছে!");
+      setSuccessMsg("Settings saved successfully!");
       onSaved(data.settings);
       setTimeout(() => {
         onClose();
       }, 900);
     } catch (err: any) {
-      setErrorMsg(err.message || "সংরক্ষণ করতে সমস্যা হয়েছে।");
+      setErrorMsg(err.message || "An error occurred while saving.");
     } finally {
       setSaving(false);
     }
@@ -106,10 +106,10 @@ export function SubscriptionSettingsModal({
             </span>
             <div>
               <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base">
-                Expiring Soon সেটিংস (Expiry Thresholds)
+                Expiring Soon Settings (Expiry Thresholds)
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                কত দিন আগে সাবস্ক্রিপশনকে &apos;Expiring Soon&apos; হিসেবে দেখানো হবে
+                Configure how many days before expiration subscriptions trigger &apos;Expiring Soon&apos;
               </p>
             </div>
           </div>
@@ -125,7 +125,7 @@ export function SubscriptionSettingsModal({
         {loading ? (
           <div className="p-10 flex flex-col items-center justify-center gap-2 text-slate-400">
             <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            <span className="text-xs font-medium">লোড হচ্ছে...</span>
+            <span className="text-xs font-medium">Loading...</span>
           </div>
         ) : (
           <form onSubmit={handleSave} className="p-6 space-y-4">
@@ -141,7 +141,7 @@ export function SubscriptionSettingsModal({
             )}
 
             <div className="p-3 rounded-xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-900/40 text-xs text-blue-800 dark:text-blue-300">
-              💡 <b>নিয়মাবলী:</b> নির্ধারিত দিনের মধ্যে সাবস্ক্রিপশনের মেয়াদ শেষ হতে চললে কোম্পানির তালিকায় স্বয়ংক্রিয়ভাবে স্ট্যাটাস <b>&apos;Expiring Soon&apos;</b> হিসেবে চিহ্নিত ও ফিল্টার হবে।
+              💡 <b>Rule:</b> Subscriptions expiring within these thresholds will automatically trigger <b>&apos;Expiring Soon&apos;</b> status badges and filters.
             </div>
 
             <div className="space-y-3.5">
@@ -149,10 +149,10 @@ export function SubscriptionSettingsModal({
               <div className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40">
                 <div>
                   <label className="block text-xs font-bold text-slate-900 dark:text-slate-100">
-                    মাসিক (Monthly Cycle)
+                    Monthly Cycle
                   </label>
                   <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                    মেয়াদ শেষ হওয়ার কত দিন আগে ওয়ার্নিং দেখাবে
+                    Days before expiry to trigger alert
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -165,7 +165,7 @@ export function SubscriptionSettingsModal({
                     onChange={(e) => setMonthlyDays(Math.max(0, parseInt(e.target.value) || 0))}
                     className="w-20 px-3 py-1.5 text-center font-bold font-mono text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 outline-none"
                   />
-                  <span className="text-xs font-medium text-slate-500">দিন</span>
+                  <span className="text-xs font-medium text-slate-500">days</span>
                 </div>
               </div>
 
@@ -173,10 +173,10 @@ export function SubscriptionSettingsModal({
               <div className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40">
                 <div>
                   <label className="block text-xs font-bold text-slate-900 dark:text-slate-100">
-                    হাফ ইয়ারলি (Half-Yearly Cycle)
+                    Half-Yearly Cycle
                   </label>
                   <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                    মেয়াদ শেষ হওয়ার কত দিন আগে ওয়ার্নিং দেখাবে
+                    Days before expiry to trigger alert
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -189,7 +189,7 @@ export function SubscriptionSettingsModal({
                     onChange={(e) => setHalfYearlyDays(Math.max(0, parseInt(e.target.value) || 0))}
                     className="w-20 px-3 py-1.5 text-center font-bold font-mono text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 outline-none"
                   />
-                  <span className="text-xs font-medium text-slate-500">দিন</span>
+                  <span className="text-xs font-medium text-slate-500">days</span>
                 </div>
               </div>
 
@@ -197,10 +197,10 @@ export function SubscriptionSettingsModal({
               <div className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40">
                 <div>
                   <label className="block text-xs font-bold text-slate-900 dark:text-slate-100">
-                    ইয়ারলি (Yearly Cycle)
+                    Yearly Cycle
                   </label>
                   <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                    মেয়াদ শেষ হওয়ার কত দিন আগে ওয়ার্নিং দেখাবে
+                    Days before expiry to trigger alert
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -213,7 +213,7 @@ export function SubscriptionSettingsModal({
                     onChange={(e) => setYearlyDays(Math.max(0, parseInt(e.target.value) || 0))}
                     className="w-20 px-3 py-1.5 text-center font-bold font-mono text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 outline-none"
                   />
-                  <span className="text-xs font-medium text-slate-500">দিন</span>
+                  <span className="text-xs font-medium text-slate-500">days</span>
                 </div>
               </div>
 
@@ -221,10 +221,10 @@ export function SubscriptionSettingsModal({
               <div className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/30 dark:bg-slate-950/20">
                 <div>
                   <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
-                    অন্যান্য / ডিফল্ট (Other / Fallback)
+                    Other / Fallback
                   </label>
                   <span className="text-[10px] text-slate-400">
-                    কোনো নির্দিষ্ট সাইকেল না থাকলে প্রযোজ্য
+                    Used when no billing cycle is specified
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -236,7 +236,7 @@ export function SubscriptionSettingsModal({
                     onChange={(e) => setDefaultDays(Math.max(0, parseInt(e.target.value) || 0))}
                     className="w-20 px-3 py-1.5 text-center font-mono text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 outline-none"
                   />
-                  <span className="text-xs font-medium text-slate-500">দিন</span>
+                  <span className="text-xs font-medium text-slate-500">days</span>
                 </div>
               </div>
             </div>
@@ -248,7 +248,7 @@ export function SubscriptionSettingsModal({
                 onClick={handleResetDefaults}
                 className="px-3 py-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
               >
-                ডিফল্ট রিসেট
+                Reset Defaults
               </button>
 
               <div className="flex items-center gap-2">
@@ -257,14 +257,14 @@ export function SubscriptionSettingsModal({
                   onClick={onClose}
                   className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
                 >
-                  বাতিল
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
                   className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md hover:shadow-lg transition-all disabled:opacity-50"
                 >
-                  {saving ? "সংরক্ষণ হচ্ছে..." : "সংরক্ষণ করুন"}
+                  {saving ? "Saving..." : "Save Settings"}
                 </button>
               </div>
             </div>

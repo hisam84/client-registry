@@ -49,7 +49,7 @@ export async function PUT(req: Request) {
       return NextResponse.json(
         {
           success: false,
-          error: "সবগুলো দিন অবশ্যই ধনাত্মক সংখ্যা (০ বা তার বেশি) হতে হবে।",
+          error: "All threshold days must be positive integers (0 or greater).",
         },
         { status: 400 }
       );

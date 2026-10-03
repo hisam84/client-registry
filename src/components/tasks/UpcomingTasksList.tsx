@@ -443,7 +443,7 @@ export function UpcomingTasksList({
                           >
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                           </svg>
-                          <span>Subtasks (সাবটাস্ক)</span>
+                          <span>Subtasks</span>
                         </button>
 
                         <span
@@ -537,7 +537,7 @@ export function UpcomingTasksList({
                               <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                               </svg>
-                              <span>সব সাবটাস্ক সম্পন্ন হয়েছে!</span>
+                              <span>All subtasks completed!</span>
                             </span>
                             <button
                               type="button"
@@ -564,7 +564,7 @@ export function UpcomingTasksList({
                                   handleAddSubtask(task.id);
                                 }
                               }}
-                              placeholder="নতুন সাবটাস্ক যোগ করুন (Enter)..."
+                              placeholder="Add new subtask (Press Enter)..."
                               className="flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#2196F3]"
                             />
                             <button

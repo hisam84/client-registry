@@ -738,7 +738,7 @@ export async function sendMonthlyTaskReminderEmail(data: TaskAlertEmailData): Pr
               <div style="display: inline-block; background-color: rgba(255,255,255,0.2); color: #ffffff; font-size: 11px; font-weight: bold; padding: 3px 10px; border-radius: 12px; margin-bottom: 6px; letter-spacing: 0.5px;">
                 🔁 MONTHLY RECURRING TASK
               </div>
-              <h1 style="margin: 0; font-size: 18px; font-weight: 700; color: #ffffff;">Monthly Task Reminder — Due Tomorrow (১ দিন আগে রিমাইন্ডার)</h1>
+              <h1 style="margin: 0; font-size: 18px; font-weight: 700; color: #ffffff;">Monthly Task Reminder — Due Tomorrow</h1>
             </td>
           </tr>
 

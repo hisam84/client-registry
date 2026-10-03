@@ -249,11 +249,11 @@ export function TaskFormModal({
                   <span>Repeat Every Month (Monthly Task)</span>
                 </span>
                 <span className="px-1.5 py-0.2 bg-purple-200/70 dark:bg-purple-800/60 text-purple-800 dark:text-purple-300 text-[10px] font-bold rounded-full">
-                  মাসিক টাস্ক
+                  Monthly
                 </span>
               </div>
               <p className="text-[11px] text-purple-700 dark:text-purple-300 mt-0.5 leading-normal">
-                This task repeats every month. System will show and dispatch a reminder notification <strong>1 day in advance (১ দিন আগে)</strong>.
+                This task repeats every month. System will show and dispatch a reminder notification <strong>1 day in advance</strong>.
               </p>
             </div>
           </label>
@@ -349,7 +349,7 @@ export function TaskFormModal({
                 <svg className="w-4 h-4 text-[#2196F3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                 </svg>
-                <span>Subtasks / সাবটাস্ক তালিকা</span>
+                <span>Subtasks Checklist</span>
                 {subtasks.length > 0 && (
                   <span className="ml-1 text-[11px] font-mono px-2 py-0.2 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-full font-semibold">
                     {subtasks.length}
@@ -376,7 +376,7 @@ export function TaskFormModal({
                       }
                     }
                   }}
-                  placeholder="সাবটাস্কের শিরোনাম লিখে Enter চাপুন..."
+                  placeholder="Enter subtask title and press Enter..."
                   className="flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#2196F3]"
                 />
                 <button
