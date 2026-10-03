@@ -28,6 +28,26 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
             avatarColor: true,
           },
         },
+        assignees: {
+          include: {
+            employee: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                orderSerial: true,
+                designation: true,
+                phone: true,
+                avatarColor: true,
+                avatarUrl: true,
+              },
+            },
+          },
+          orderBy: {
+            assignedAt: "asc",
+          },
+        },
         assignedBy: {
           select: {
             id: true,
@@ -73,6 +93,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       institutionId,
       institutionName,
       assignedToId,
+      assignedToIds,
       assignedById,
       isMonthly,
     } = body;
@@ -86,6 +107,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         assignedToId: true,
         isMonthly: true,
         monthlyRecurringDay: true,
+        assignees: {
+          select: { employeeId: true },
+        },
       },
     });
 
@@ -113,7 +137,20 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (institutionId !== undefined) data.institutionId = institutionId || null;
     if (institutionName !== undefined) data.institutionName = institutionName || null;
 
-    if (assignedToId !== undefined) data.assignedToId = assignedToId || null;
+    // Handle Assignees
+    let newAssigneeIds: string[] | null = null;
+    if (assignedToIds !== undefined) {
+      newAssigneeIds = Array.isArray(assignedToIds)
+        ? Array.from(new Set(assignedToIds.map(String).map((s) => s.trim()).filter(Boolean)))
+        : [];
+    } else if (assignedToId !== undefined) {
+      newAssigneeIds = assignedToId ? [String(assignedToId).trim()] : [];
+    }
+
+    if (newAssigneeIds !== null) {
+      data.assignedToId = newAssigneeIds[0] || null;
+    }
+
     if (assignedById !== undefined) data.assignedById = assignedById || null;
 
     if (institutionId && !institutionName) {
@@ -124,6 +161,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       if (inst) data.institutionName = inst.instituteName;
     }
 
+    // Update Task record
     const updated = await (prisma as any).task.update({
       where: { id: params.id },
       data,
@@ -166,25 +204,74 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       },
     });
 
-    if (
-      updated.assignedTo?.email &&
-      assignedToId !== undefined &&
-      assignedToId !== null &&
-      (!existingTask || existingTask.assignedToId !== updated.assignedToId)
-    ) {
+    // If assignees were modified, sync TaskAssignee join table
+    if (newAssigneeIds !== null) {
       try {
-        await sendTaskAssignmentEmail({
-          taskTitle: updated.title,
-          description: updated.description,
-          dueDate: updated.dueDate,
-          priority: updated.priority,
-          institutionName: updated.institutionName || updated.institution?.instituteName,
-          assignedByName: updated.assignedBy?.name || null,
-          assignedToEmail: updated.assignedTo.email,
-          assignedToName: updated.assignedTo.name,
+        await (prisma as any).taskAssignee.deleteMany({
+          where: { taskId: params.id },
         });
+
+        if (newAssigneeIds.length > 0) {
+          await (prisma as any).taskAssignee.createMany({
+            data: newAssigneeIds.map((empId) => ({
+              taskId: params.id,
+              employeeId: empId,
+            })),
+            skipDuplicates: true,
+          });
+        }
       } catch (err) {
-        console.error("Failed to send task assignment email on update:", err);
+        console.error("Failed to sync TaskAssignee records on update:", err);
+      }
+    }
+
+    // Fetch refreshed assignees
+    const refreshedAssignees = await (prisma as any).taskAssignee.findMany({
+      where: { taskId: params.id },
+      include: {
+        employee: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            orderSerial: true,
+            designation: true,
+            phone: true,
+            avatarColor: true,
+            avatarUrl: true,
+          },
+        },
+      },
+      orderBy: { assignedAt: "asc" },
+    });
+    updated.assignees = refreshedAssignees;
+
+    // Send assignment emails to newly assigned employees
+    const existingAssigneeSet = new Set(
+      existingTask?.assignees?.map((a: any) => a.employeeId) || (existingTask?.assignedToId ? [existingTask.assignedToId] : [])
+    );
+
+    if (newAssigneeIds !== null) {
+      const newlyAddedEmployees = refreshedAssignees
+        .map((a: any) => a.employee)
+        .filter((emp: any) => emp && emp.id && !existingAssigneeSet.has(emp.id) && emp.email);
+
+      for (const emp of newlyAddedEmployees) {
+        try {
+          await sendTaskAssignmentEmail({
+            taskTitle: updated.title,
+            description: updated.description,
+            dueDate: updated.dueDate,
+            priority: updated.priority,
+            institutionName: updated.institutionName || updated.institution?.instituteName,
+            assignedByName: updated.assignedBy?.name || null,
+            assignedToEmail: emp.email,
+            assignedToName: emp.name,
+          });
+        } catch (err) {
+          console.error("Failed to send task assignment email on update:", err);
+        }
       }
     }
 
@@ -242,7 +329,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         });
 
         if (!existingNext) {
-          await (prisma as any).task.create({
+          const createdNext = await (prisma as any).task.create({
             data: {
               title: updated.title,
               description: updated.description,
@@ -256,6 +343,13 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
               institutionName: updated.institutionName,
               assignedToId: updated.assignedToId,
               assignedById: updated.assignedById,
+              assignees: refreshedAssignees && refreshedAssignees.length > 0
+                ? {
+                    create: refreshedAssignees.map((a: any) => ({
+                      employeeId: a.employeeId,
+                    })),
+                  }
+                : undefined,
               subtasks: updated.subtasks && updated.subtasks.length > 0
                 ? {
                     create: updated.subtasks.map((st: any) => ({

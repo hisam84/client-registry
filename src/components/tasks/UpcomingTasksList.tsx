@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useMemo } from "react";
-import { TaskItem, TASK_PRIORITY_COLOR, TASK_STATUS_COLOR } from "@/lib/types";
+import { Employee, TaskItem, TASK_PRIORITY_COLOR, TASK_STATUS_COLOR } from "@/lib/types";
 import { useUserSession } from "@/lib/userSession";
 import { StatusNoteModal } from "./StatusNoteModal";
 import { RescheduleModal } from "./RescheduleModal";
@@ -134,14 +134,23 @@ export function UpcomingTasksList({
     }
     setClaimingTaskId(task.id);
     try {
+      const existingAssigneeIds = (task.assignees && task.assignees.length > 0)
+        ? task.assignees.map((a) => a.employeeId)
+        : (task.assignedToId ? [task.assignedToId] : []);
+      const newAssigneeIds = Array.from(new Set([...existingAssigneeIds, currentUser.id]));
+
       const res = await fetch(`/api/tasks/${task.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          assignedToId: currentUser.id,
+          assignedToIds: newAssigneeIds,
+          assignedToId: newAssigneeIds[0] || currentUser.id,
         }),
       });
       if (res.ok && onRefresh) {
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("task-changed"));
+        }
         onRefresh();
       }
     } catch (err) {
@@ -309,10 +318,21 @@ export function UpcomingTasksList({
     const due = new Date(task.dueDate);
     const isOverdue = !isCompleted && !isCancelled && due.getTime() < Date.now();
 
-    const assignedEmp = task.assignedTo;
     const assignerEmp = task.assignedBy;
-    const isUnassigned = !task.assignedToId;
-    const isAssignedToMe = task.assignedToId === currentUser.id;
+    
+    // Collect all assigned employees
+    const assigneesList: Employee[] = [];
+    if (task.assignees && Array.isArray(task.assignees) && task.assignees.length > 0) {
+      for (const a of task.assignees) {
+        if (a.employee) assigneesList.push(a.employee);
+      }
+    }
+    if (assigneesList.length === 0 && task.assignedTo) {
+      assigneesList.push(task.assignedTo);
+    }
+
+    const isUnassigned = assigneesList.length === 0 && !task.assignedToId;
+    const isAssignedToMe = assigneesList.some((e) => e.id === currentUser.id) || task.assignedToId === currentUser.id;
 
     return (
       <div
@@ -598,7 +618,7 @@ export function UpcomingTasksList({
 
               {/* Employee Assignment Badges & Meta Row */}
               <div className="mt-2.5 flex flex-wrap items-center gap-1.5 sm:gap-2">
-                {/* Employee Assignee Badge */}
+                {/* Employee Assignee Badges */}
                 {isUnassigned ? (
                   <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 whitespace-nowrap flex items-center gap-1">
                     <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -607,18 +627,33 @@ export function UpcomingTasksList({
                     <span>Unassigned</span>
                   </span>
                 ) : (
-                  <span
-                    className={`px-2 py-0.5 rounded text-[11px] font-bold border whitespace-nowrap flex items-center gap-1 ${
-                      isAssignedToMe
-                        ? "bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30"
-                        : "bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30"
-                    }`}
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <span>Assigned To: #{assignedEmp?.orderSerial || 0} {assignedEmp?.name || "Employee"}</span>
-                  </span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {assigneesList.map((emp) => {
+                      const isMe = emp.id === currentUser.id;
+                      return (
+                        <span
+                          key={emp.id}
+                          className={`px-2 py-0.5 rounded text-[11px] font-bold border whitespace-nowrap flex items-center gap-1.5 ${
+                            isMe
+                              ? "bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30"
+                              : "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30"
+                          }`}
+                          title={`${emp.name} (${emp.designation || emp.role})`}
+                        >
+                          <span
+                            className="w-2 h-2 rounded-full shrink-0"
+                            style={{ backgroundColor: emp.avatarColor || "#6366F1" }}
+                          />
+                          <span>#{emp.orderSerial || 0} {emp.name}</span>
+                          {isMe && (
+                            <span className="text-[9px] px-1 py-0.2 bg-purple-200/80 dark:bg-purple-900/80 rounded font-bold text-purple-800 dark:text-purple-200">
+                              You
+                            </span>
+                          )}
+                        </span>
+                      );
+                    })}
+                  </div>
                 )}
 
                 {/* Assigner Info Badge */}
@@ -631,7 +666,7 @@ export function UpcomingTasksList({
                   }
 
                   if (assignerName) {
-                    const isSelf = task.assignedById === task.assignedToId;
+                    const isSelf = (assigneesList.length === 1 && assigneesList[0].id === task.assignedById) || task.assignedById === task.assignedToId;
                     return (
                       <span
                         className={`px-2 py-0.5 rounded text-[11px] font-bold border whitespace-nowrap flex items-center gap-1 ${

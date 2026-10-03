@@ -124,6 +124,17 @@ export async function checkAndSendTaskAlerts(options?: { force?: boolean }): Pro
             email: true,
           },
         },
+        assignees: {
+          include: {
+            employee: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
         assignedBy: {
           select: {
             id: true,
@@ -151,42 +162,58 @@ export async function checkAndSendTaskAlerts(options?: { force?: boolean }): Pro
       const msUntilDue = dueDate.getTime() - now.getTime();
       const totalDurationMs = dueDate.getTime() - createdAt.getTime();
 
-      // Resolve recipient emails with fallback so unassigned or admin-created tasks are never skipped
-      const assignedToEmail = task.assignedTo?.email?.trim();
-      const assignedToName = task.assignedTo?.name || "Assigned Team Member";
-      const assignedByEmail = task.assignedBy?.email?.trim();
-      const assignedByName = task.assignedBy?.name || "Administrator";
+      // Collect all assignees
+      const assigneesList: { name: string; email: string }[] = [];
+      if (task.assignees && task.assignees.length > 0) {
+        for (const a of task.assignees) {
+          if (a.employee?.email) assigneesList.push({ name: a.employee.name, email: a.employee.email.trim() });
+        }
+      }
+      if (assigneesList.length === 0 && task.assignedTo?.email) {
+        assigneesList.push({ name: task.assignedTo.name, email: task.assignedTo.email.trim() });
+      }
+      if (assigneesList.length === 0 && task.assignedBy?.email) {
+        assigneesList.push({ name: task.assignedBy.name, email: task.assignedBy.email.trim() });
+      }
+      if (assigneesList.length === 0) {
+        assigneesList.push({ name: "Administrator", email: "imperialitbd2011@gmail.com" });
+      }
 
-      const primaryEmail = assignedToEmail || assignedByEmail || "imperialitbd2011@gmail.com";
-      const primaryName = assignedToEmail ? assignedToName : (assignedByEmail ? assignedByName : "System Administrator");
-      const assignerNotificationEmail = assignedByEmail || (assignedToEmail ? null : "imperialitbd2011@gmail.com");
+      const assignedByName = task.assignedBy?.name || "Administrator";
+      const assignerEmail = task.assignedBy?.email?.trim();
 
       // CASE 1: Monthly Task 1-Day Advance Reminder (24-Hour Notice)
-      // "the monthly task reminder should show at one day age" (1 day before / 24h prior)
       const isDueInOneDay = msUntilDue > 0 && msUntilDue <= ONE_DAY_MS;
       const monthlyKey = `monthly_1day_${task.id}`;
       const monthlyAlreadySent = sentRemindersMemory.has(monthlyKey);
 
       if (Boolean(task.isMonthly) && isDueInOneDay && (!monthlyAlreadySent || options?.force)) {
         try {
-          const sendResult = await sendMonthlyTaskReminderEmail({
-            taskTitle: task.title,
-            description: task.description,
-            dueDate: task.dueDate,
-            priority: task.priority,
-            institutionName: task.institutionName || task.institution?.instituteName,
-            assignedByName: assignedByName,
-            assignedToEmail: primaryEmail,
-            assignedToName: primaryName,
-            hoursRemaining: Math.max(1, Math.round(msUntilDue / (1000 * 60 * 60))),
-          });
+          let anySent = false;
+          const seen = new Set<string>();
+          for (const recipient of assigneesList) {
+            if (!recipient.email || seen.has(recipient.email.toLowerCase())) continue;
+            seen.add(recipient.email.toLowerCase());
 
-          if (sendResult?.success) {
+            const sendResult = await sendMonthlyTaskReminderEmail({
+              taskTitle: task.title,
+              description: task.description,
+              dueDate: task.dueDate,
+              priority: task.priority,
+              institutionName: task.institutionName || task.institution?.instituteName,
+              assignedByName: assignedByName,
+              assignedToEmail: recipient.email,
+              assignedToName: recipient.name,
+              hoursRemaining: Math.max(1, Math.round(msUntilDue / (1000 * 60 * 60))),
+            });
+
+            if (sendResult?.success) anySent = true;
+          }
+
+          if (anySent) {
             sentRemindersMemory.add(monthlyKey);
             await savePersistedAlerts(sentOverdueMemory, sentRemindersMemory);
             result.monthlyRemindersSent++;
-          } else {
-            result.errors.push(`Monthly 1-day reminder not delivered for "${task.title}": ${sendResult?.error || "Unknown delivery error"}`);
           }
         } catch (err: any) {
           result.errors.push(`Failed to send monthly 1-day reminder for task ${task.id}: ${err.message}`);
@@ -194,31 +221,37 @@ export async function checkAndSendTaskAlerts(options?: { force?: boolean }): Pro
       }
 
       // CASE A: 2 Hours Before Deadline Alert
-      // Trigger if due within 2 hours, BUT SKIP if total task lifetime is less than 2 hours.
       const isDueInTwoHours = msUntilDue > 0 && msUntilDue <= TWO_HOURS_MS;
       const isEligibleDuration = totalDurationMs >= TWO_HOURS_MS;
       const reminderAlreadySent = sentRemindersMemory.has(task.id);
 
       if (isDueInTwoHours && isEligibleDuration && (!reminderAlreadySent || options?.force)) {
         try {
-          const sendResult = await sendTaskDueSoonEmail({
-            taskTitle: task.title,
-            description: task.description,
-            dueDate: task.dueDate,
-            priority: task.priority,
-            institutionName: task.institutionName || task.institution?.instituteName,
-            assignedByName: assignedByName,
-            assignedToEmail: primaryEmail,
-            assignedToName: primaryName,
-            hoursRemaining: 2,
-          });
+          let anySent = false;
+          const seen = new Set<string>();
+          for (const recipient of assigneesList) {
+            if (!recipient.email || seen.has(recipient.email.toLowerCase())) continue;
+            seen.add(recipient.email.toLowerCase());
 
-          if (sendResult?.success) {
+            const sendResult = await sendTaskDueSoonEmail({
+              taskTitle: task.title,
+              description: task.description,
+              dueDate: task.dueDate,
+              priority: task.priority,
+              institutionName: task.institutionName || task.institution?.instituteName,
+              assignedByName: assignedByName,
+              assignedToEmail: recipient.email,
+              assignedToName: recipient.name,
+              hoursRemaining: 2,
+            });
+
+            if (sendResult?.success) anySent = true;
+          }
+
+          if (anySent) {
             sentRemindersMemory.add(task.id);
             await savePersistedAlerts(sentOverdueMemory, sentRemindersMemory);
             result.remindersSent++;
-          } else {
-            result.errors.push(`2h reminder not delivered for "${task.title}": ${sendResult?.error || "Unknown delivery error"}`);
           }
         } catch (err: any) {
           result.errors.push(`Failed to send 2h reminder for task ${task.id}: ${err.message}`);
@@ -238,25 +271,32 @@ export async function checkAndSendTaskAlerts(options?: { force?: boolean }): Pro
             timeOverdueText = `This task is overdue by ${daysOverdue} days.`;
           }
 
-          const sendResult = await sendTaskOverdueEmail({
-            taskTitle: task.title,
-            description: task.description,
-            dueDate: task.dueDate,
-            priority: task.priority,
-            institutionName: task.institutionName || task.institution?.instituteName,
-            assignedByName: assignedByName,
-            assignedToEmail: primaryEmail,
-            assignedToName: primaryName,
-            assignerEmail: assignerNotificationEmail,
-            timeOverdueText,
-          });
+          let anySent = false;
+          const seen = new Set<string>();
+          for (const recipient of assigneesList) {
+            if (!recipient.email || seen.has(recipient.email.toLowerCase())) continue;
+            seen.add(recipient.email.toLowerCase());
 
-          if (sendResult?.success) {
+            const sendResult = await sendTaskOverdueEmail({
+              taskTitle: task.title,
+              description: task.description,
+              dueDate: task.dueDate,
+              priority: task.priority,
+              institutionName: task.institutionName || task.institution?.instituteName,
+              assignedByName: assignedByName,
+              assignedToEmail: recipient.email,
+              assignedToName: recipient.name,
+              assignerEmail: assignerEmail && assignerEmail.toLowerCase() !== recipient.email.toLowerCase() ? assignerEmail : null,
+              timeOverdueText,
+            });
+
+            if (sendResult?.success) anySent = true;
+          }
+
+          if (anySent) {
             sentOverdueMemory.add(task.id);
             await savePersistedAlerts(sentOverdueMemory, sentRemindersMemory);
             result.overdueSent++;
-          } else {
-            result.errors.push(`Overdue alert not delivered for "${task.title}": ${sendResult?.error || "Unknown delivery error"}`);
           }
         } catch (err: any) {
           result.errors.push(`Failed to send overdue alert for task ${task.id}: ${err.message}`);

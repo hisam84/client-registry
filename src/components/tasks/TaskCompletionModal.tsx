@@ -78,9 +78,22 @@ export function TaskCompletionModal({
             <span className="font-semibold text-brass-700 dark:text-brass-400">
               🏛️ {instName}
             </span>
-            {task.assignedTo && (
-              <span>• #{task.assignedTo.orderSerial} {task.assignedTo.name}</span>
-            )}
+            {(() => {
+              const assigneesList = (task.assignees && task.assignees.length > 0)
+                ? task.assignees.map((a: any) => a.employee).filter(Boolean)
+                : (task.assignedTo ? [task.assignedTo] : []);
+              if (assigneesList.length === 0) return null;
+              return (
+                <div className="flex flex-wrap items-center gap-1">
+                  <span>•</span>
+                  {assigneesList.map((emp: any) => (
+                    <span key={emp.id} className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-500/20">
+                      #{emp.orderSerial} {emp.name}
+                    </span>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
           {Boolean(task.isMonthly) && (
             <div className="mt-2 p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs text-purple-700 dark:text-purple-300 flex items-center gap-2">

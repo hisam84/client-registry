@@ -297,6 +297,14 @@ export interface Employee {
   };
 }
 
+export interface TaskAssigneeItem {
+  id: string;
+  taskId: string;
+  employeeId: string;
+  employee: Employee;
+  assignedAt?: string;
+}
+
 export interface TaskItem {
   id: string;
   title: string;
@@ -316,6 +324,7 @@ export interface TaskItem {
   } | null;
   assignedToId?: string | null;
   assignedTo?: Employee | null;
+  assignees?: TaskAssigneeItem[];
   assignedById?: string | null;
   assignedBy?: Employee | null;
   subtasks?: SubtaskItem[];

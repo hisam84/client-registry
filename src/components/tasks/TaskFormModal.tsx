@@ -51,6 +51,7 @@ export function TaskFormModal({
   const [newSubtaskInput, setNewSubtaskInput] = useState("");
 
   const [institutions, setInstitutions] = useState<Institution[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [selectedInstId, setSelectedInstId] = useState<string>(
     initialTask?.institutionId || prefilledInstitutionId || ""
   );
@@ -58,13 +59,20 @@ export function TaskFormModal({
     initialTask?.institutionName || prefilledInstitutionName || ""
   );
 
-  // Employee Assignment State
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [assignedToId, setAssignedToId] = useState<string>(
-    initialTask?.assignedToId !== undefined
-      ? initialTask.assignedToId || ""
-      : currentUser.id !== "super-admin" ? currentUser.id : ""
-  );
+  // Multi-Employee Assignment State
+  const initialAssigneeIds: string[] = (() => {
+    if (initialTask?.assignees && Array.isArray(initialTask.assignees) && initialTask.assignees.length > 0) {
+      return Array.from(new Set(initialTask.assignees.map((a) => a.employeeId).filter(Boolean)));
+    }
+    if (initialTask?.assignedToId) {
+      return [initialTask.assignedToId];
+    }
+    if (currentUser.id !== "super-admin") {
+      return [currentUser.id];
+    }
+    return [];
+  })();
+  const [assignedToIds, setAssignedToIds] = useState<string[]>(initialAssigneeIds);
 
   const [loadingInst, setLoadingInst] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -91,6 +99,21 @@ export function TaskFormModal({
     loadData();
   }, []);
 
+  function handleToggleEmployee(empId: string) {
+    setAssignedToIds((prev) =>
+      prev.includes(empId) ? prev.filter((id) => id !== empId) : [...prev, empId]
+    );
+  }
+
+  function handleSelectAllEmployees() {
+    const allIds = employees.map((e) => e.id);
+    setAssignedToIds(allIds);
+  }
+
+  function handleClearAllEmployees() {
+    setAssignedToIds([]);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim()) {
@@ -116,7 +139,8 @@ export function TaskFormModal({
         progress,
         institutionId: selectedInstId || null,
         institutionName: customInstName.trim() || null,
-        assignedToId: assignedToId || null,
+        assignedToIds,
+        assignedToId: assignedToIds[0] || null,
         assignedById: initialTask?.assignedById || currentUser.id,
         subtasks: subtasks.filter((s) => s.trim().length > 0),
         isMonthly,
@@ -161,25 +185,86 @@ export function TaskFormModal({
           </div>
         )}
 
-        {/* Employee Assignment Dropdown - Single Clean Box */}
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            Assign Employee
-          </label>
+        {/* Multi-Employee Assignment Box */}
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 p-3 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+              <svg className="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <span>Assign Employees ({assignedToIds.length} selected)</span>
+            </label>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleSelectAllEmployees}
+                className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+              >
+                Select All
+              </button>
+              <span className="text-slate-300 dark:text-slate-700">•</span>
+              <button
+                type="button"
+                onClick={handleClearAllEmployees}
+                className="text-[11px] font-semibold text-slate-500 hover:text-red-500 transition-colors"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+
+          {/* Selected Employee Pills */}
+          {assignedToIds.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-1">
+              {assignedToIds.map((empId) => {
+                const emp = employees.find((e) => e.id === empId);
+                return (
+                  <span
+                    key={empId}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-purple-300 dark:border-purple-800/60 text-xs font-semibold text-purple-950 dark:text-purple-200 shadow-2xs"
+                  >
+                    <span
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: emp?.avatarColor || "#7C3AED" }}
+                    />
+                    <span>#{emp?.orderSerial || 0} {emp?.name || "Employee"}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleEmployee(empId)}
+                      className="ml-0.5 text-slate-400 hover:text-red-500 transition-colors"
+                      title="Remove employee"
+                    >
+                      ✕
+                    </button>
+                  </span>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-[11px] text-slate-400 italic">
+              No employees assigned yet. Select below to assign one or more team members.
+            </p>
+          )}
+
+          {/* Quick Add Employee Dropdown */}
           <select
-            value={assignedToId}
-            onChange={(e) => setAssignedToId(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#2196F3] font-medium"
+            value=""
+            onChange={(e) => {
+              if (e.target.value) {
+                handleToggleEmployee(e.target.value);
+              }
+            }}
+            className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#2196F3] font-medium"
           >
-            <option value="">Select employee</option>
-            {currentUser.id === "super-admin" && (
-              <option value="super-admin">Super Admin (Self)</option>
-            )}
-            {employees.map((emp) => (
-              <option key={emp.id} value={emp.id}>
-                {emp.name} ({emp.designation || emp.role})
-              </option>
-            ))}
+            <option value="">+ Click to add / assign an employee...</option>
+            {employees.map((emp) => {
+              const isSelected = assignedToIds.includes(emp.id);
+              return (
+                <option key={emp.id} value={emp.id}>
+                  {isSelected ? "✓ " : "+ "} #{emp.orderSerial} {emp.name} ({emp.designation || emp.role}) {isSelected ? "(Assigned)" : ""}
+                </option>
+              );
+            })}
           </select>
         </div>
 

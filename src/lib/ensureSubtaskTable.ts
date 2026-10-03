@@ -44,6 +44,49 @@ export async function ensureSubtaskTable() {
       await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Task_isMonthly_idx" ON "Task"("isMonthly");`);
     } catch {}
 
+    // Ensure TaskAssignee table for multiple employee assignments
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "TaskAssignee" (
+          "id" TEXT NOT NULL PRIMARY KEY,
+          "taskId" TEXT NOT NULL,
+          "employeeId" TEXT NOT NULL,
+          "assignedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+    } catch {}
+
+    try {
+      await prisma.$executeRawUnsafe(`
+        ALTER TABLE "TaskAssignee" 
+        ADD CONSTRAINT "TaskAssignee_taskId_fkey" 
+        FOREIGN KEY ("taskId") REFERENCES "Task"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+      `);
+    } catch {}
+
+    try {
+      await prisma.$executeRawUnsafe(`
+        ALTER TABLE "TaskAssignee" 
+        ADD CONSTRAINT "TaskAssignee_employeeId_fkey" 
+        FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+      `);
+    } catch {}
+
+    try { await prisma.$executeRawUnsafe(`CREATE UNIQUE INDEX IF NOT EXISTS "TaskAssignee_taskId_employeeId_key" ON "TaskAssignee"("taskId", "employeeId");`); } catch {}
+    try { await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "TaskAssignee_taskId_idx" ON "TaskAssignee"("taskId");`); } catch {}
+    try { await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "TaskAssignee_employeeId_idx" ON "TaskAssignee"("employeeId");`); } catch {}
+
+    // Backfill single assignedToId into TaskAssignee
+    try {
+      await prisma.$executeRawUnsafe(`
+        INSERT INTO "TaskAssignee" ("id", "taskId", "employeeId", "assignedAt")
+        SELECT 'mig_' || "id" || '_' || "assignedToId", "id", "assignedToId", "createdAt"
+        FROM "Task"
+        WHERE "assignedToId" IS NOT NULL
+        ON CONFLICT ("taskId", "employeeId") DO NOTHING;
+      `);
+    } catch {}
+
     subtaskTableEnsured = true;
   } catch (err) {
     console.error("ensureSubtaskTable warning:", err);

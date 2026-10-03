@@ -41,6 +41,7 @@ export async function GET(req: NextRequest) {
         { institutionName: { contains: search, mode: "insensitive" } },
         { institution: { instituteName: { contains: search, mode: "insensitive" } } },
         { assignedTo: { name: { contains: search, mode: "insensitive" } } },
+        { assignees: { some: { employee: { name: { contains: search, mode: "insensitive" } } } } },
         { assignedBy: { name: { contains: search, mode: "insensitive" } } },
       ];
     }
@@ -98,13 +99,20 @@ export async function GET(req: NextRequest) {
     if (employeeId && employeeId !== "all") {
       where.OR = [
         { assignedToId: employeeId },
+        { assignees: { some: { employeeId } } },
         { assignedById: employeeId },
       ];
     } else if (assignedToId) {
       if (assignedToId === "unassigned") {
-        where.assignedToId = null;
+        where.AND = [
+          { assignedToId: null },
+          { assignees: { none: {} } }
+        ];
       } else {
-        where.assignedToId = assignedToId;
+        where.OR = [
+          { assignedToId },
+          { assignees: { some: { employeeId: assignedToId } } }
+        ];
       }
     } else if (assignedById) {
       where.assignedById = assignedById;
@@ -113,26 +121,57 @@ export async function GET(req: NextRequest) {
     // Category Tabs Filter
     if (taskCategory && currentUserId) {
       if (taskCategory === "my_tasks") {
-        // All tasks assigned to me
-        where.assignedToId = currentUserId;
+        // All tasks assigned to me (either single primary or via assignees)
+        where.OR = [
+          { assignedToId: currentUserId },
+          { assignees: { some: { employeeId: currentUserId } } }
+        ];
       } else if (taskCategory === "self") {
         // Self assigned: assigned to me AND (assigned by me OR assignedById is null)
-        where.assignedToId = currentUserId;
-        where.OR = [
-          { assignedById: currentUserId },
-          { assignedById: null }
+        where.AND = [
+          {
+            OR: [
+              { assignedToId: currentUserId },
+              { assignees: { some: { employeeId: currentUserId } } }
+            ]
+          },
+          {
+            OR: [
+              { assignedById: currentUserId },
+              { assignedById: null }
+            ]
+          }
         ];
       } else if (taskCategory === "assigned_by_others") {
         // Assigned to me by someone else
-        where.assignedToId = currentUserId;
-        where.assignedById = { not: currentUserId };
+        where.AND = [
+          {
+            OR: [
+              { assignedToId: currentUserId },
+              { assignees: { some: { employeeId: currentUserId } } }
+            ]
+          },
+          { assignedById: { not: currentUserId } }
+        ];
       } else if (taskCategory === "assigned_to_others") {
-        // Tasks assigned by me to another employee
-        where.assignedById = currentUserId;
-        where.assignedToId = { not: currentUserId };
+        // Tasks assigned by me to other employees (where current user is NOT an assignee)
+        where.AND = [
+          { assignedById: currentUserId },
+          {
+            NOT: {
+              OR: [
+                { assignedToId: currentUserId },
+                { assignees: { some: { employeeId: currentUserId } } }
+              ]
+            }
+          }
+        ];
       } else if (taskCategory === "unassigned") {
         // Unassigned tasks
-        where.assignedToId = null;
+        where.AND = [
+          { assignedToId: null },
+          { assignees: { none: {} } }
+        ];
       }
     }
 
@@ -155,6 +194,26 @@ export async function GET(req: NextRequest) {
             designation: true,
             phone: true,
             avatarColor: true,
+          },
+        },
+        assignees: {
+          include: {
+            employee: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                orderSerial: true,
+                designation: true,
+                phone: true,
+                avatarColor: true,
+                avatarUrl: true,
+              },
+            },
+          },
+          orderBy: {
+            assignedAt: "asc",
           },
         },
         assignedBy: {
@@ -227,6 +286,7 @@ export async function POST(req: NextRequest) {
       institutionId,
       institutionName,
       assignedToId,
+      assignedToIds,
       assignedById,
       subtasks,
       isMonthly,
@@ -264,6 +324,13 @@ export async function POST(req: NextRequest) {
     const isMonthlyVal = Boolean(isMonthly);
     const recurringDay = isMonthlyVal ? getDhakaDayOfMonth(parsedDueDate) : null;
 
+    // Collect all unique assignee IDs
+    const rawAssignedIds: string[] = Array.isArray(assignedToIds)
+      ? assignedToIds.map(String).map((s) => s.trim()).filter(Boolean)
+      : (assignedToId ? [String(assignedToId).trim()] : []);
+    const uniqueAssignedIds = Array.from(new Set(rawAssignedIds));
+    const primaryAssignedId = uniqueAssignedIds[0] || null;
+
     const taskData: any = {
       title: title.trim(),
       description: description?.trim() || null,
@@ -276,9 +343,17 @@ export async function POST(req: NextRequest) {
       monthlyRecurringDay: recurringDay,
       institutionId: institutionId || null,
       institutionName: finalInstName || null,
-      assignedToId: assignedToId || null,
+      assignedToId: primaryAssignedId,
       assignedById: assignedById || null,
     };
+
+    if (uniqueAssignedIds.length > 0) {
+      taskData.assignees = {
+        create: uniqueAssignedIds.map((empId) => ({
+          employeeId: empId,
+        })),
+      };
+    }
 
     if (validSubtasks.length > 0) {
       taskData.subtasks = {
@@ -311,6 +386,26 @@ export async function POST(req: NextRequest) {
             avatarColor: true,
           },
         },
+        assignees: {
+          include: {
+            employee: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                orderSerial: true,
+                designation: true,
+                phone: true,
+                avatarColor: true,
+                avatarUrl: true,
+              },
+            },
+          },
+          orderBy: {
+            assignedAt: "asc",
+          },
+        },
         assignedBy: {
           select: {
             id: true,
@@ -331,7 +426,23 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    if (task.assignedTo?.email) {
+    // Send assignment email notifications to ALL assigned employees
+    const allEmployeesToNotify: { name: string; email: string }[] = [];
+    if (task.assignees && task.assignees.length > 0) {
+      for (const a of task.assignees) {
+        if (a.employee?.email) {
+          allEmployeesToNotify.push({ name: a.employee.name, email: a.employee.email });
+        }
+      }
+    } else if (task.assignedTo?.email) {
+      allEmployeesToNotify.push({ name: task.assignedTo.name, email: task.assignedTo.email });
+    }
+
+    // Deduplicate by email
+    const seenEmails = new Set<string>();
+    for (const emp of allEmployeesToNotify) {
+      if (!emp.email || seenEmails.has(emp.email.toLowerCase())) continue;
+      seenEmails.add(emp.email.toLowerCase());
       try {
         await sendTaskAssignmentEmail({
           taskTitle: task.title,
@@ -340,11 +451,11 @@ export async function POST(req: NextRequest) {
           priority: task.priority,
           institutionName: task.institutionName || task.institution?.instituteName,
           assignedByName: task.assignedBy?.name || null,
-          assignedToEmail: task.assignedTo.email,
-          assignedToName: task.assignedTo.name,
+          assignedToEmail: emp.email,
+          assignedToName: emp.name,
         });
       } catch (err) {
-        console.error("Failed to send task assignment email:", err);
+        console.error(`Failed to send task assignment email to ${emp.email}:`, err);
       }
     }
 

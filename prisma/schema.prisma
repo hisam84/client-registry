@@ -116,6 +116,7 @@ model Employee {
 
   assignedTasks          Task[]           @relation("AssignedTasks")
   createdTasks           Task[]           @relation("CreatedTasks")
+  taskAssignees          TaskAssignee[]
 
   @@index([orderSerial])
   @@index([deletedAt])
@@ -139,6 +140,7 @@ model Task {
 
   assignedToId    String?
   assignedTo      Employee?    @relation("AssignedTasks", fields: [assignedToId], references: [id], onDelete: SetNull)
+  assignees       TaskAssignee[]
 
   assignedById    String?
   assignedBy      Employee?    @relation("CreatedTasks", fields: [assignedById], references: [id], onDelete: SetNull)
@@ -157,6 +159,19 @@ model Task {
   @@index([assignedToId])
   @@index([assignedById])
   @@index([deletedAt])
+}
+
+model TaskAssignee {
+  id         String   @id @default(cuid())
+  taskId     String
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  assignedAt DateTime @default(now())
+
+  @@unique([taskId, employeeId])
+  @@index([taskId])
+  @@index([employeeId])
 }
 
 model Subtask {

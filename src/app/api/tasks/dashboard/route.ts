@@ -23,25 +23,57 @@ export async function GET(req: NextRequest) {
     if (employeeId && employeeId !== "all") {
       where.OR = [
         { assignedToId: employeeId },
+        { assignees: { some: { employeeId } } },
         { assignedById: employeeId }
       ];
     } else if (taskCategory && currentUserId) {
       if (taskCategory === "my_tasks") {
-        where.assignedToId = currentUserId;
-      } else if (taskCategory === "self") {
-        where.assignedToId = currentUserId;
         where.OR = [
-          { assignedById: currentUserId },
-          { assignedById: null }
+          { assignedToId: currentUserId },
+          { assignees: { some: { employeeId: currentUserId } } }
+        ];
+      } else if (taskCategory === "self") {
+        where.AND = [
+          {
+            OR: [
+              { assignedToId: currentUserId },
+              { assignees: { some: { employeeId: currentUserId } } }
+            ]
+          },
+          {
+            OR: [
+              { assignedById: currentUserId },
+              { assignedById: null }
+            ]
+          }
         ];
       } else if (taskCategory === "assigned_by_others") {
-        where.assignedToId = currentUserId;
-        where.assignedById = { not: currentUserId };
+        where.AND = [
+          {
+            OR: [
+              { assignedToId: currentUserId },
+              { assignees: { some: { employeeId: currentUserId } } }
+            ]
+          },
+          { assignedById: { not: currentUserId } }
+        ];
       } else if (taskCategory === "assigned_to_others") {
-        where.assignedById = currentUserId;
-        where.assignedToId = { not: currentUserId };
+        where.AND = [
+          { assignedById: currentUserId },
+          {
+            NOT: {
+              OR: [
+                { assignedToId: currentUserId },
+                { assignees: { some: { employeeId: currentUserId } } }
+              ]
+            }
+          }
+        ];
       } else if (taskCategory === "unassigned") {
-        where.assignedToId = null;
+        where.AND = [
+          { assignedToId: null },
+          { assignees: { none: {} } }
+        ];
       }
     }
 
@@ -56,6 +88,9 @@ export async function GET(req: NextRequest) {
         },
         assignedTo: {
           select: { id: true, name: true }
+        },
+        assignees: {
+          select: { employeeId: true }
         },
         assignedBy: {
           select: { id: true, name: true }
@@ -73,7 +108,7 @@ export async function GET(req: NextRequest) {
     const inProgressTasks = allTasks.filter((t) => t.status === "In Progress").length;
     const inReviewTasks = allTasks.filter((t) => t.status === "In Review").length;
     const cancelledTasks = allTasks.filter((t) => t.status === "Canceled" || t.status === "Cancelled").length;
-    const unassignedTasks = allTasks.filter((t) => !t.assignedToId).length;
+    const unassignedTasks = allTasks.filter((t) => !t.assignedToId && (!t.assignees || t.assignees.length === 0)).length;
 
     const overdueTasks = allTasks.filter(
       (t) => new Date(t.dueDate) < now && !isTerminal(t.status)
