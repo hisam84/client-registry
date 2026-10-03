@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendTaskAssignmentEmail } from "@/lib/mailer";
-import { parseDhakaDateTimeInput } from "@/lib/dateUtils";
+import { parseDhakaDateTimeInput, getDhakaDayOfMonth } from "@/lib/dateUtils";
 import { ensureSubtaskTable } from "@/lib/ensureSubtaskTable";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// GET /api/tasks?search=&status=&priority=&upcoming=&institutionId=&assignedToId=&assignedById=&taskCategory=&currentUserId=&employeeId=
+// GET /api/tasks?search=&status=&priority=&upcoming=&institutionId=&assignedToId=&assignedById=&taskCategory=&currentUserId=&employeeId=&monthly=
 export async function GET(req: NextRequest) {
   try {
     await ensureSubtaskTable();
@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
     const upcoming = params.get("upcoming"); // "true" or "false"
     const overdue = params.get("overdue"); // "true" or "false"
     const alerts = params.get("alerts"); // "true" or "false" (overdue + tasks due within 24 hours)
+    const monthly = params.get("monthly"); // "true" or "false"
     const institutionId = params.get("institutionId");
     const assignedToId = params.get("assignedToId");
     const assignedById = params.get("assignedById");
@@ -26,6 +27,12 @@ export async function GET(req: NextRequest) {
     const employeeId = params.get("employeeId"); // Super Admin filter
 
     const where: any = { deletedAt: null };
+
+    if (monthly === "true") {
+      where.isMonthly = true;
+    } else if (monthly === "false") {
+      where.isMonthly = false;
+    }
 
     if (search) {
       where.OR = [
@@ -222,6 +229,7 @@ export async function POST(req: NextRequest) {
       assignedToId,
       assignedById,
       subtasks,
+      isMonthly,
     } = body;
 
     if (!title || typeof title !== "string" || !title.trim()) {
@@ -252,14 +260,20 @@ export async function POST(req: NextRequest) {
       ? Math.min(100, Math.max(0, Number(progress)))
       : (taskStatus === "Completed" ? 100 : 0);
 
+    const parsedDueDate = parseDhakaDateTimeInput(dueDate);
+    const isMonthlyVal = Boolean(isMonthly);
+    const recurringDay = isMonthlyVal ? getDhakaDayOfMonth(parsedDueDate) : null;
+
     const taskData: any = {
       title: title.trim(),
       description: description?.trim() || null,
-      dueDate: parseDhakaDateTimeInput(dueDate),
+      dueDate: parsedDueDate,
       status: taskStatus,
       priority: priority === "Argent" ? "Urgent" : (priority || "Medium"),
       completionNote: completionNote?.trim() || null,
       progress: progressVal,
+      isMonthly: isMonthlyVal,
+      monthlyRecurringDay: recurringDay,
       institutionId: institutionId || null,
       institutionName: finalInstName || null,
       assignedToId: assignedToId || null,

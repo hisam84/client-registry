@@ -39,6 +39,7 @@ export function TaskFormModal({
   const [priority, setPriority] = useState<TaskPriority>(normalizedInitialPriority);
   const [completionNote, setCompletionNote] = useState(initialTask?.completionNote || "");
   const [progress, setProgress] = useState<number>(initialTask?.progress ?? (initialTask?.status === "Completed" ? 100 : 0));
+  const [isMonthly, setIsMonthly] = useState<boolean>(Boolean(initialTask?.isMonthly));
 
   // Subtasks State
   const [subtasks, setSubtasks] = useState<string[]>(() => {
@@ -118,6 +119,7 @@ export function TaskFormModal({
         assignedToId: assignedToId || null,
         assignedById: initialTask?.assignedById || currentUser.id,
         subtasks: subtasks.filter((s) => s.trim().length > 0),
+        isMonthly,
       };
 
       const url = initialTask ? `/api/tasks/${initialTask.id}` : "/api/tasks";
@@ -229,6 +231,32 @@ export function TaskFormModal({
             required
             className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#2196F3] font-mono"
           />
+        </div>
+
+        {/* Monthly Recurring Task Toggle */}
+        <div className="rounded-xl border border-purple-200 dark:border-purple-900/60 bg-purple-50/60 dark:bg-purple-950/30 p-3 transition-colors">
+          <label className="flex items-start gap-3 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={isMonthly}
+              onChange={(e) => setIsMonthly(e.target.checked)}
+              className="mt-0.5 rounded border-purple-300 dark:border-purple-700 text-purple-600 focus:ring-purple-500 h-4 w-4 cursor-pointer"
+            />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-purple-950 dark:text-purple-200 flex items-center gap-1.5">
+                  <span className="text-sm">🔁</span>
+                  <span>Repeat Every Month (Monthly Task)</span>
+                </span>
+                <span className="px-1.5 py-0.2 bg-purple-200/70 dark:bg-purple-800/60 text-purple-800 dark:text-purple-300 text-[10px] font-bold rounded-full">
+                  মাসিক টাস্ক
+                </span>
+              </div>
+              <p className="text-[11px] text-purple-700 dark:text-purple-300 mt-0.5 leading-normal">
+                This task repeats every month. System will show and dispatch a reminder notification <strong>1 day in advance (১ দিন আগে)</strong>.
+              </p>
+            </div>
+          </label>
         </div>
 
         {/* Priority & Status */}

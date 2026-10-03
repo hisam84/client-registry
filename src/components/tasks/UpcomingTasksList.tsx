@@ -151,7 +151,7 @@ export function UpcomingTasksList({
     }
   }
 
-  function getRelativeTimeBadge(dueDateStr: string, status: string) {
+  function getRelativeTimeBadge(dueDateStr: string, status: string, isMonthly?: boolean) {
     if (status === "Completed") {
       return (
         <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap">
@@ -193,8 +193,12 @@ export function UpcomingTasksList({
 
     if (diffDays === 1) {
       return (
-        <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30 whitespace-nowrap">
-          Tomorrow ({timeStr})
+        <span className={`px-2 py-0.5 rounded text-[11px] font-medium whitespace-nowrap border ${
+          isMonthly
+            ? "bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30 font-bold"
+            : "bg-sky-500/15 text-sky-600 dark:text-sky-400 border-sky-500/30"
+        }`}>
+          {isMonthly ? `Tomorrow • 1-Day Reminder (${timeStr})` : `Tomorrow (${timeStr})`}
         </span>
       );
     }
@@ -367,6 +371,14 @@ export function UpcomingTasksList({
                 <span className="inline-flex items-center text-[11px] font-medium text-brass-700 dark:text-brass-400 bg-brass-500/10 px-2 py-0.5 rounded-md break-all">
                   {instName}
                 </span>
+
+                {/* Monthly Recurring Pill */}
+                {Boolean(task.isMonthly) && (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-purple-700 dark:text-purple-300 bg-purple-500/15 border border-purple-500/30 px-2 py-0.5 rounded-md">
+                    <span className="text-[10px]">🔁</span>
+                    <span>Monthly</span>
+                  </span>
+                )}
               </div>
 
               {/* Task details text */}
@@ -639,7 +651,7 @@ export function UpcomingTasksList({
                   return null;
                 })()}
 
-                {getRelativeTimeBadge(task.dueDate, task.status)}
+                {getRelativeTimeBadge(task.dueDate, task.status, task.isMonthly)}
 
                 <span
                   className={`px-2 py-0.5 rounded text-[11px] font-medium border whitespace-nowrap ${

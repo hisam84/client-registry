@@ -44,6 +44,7 @@ export default function TasksPage() {
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [selectedMonthFilter, setSelectedMonthFilter] = useState<string>("all");
   const [upcomingOnly, setUpcomingOnly] = useState<boolean>(false);
+  const [monthlyOnly, setMonthlyOnly] = useState<boolean>(false);
 
   // Dashboard metrics
   const [metrics, setMetrics] = useState({
@@ -56,6 +57,8 @@ export default function TasksPage() {
     cancelledTasks: 0,
     unassignedTasks: 0,
     overdueTasks: 0,
+    monthlyTasks: 0,
+    activeMonthlyTasks: 0,
     tasksToday: 0,
     upcomingTasks: 0,
     next7Days: [],
@@ -110,6 +113,7 @@ export default function TasksPage() {
       if (statusFilter && statusFilter !== "all") params.set("status", statusFilter);
       if (priorityFilter && priorityFilter !== "all") params.set("priority", priorityFilter);
       if (upcomingOnly) params.set("upcoming", "true");
+      if (monthlyOnly) params.set("monthly", "true");
 
       if (selectedEmployeeFilter !== "all") {
         params.set("employeeId", selectedEmployeeFilter);
@@ -211,7 +215,7 @@ export default function TasksPage() {
       window.removeEventListener("focus", handleSync);
       clearInterval(pollTimer);
     };
-  }, [search, statusFilter, priorityFilter, upcomingOnly, selectedEmployeeFilter, activeTab, currentUser.id]);
+  }, [search, statusFilter, priorityFilter, upcomingOnly, monthlyOnly, selectedEmployeeFilter, activeTab, currentUser.id]);
 
   function handleRefresh() {
     if (typeof window !== "undefined") {
@@ -290,10 +294,11 @@ export default function TasksPage() {
       </div>
 
       {/* Top Stat Summary Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4 mb-6">
         <div
           onClick={() => {
             setStatusFilter("all");
+            setMonthlyOnly(false);
             setUpcomingOnly(true);
           }}
           className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm cursor-pointer hover:border-amber-400/60 transition-colors"
@@ -321,6 +326,29 @@ export default function TasksPage() {
         <div
           onClick={() => {
             setUpcomingOnly(false);
+            setStatusFilter("all");
+            setMonthlyOnly(!monthlyOnly);
+          }}
+          className={`rounded-xl border p-4 shadow-sm cursor-pointer transition-colors ${
+            monthlyOnly
+              ? "border-purple-500/60 bg-purple-500/5 dark:bg-purple-500/10 shadow-xs"
+              : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-purple-400/60"
+          }`}
+          title="Click to filter recurring monthly tasks"
+        >
+          <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
+            <span>Monthly Tasks</span>
+            <span className="text-purple-600 dark:text-purple-400 font-bold">🔁 Recurring</span>
+          </div>
+          <div className="mt-2 text-2xl font-bold text-purple-600 dark:text-purple-400 font-mono">
+            {(metrics as any).monthlyTasks ?? 0}
+          </div>
+        </div>
+
+        <div
+          onClick={() => {
+            setUpcomingOnly(false);
+            setMonthlyOnly(false);
             setStatusFilter(statusFilter === "Overdue" ? "all" : "Overdue");
           }}
           className={`rounded-xl border p-4 shadow-sm cursor-pointer transition-colors ${
@@ -342,6 +370,7 @@ export default function TasksPage() {
         <div
           onClick={() => {
             setUpcomingOnly(false);
+            setMonthlyOnly(false);
             setStatusFilter(statusFilter === "Completed" ? "all" : "Completed");
           }}
           className={`rounded-xl border p-4 shadow-sm cursor-pointer transition-colors ${
@@ -545,6 +574,19 @@ export default function TasksPage() {
               Overdue Only ({metrics.overdueTasks})
             </button>
 
+            <button
+              onClick={() => setMonthlyOnly(!monthlyOnly)}
+              className={`px-3 py-1.5 rounded-lg font-semibold border transition-all flex items-center gap-1.5 ${
+                monthlyOnly
+                  ? "bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/40 shadow-xs"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-200 dark:hover:bg-slate-700"
+              }`}
+              title="Filter monthly recurring tasks"
+            >
+              <span>🔁</span>
+              <span>Monthly Recurring ({(metrics as any).monthlyTasks ?? 0})</span>
+            </button>
+
             {/* Filter by Employee / User */}
             <select
               value={selectedEmployeeFilter}
@@ -611,7 +653,7 @@ export default function TasksPage() {
               <option value="Low">Low Priority</option>
             </select>
 
-            {(search || statusFilter !== "all" || priorityFilter !== "all" || selectedMonthFilter !== "all" || upcomingOnly || selectedEmployeeFilter !== "all" || activeTab !== "my_tasks") && (
+            {(search || statusFilter !== "all" || priorityFilter !== "all" || selectedMonthFilter !== "all" || upcomingOnly || monthlyOnly || selectedEmployeeFilter !== "all" || activeTab !== "my_tasks") && (
               <button
                 onClick={() => {
                   setSearch("");
@@ -619,6 +661,7 @@ export default function TasksPage() {
                   setPriorityFilter("all");
                   setSelectedMonthFilter("all");
                   setUpcomingOnly(false);
+                  setMonthlyOnly(false);
                   setSelectedEmployeeFilter("all");
                   setActiveTab(isSuperAdmin ? "all" : "my_tasks");
                   setMainTab("my_tasks");

@@ -367,10 +367,16 @@ export function SidebarLayout({
                           }`}
                         >
                           <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-1.5 flex-wrap">
                               {isOverdue && (
                                 <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-600 text-white uppercase tracking-wider shrink-0">
                                   Overdue
+                                </span>
+                              )}
+                              {Boolean(t.isMonthly) && !isOverdue && (
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-600 text-white tracking-wider shrink-0 flex items-center gap-0.5">
+                                  <span>🔁</span>
+                                  <span>Monthly (1-day reminder)</span>
                                 </span>
                               )}
                               <span className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
@@ -384,10 +390,12 @@ export function SidebarLayout({
                               className={`text-[10px] font-semibold block mt-1 ${
                                 isOverdue
                                   ? "text-red-600 dark:text-red-400 font-bold"
+                                  : t.isMonthly
+                                  ? "text-purple-600 dark:text-purple-400 font-bold"
                                   : "text-amber-600 dark:text-amber-400"
                               }`}
                             >
-                              {isOverdue ? "Deadline was: " : "Due: "}
+                              {isOverdue ? "Deadline was: " : t.isMonthly ? "📅 Due Tomorrow (1-Day Notice): " : "Due: "}
                               {formatDhakaDate(due, { month: "short", day: "numeric" })},{" "}
                               {formatDhakaTime(due, { hour: "2-digit", minute: "2-digit" })}
                             </span>
@@ -792,10 +800,16 @@ export function SidebarLayout({
                               }`}
                             >
                               <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-1.5">
+                                <div className="flex items-center gap-1.5 flex-wrap">
                                   {isOverdue && (
                                     <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-600 text-white uppercase tracking-wider shrink-0">
                                       Overdue
+                                    </span>
+                                  )}
+                                  {Boolean(t.isMonthly) && !isOverdue && (
+                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-600 text-white tracking-wider shrink-0 flex items-center gap-0.5">
+                                      <span>🔁</span>
+                                      <span>Monthly (1-day reminder)</span>
                                     </span>
                                   )}
                                   <span className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
@@ -809,10 +823,12 @@ export function SidebarLayout({
                                   className={`text-[10px] font-semibold block mt-1 ${
                                     isOverdue
                                       ? "text-red-600 dark:text-red-400 font-bold"
+                                      : t.isMonthly
+                                      ? "text-purple-600 dark:text-purple-400 font-bold"
                                       : "text-amber-600 dark:text-amber-400"
                                   }`}
                                 >
-                                  {isOverdue ? "Deadline was: " : "Due: "}
+                                  {isOverdue ? "Deadline was: " : t.isMonthly ? "📅 Due Tomorrow (1-Day Notice): " : "Due: "}
                                   {formatDhakaDate(due, { month: "short", day: "numeric" })},{" "}
                                   {formatDhakaTime(due, { hour: "2-digit", minute: "2-digit" })}
                                 </span>

@@ -33,6 +33,17 @@ export async function ensureSubtaskTable() {
     try { await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Subtask_taskId_idx" ON "Subtask"("taskId");`); } catch {}
     try { await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Subtask_isCompleted_idx" ON "Subtask"("isCompleted");`); } catch {}
 
+    // Ensure isMonthly and monthlyRecurringDay columns on Task
+    try {
+      await prisma.$executeRawUnsafe(`ALTER TABLE "Task" ADD COLUMN IF NOT EXISTS "isMonthly" BOOLEAN NOT NULL DEFAULT false;`);
+    } catch {}
+    try {
+      await prisma.$executeRawUnsafe(`ALTER TABLE "Task" ADD COLUMN IF NOT EXISTS "monthlyRecurringDay" INTEGER;`);
+    } catch {}
+    try {
+      await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Task_isMonthly_idx" ON "Task"("isMonthly");`);
+    } catch {}
+
     subtaskTableEnsured = true;
   } catch (err) {
     console.error("ensureSubtaskTable warning:", err);

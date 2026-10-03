@@ -209,3 +209,65 @@ export function parseDhakaDateTimeInput(dateStr?: string | null): Date {
 
   return new Date(trimmed);
 }
+
+/**
+ * Returns the day of the month (1-31) in Asia/Dhaka timezone.
+ */
+export function getDhakaDayOfMonth(dateInput?: string | Date | number | null): number {
+  const d = dateInput ? new Date(dateInput) : new Date();
+  if (isNaN(d.getTime())) return 1;
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: DHAKA_TIMEZONE,
+    day: "numeric",
+  }).formatToParts(d);
+  const dayStr = parts.find((p) => p.type === "day")?.value;
+  return dayStr ? parseInt(dayStr, 10) : 1;
+}
+
+/**
+ * Computes the exact next month's due date in Asia/Dhaka timezone,
+ * preserving hour and minute, and clamping to the maximum day of the target month.
+ */
+export function getNextMonthlyDate(currentDate: Date | string, preferredDay?: number): Date {
+  const d = new Date(currentDate);
+  if (isNaN(d.getTime())) return new Date();
+
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: DHAKA_TIMEZONE,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    hourCycle: "h23",
+  }).formatToParts(d);
+
+  const partsMap: Record<string, number> = {};
+  parts.forEach((p) => {
+    if (p.type !== "literal") {
+      partsMap[p.type] = parseInt(p.value, 10);
+    }
+  });
+
+  let year = partsMap.year;
+  let month = partsMap.month; // 1-12
+  const originalDay = preferredDay || partsMap.day || 1;
+  const hour = partsMap.hour ?? 0;
+  const minute = partsMap.minute ?? 0;
+
+  // Advance by 1 calendar month
+  month += 1;
+  if (month > 12) {
+    month = 1;
+    year += 1;
+  }
+
+  // Handle month length clamping (e.g., Jan 31 -> Feb 28/29)
+  const maxDaysInTargetMonth = new Date(year, month, 0).getDate();
+  const clampedDay = Math.min(originalDay, maxDaysInTargetMonth);
+
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const isoStr = `${year}-${pad(month)}-${pad(clampedDay)}T${pad(hour)}:${pad(minute)}:00+06:00`;
+  return new Date(isoStr);
+}
+

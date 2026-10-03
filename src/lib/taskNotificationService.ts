@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { sendTaskDueSoonEmail, sendTaskOverdueEmail } from "@/lib/mailer";
+import { sendTaskDueSoonEmail, sendTaskOverdueEmail, sendMonthlyTaskReminderEmail } from "@/lib/mailer";
+import { ensureSubtaskTable } from "@/lib/ensureSubtaskTable";
 
 // In-memory cache for fast lookups
 const sentRemindersMemory = new Set<string>();
@@ -8,6 +9,7 @@ const sentOverdueMemory = new Set<string>();
 export interface TaskAlertCheckResult {
   checkedCount: number;
   remindersSent: number;
+  monthlyRemindersSent: number;
   overdueSent: number;
   errors: string[];
 }
@@ -91,11 +93,14 @@ export async function checkAndSendTaskAlerts(options?: { force?: boolean }): Pro
   const result: TaskAlertCheckResult = {
     checkedCount: 0,
     remindersSent: 0,
+    monthlyRemindersSent: 0,
     overdueSent: 0,
     errors: [],
   };
 
   try {
+    await ensureSubtaskTable();
+
     // Synchronize with database persistent record
     const persisted = await loadPersistedAlerts();
     for (const id of persisted.overdue) sentOverdueMemory.add(id);
@@ -138,6 +143,7 @@ export async function checkAndSendTaskAlerts(options?: { force?: boolean }): Pro
     result.checkedCount = tasks.length;
     const now = new Date();
     const TWO_HOURS_MS = 2 * 60 * 60 * 1000; // 7,200,000 ms
+    const ONE_DAY_MS = 24 * 60 * 60 * 1000; // 86,400,000 ms
 
     for (const task of tasks) {
       const dueDate = new Date(task.dueDate);
@@ -154,6 +160,38 @@ export async function checkAndSendTaskAlerts(options?: { force?: boolean }): Pro
       const primaryEmail = assignedToEmail || assignedByEmail || "imperialitbd2011@gmail.com";
       const primaryName = assignedToEmail ? assignedToName : (assignedByEmail ? assignedByName : "System Administrator");
       const assignerNotificationEmail = assignedByEmail || (assignedToEmail ? null : "imperialitbd2011@gmail.com");
+
+      // CASE 1: Monthly Task 1-Day Advance Reminder (24-Hour Notice)
+      // "the monthly task reminder should show at one day age" (1 day before / 24h prior)
+      const isDueInOneDay = msUntilDue > 0 && msUntilDue <= ONE_DAY_MS;
+      const monthlyKey = `monthly_1day_${task.id}`;
+      const monthlyAlreadySent = sentRemindersMemory.has(monthlyKey);
+
+      if (Boolean(task.isMonthly) && isDueInOneDay && (!monthlyAlreadySent || options?.force)) {
+        try {
+          const sendResult = await sendMonthlyTaskReminderEmail({
+            taskTitle: task.title,
+            description: task.description,
+            dueDate: task.dueDate,
+            priority: task.priority,
+            institutionName: task.institutionName || task.institution?.instituteName,
+            assignedByName: assignedByName,
+            assignedToEmail: primaryEmail,
+            assignedToName: primaryName,
+            hoursRemaining: Math.max(1, Math.round(msUntilDue / (1000 * 60 * 60))),
+          });
+
+          if (sendResult?.success) {
+            sentRemindersMemory.add(monthlyKey);
+            await savePersistedAlerts(sentOverdueMemory, sentRemindersMemory);
+            result.monthlyRemindersSent++;
+          } else {
+            result.errors.push(`Monthly 1-day reminder not delivered for "${task.title}": ${sendResult?.error || "Unknown delivery error"}`);
+          }
+        } catch (err: any) {
+          result.errors.push(`Failed to send monthly 1-day reminder for task ${task.id}: ${err.message}`);
+        }
+      }
 
       // CASE A: 2 Hours Before Deadline Alert
       // Trigger if due within 2 hours, BUT SKIP if total task lifetime is less than 2 hours.

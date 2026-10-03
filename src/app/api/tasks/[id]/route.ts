@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendTaskAssignmentEmail, sendTaskCompletionEmail } from "@/lib/mailer";
-import { parseDhakaDateTimeInput } from "@/lib/dateUtils";
+import { parseDhakaDateTimeInput, getNextMonthlyDate, getDhakaDayOfMonth } from "@/lib/dateUtils";
 import { ensureSubtaskTable } from "@/lib/ensureSubtaskTable";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
@@ -74,7 +74,20 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       institutionName,
       assignedToId,
       assignedById,
+      isMonthly,
     } = body;
+
+    const existingTask = await (prisma as any).task.findUnique({
+      where: { id: params.id },
+      select: {
+        id: true,
+        status: true,
+        dueDate: true,
+        assignedToId: true,
+        isMonthly: true,
+        monthlyRecurringDay: true,
+      },
+    });
 
     const data: any = {};
     if (title !== undefined) data.title = title.trim();
@@ -83,6 +96,13 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (status !== undefined) data.status = status;
     if (priority !== undefined) data.priority = priority === "Argent" ? "Urgent" : priority;
     if (completionNote !== undefined) data.completionNote = completionNote ? completionNote.trim() : null;
+
+    if (isMonthly !== undefined) {
+      data.isMonthly = Boolean(isMonthly);
+      if (data.isMonthly) {
+        data.monthlyRecurringDay = getDhakaDayOfMonth(data.dueDate || existingTask?.dueDate);
+      }
+    }
 
     if (progress !== undefined) {
       data.progress = Math.min(100, Math.max(0, Number(progress)));
@@ -103,11 +123,6 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       });
       if (inst) data.institutionName = inst.instituteName;
     }
-
-    const existingTask = await (prisma as any).task.findUnique({
-      where: { id: params.id },
-      select: { assignedToId: true },
-    });
 
     const updated = await (prisma as any).task.update({
       where: { id: params.id },
@@ -198,6 +213,63 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         } catch (err) {
           console.error("Failed to send task completion confirmation email:", err);
         }
+      }
+    }
+
+    // Auto-create next month's task instance if this is a recurring monthly task
+    const isBecomingCompleted = updated.status === "Completed" && existingTask?.status !== "Completed";
+    const isMonthlyRecurring = Boolean(updated.isMonthly || existingTask?.isMonthly);
+
+    if (isBecomingCompleted && isMonthlyRecurring) {
+      try {
+        const nextDueDate = getNextMonthlyDate(
+          updated.dueDate,
+          updated.monthlyRecurringDay || undefined
+        );
+
+        // Safeguard: Check if next month's task already exists
+        const startWindow = new Date(nextDueDate.getTime() - 15 * 24 * 60 * 60 * 1000);
+        const endWindow = new Date(nextDueDate.getTime() + 15 * 24 * 60 * 60 * 1000);
+
+        const existingNext = await (prisma as any).task.findFirst({
+          where: {
+            deletedAt: null,
+            title: updated.title,
+            institutionId: updated.institutionId,
+            isMonthly: true,
+            dueDate: { gte: startWindow, lte: endWindow },
+          },
+        });
+
+        if (!existingNext) {
+          await (prisma as any).task.create({
+            data: {
+              title: updated.title,
+              description: updated.description,
+              dueDate: nextDueDate,
+              status: "To Do",
+              priority: updated.priority,
+              progress: 0,
+              isMonthly: true,
+              monthlyRecurringDay: updated.monthlyRecurringDay || getDhakaDayOfMonth(updated.dueDate),
+              institutionId: updated.institutionId,
+              institutionName: updated.institutionName,
+              assignedToId: updated.assignedToId,
+              assignedById: updated.assignedById,
+              subtasks: updated.subtasks && updated.subtasks.length > 0
+                ? {
+                    create: updated.subtasks.map((st: any) => ({
+                      title: st.title,
+                      createdById: updated.assignedById || null,
+                      isCompleted: false,
+                    })),
+                  }
+                : undefined,
+            },
+          });
+        }
+      } catch (err) {
+        console.error("Failed to auto-schedule next monthly task instance:", err);
       }
     }
 

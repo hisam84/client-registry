@@ -683,6 +683,196 @@ Client Registry Management System (impdatabase.vercel.app)
 }
 
 /**
+ * 3.5. Monthly Task 1-Day (24-Hour) Advance Reminder Email
+ */
+export async function sendMonthlyTaskReminderEmail(data: TaskAlertEmailData): Promise<{ success: boolean; error?: string }> {
+  const settings = await getMailSettings();
+  if (!settings.masterEnabled || !settings.taskDueSoon) {
+    console.log("Monthly task 1-day reminder email skipped: service disabled in Mail Settings.");
+    return { success: false, error: "Task reminder email service is currently disabled." };
+  }
+
+  const {
+    taskTitle,
+    description,
+    dueDate,
+    priority,
+    institutionName,
+    assignedByName,
+    assignedToEmail,
+    assignedToName,
+  } = data;
+
+  if (!assignedToEmail) {
+    return { success: false, error: "No recipient email address provided." };
+  }
+
+  const formattedDate = formatDhakaDateTime(dueDate);
+  const assignedByText = assignedByName || "Administrator";
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monthly Task Reminder — Due Tomorrow</title>
+  <style type="text/css">
+    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    @media only screen and (max-width: 600px) {
+      .container { width: 100% !important; }
+      .cell-content { padding: 20px 14px !important; }
+      .stack-td { display: block !important; width: 100% !important; }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f3f0ff; font-family: Arial, Helvetica, sans-serif; color: #1E293B;">
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f3f0ff;">
+    <tr>
+      <td align="center" style="padding: 24px 12px;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="container" style="max-width: 580px; background-color: #ffffff; border-radius: 12px; border: 1px solid #d8b4fe; overflow: hidden; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.08);">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background-color: #6D28D9; padding: 20px 24px; text-align: center;">
+              <div style="display: inline-block; background-color: rgba(255,255,255,0.2); color: #ffffff; font-size: 11px; font-weight: bold; padding: 3px 10px; border-radius: 12px; margin-bottom: 6px; letter-spacing: 0.5px;">
+                🔁 MONTHLY RECURRING TASK
+              </div>
+              <h1 style="margin: 0; font-size: 18px; font-weight: 700; color: #ffffff;">Monthly Task Reminder — Due Tomorrow (১ দিন আগে রিমাইন্ডার)</h1>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td class="cell-content" style="padding: 26px 24px;">
+              <p style="font-size: 15px; margin: 0 0 12px 0;">Hello <strong>${assignedToName}</strong>,</p>
+              <div style="background-color: #F5F3FF; border-left: 4px solid #7C3AED; padding: 14px 16px; border-radius: 6px; margin-bottom: 20px;">
+                <p style="margin: 0; font-size: 14px; font-weight: 600; color: #5B21B6;">
+                  📅 1-Day Advance Notice: You have a monthly recurring task due tomorrow.
+                </p>
+                <p style="margin: 4px 0 0 0; font-size: 12px; color: #6D28D9;">
+                  This repeated monthly task is scheduled for completion tomorrow. Please prepare in advance.
+                </p>
+              </div>
+
+              <!-- Details Table -->
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; margin-bottom: 24px;">
+                <tr>
+                  <td style="padding: 16px;">
+                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 14px;">
+                      <tr>
+                        <td class="stack-td" style="padding: 6px 0; font-weight: bold; width: 130px; color: #64748B;">Task Title:</td>
+                        <td class="stack-td" style="padding: 6px 0; font-weight: 700; color: #6D28D9;">${taskTitle}</td>
+                      </tr>
+                      <tr>
+                        <td class="stack-td" style="padding: 6px 0; font-weight: bold; color: #64748B;">Due Date:</td>
+                        <td class="stack-td" style="padding: 6px 0; font-weight: 700; color: #B45309;">${formattedDate} (Tomorrow)</td>
+                      </tr>
+                      <tr>
+                        <td class="stack-td" style="padding: 6px 0; font-weight: bold; color: #64748B;">Task Cycle:</td>
+                        <td class="stack-td" style="padding: 6px 0;">
+                          <span style="background-color: #7C3AED; color: #ffffff; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; display: inline-block;">
+                            🔁 Repeats Every Month
+                          </span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="stack-td" style="padding: 6px 0; font-weight: bold; color: #64748B;">Priority:</td>
+                        <td class="stack-td" style="padding: 6px 0;">
+                          <span style="background-color: #2196F3; color: #ffffff; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; display: inline-block;">
+                            ${priority}
+                          </span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="stack-td" style="padding: 6px 0; font-weight: bold; color: #64748B;">Assigned By:</td>
+                        <td class="stack-td" style="padding: 6px 0; color: #1E293B;">${assignedByText}</td>
+                      </tr>
+                      ${
+                        institutionName
+                          ? `
+                      <tr>
+                        <td class="stack-td" style="padding: 6px 0; font-weight: bold; color: #64748B;">Institution:</td>
+                        <td class="stack-td" style="padding: 6px 0; color: #1E293B;">${institutionName}</td>
+                      </tr>
+                      `
+                          : ""
+                      }
+                      ${
+                        description
+                          ? `
+                      <tr>
+                        <td class="stack-td" style="padding: 6px 0; font-weight: bold; color: #64748B; vertical-align: top;">Description:</td>
+                        <td class="stack-td" style="padding: 6px 0; color: #334155; line-height: 1.5; white-space: pre-wrap;">${description}</td>
+                      </tr>
+                      `
+                          : ""
+                      }
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Action Button -->
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td align="center" style="padding: 8px 0 20px 0;">
+                    <a href="${tasksUrl}" target="_blank" style="background-color: #7C3AED; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-size: 14px; font-weight: bold; display: inline-block; box-shadow: 0 3px 8px rgba(124, 58, 237, 0.3);">
+                      Open Tasks Dashboard
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="font-size: 12px; color: #94A3B8; text-align: center; margin: 0; line-height: 1.4;">
+                Direct link: <a href="${tasksUrl}" style="color: #7C3AED; text-decoration: underline;">${tasksUrl}</a>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #F5F3FF; padding: 14px; text-align: center; font-size: 12px; color: #6D28D9; border-top: 1px solid #DDD6FE;">
+              Client Registry Management System &copy; ${new Date().getFullYear()} &middot; <a href="${SITE_URL}" style="color: #6D28D9; text-decoration: underline;">impdatabase.vercel.app</a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+
+  const text = `
+Monthly Task 1-Day Advance Reminder: ${taskTitle}
+
+Hello ${assignedToName},
+
+This is an automated 1-day reminder that your monthly recurring task is due tomorrow.
+
+Task: ${taskTitle}
+Deadline: ${formattedDate} (Tomorrow)
+Cycle: Repeats Monthly
+Priority: ${priority}
+Assigned By: ${assignedByText}
+${institutionName ? `Institution: ${institutionName}\n` : ""}${description ? `Description: ${description}\n` : ""}
+View and update on Dashboard:
+${tasksUrl}
+
+Client Registry Management System (impdatabase.vercel.app)
+  `.trim();
+
+  return await sendEmail({
+    to: assignedToEmail,
+    toName: assignedToName,
+    subject: `[MONTHLY TASK REMINDER] 1-Day Notice: ${taskTitle} is due tomorrow`,
+    text,
+    html,
+  });
+}
+
+/**
  * 4. Task Overdue Alert Email
  */
 export async function sendTaskOverdueEmail(data: TaskAlertEmailData): Promise<{ success: boolean; error?: string }> {

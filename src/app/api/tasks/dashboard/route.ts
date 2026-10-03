@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getDhakaStartOfDay, getDhakaEndOfDay, formatDhakaDate } from "@/lib/dateUtils";
+import { ensureSubtaskTable } from "@/lib/ensureSubtaskTable";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET(req: NextRequest) {
   try {
+    await ensureSubtaskTable();
     const params = req.nextUrl.searchParams;
     const employeeId = params.get("employeeId");
     const currentUserId = params.get("currentUserId");
@@ -77,6 +79,11 @@ export async function GET(req: NextRequest) {
       (t) => new Date(t.dueDate) < now && !isTerminal(t.status)
     ).length;
 
+    const monthlyTasks = allTasks.filter((t) => Boolean(t.isMonthly)).length;
+    const activeMonthlyTasks = allTasks.filter(
+      (t) => Boolean(t.isMonthly) && !isTerminal(t.status)
+    ).length;
+
     const tasksToday = allTasks.filter((t) => {
       const d = new Date(t.dueDate);
       return d >= startOfToday && d <= endOfToday && !isTerminal(t.status);
@@ -117,6 +124,8 @@ export async function GET(req: NextRequest) {
       cancelledTasks,
       unassignedTasks,
       overdueTasks,
+      monthlyTasks,
+      activeMonthlyTasks,
       tasksToday,
       upcomingTasks,
       next7Days,

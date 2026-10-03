@@ -82,6 +82,14 @@ export function TaskCompletionModal({
               <span>• #{task.assignedTo.orderSerial} {task.assignedTo.name}</span>
             )}
           </div>
+          {Boolean(task.isMonthly) && (
+            <div className="mt-2 p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs text-purple-700 dark:text-purple-300 flex items-center gap-2">
+              <span className="text-base">🔁</span>
+              <div>
+                <span className="font-bold">মাসিক টাস্ক (Monthly Recurring):</span> এই টাস্কটি সম্পন্ন হলে পরবর্তী মাসের জন্য স্বয়ংক্রিয়ভাবে নতুন টাস্ক শিডিউল তৈরি হয়ে যাবে।
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Remarks (Optional) */}

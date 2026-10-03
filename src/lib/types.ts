@@ -306,6 +306,8 @@ export interface TaskItem {
   priority: TaskPriority;
   completionNote?: string | null;
   progress?: number;
+  isMonthly?: boolean;
+  monthlyRecurringDay?: number | null;
   institutionId: string | null;
   institutionName: string | null;
   institution?: {
