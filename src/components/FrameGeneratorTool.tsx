@@ -155,6 +155,20 @@ const COLOR_THEMES: ColorTheme[] = [
     accent: "#71717A",
   },
   {
+    id: "minimal-pitch",
+    name: "Architectural Pitch Black",
+    primary: "#09090B",
+    secondary: "#27272A",
+    accent: "#52525B",
+  },
+  {
+    id: "minimal-slate",
+    name: "Minimal Slate & Steel",
+    primary: "#1E293B",
+    secondary: "#475569",
+    accent: "#94A3B8",
+  },
+  {
     id: "sapphire-silver",
     name: "Sapphire Blue & Silver",
     primary: "#1D4ED8",
@@ -164,6 +178,13 @@ const COLOR_THEMES: ColorTheme[] = [
 ];
 
 type BorderStyleType =
+  | "minimal-single-line"
+  | "minimal-double-hairline"
+  | "minimal-corner-bracket"
+  | "minimal-editorial"
+  | "minimal-technical-cross"
+  | "minimal-dashed-precision"
+  | "minimal-floating-corners"
   | "royal-guilloche"
   | "vintage-baroque"
   | "modern-geometric"
@@ -176,11 +197,56 @@ type BorderStyleType =
 interface StyleOption {
   id: BorderStyleType;
   name: string;
-  category: "Certificate" | "Marksheet" | "Both";
+  category: "Minimal" | "Certificate" | "Marksheet" | "Both";
   description: string;
 }
 
 const STYLE_OPTIONS: StyleOption[] = [
+  // --- MINIMAL / ILLUSTRATOR STYLES ---
+  {
+    id: "minimal-single-line",
+    name: "Minimal Clean Hairline",
+    category: "Minimal",
+    description: "Ultra-clean single line border with sharp square corners & optional subtle corner dots.",
+  },
+  {
+    id: "minimal-double-hairline",
+    name: "Minimal Double Line",
+    category: "Minimal",
+    description: "Classic Adobe Illustrator dual keylines with fine inset spacing & corner blocks.",
+  },
+  {
+    id: "minimal-corner-bracket",
+    name: "Minimal Corner Brackets",
+    category: "Minimal",
+    description: "Modern architectural L-shaped corner brackets with fine dashed guidelines.",
+  },
+  {
+    id: "minimal-editorial",
+    name: "Minimal Editorial Thick-Thin",
+    category: "Minimal",
+    description: "Contemporary magazine & diploma layout with heavy outer stroke & fine inner keyline.",
+  },
+  {
+    id: "minimal-technical-cross",
+    name: "Minimal CAD Crosshair",
+    category: "Minimal",
+    description: "Drafting & technical blueprint frame with precision corner registration crosshairs.",
+  },
+  {
+    id: "minimal-dashed-precision",
+    name: "Minimal Dashed & Solid",
+    category: "Minimal",
+    description: "Clean solid outer perimeter coupled with an inner precision dashed drafting guide.",
+  },
+  {
+    id: "minimal-floating-corners",
+    name: "Minimal Floating Corners",
+    category: "Minimal",
+    description: "Contemporary floating geometric corner brackets offset from an inner hairline frame.",
+  },
+
+  // --- ORNATE & SPECIALTY STYLES ---
   {
     id: "royal-guilloche",
     name: "Royal Guilloche & Rosette",
@@ -312,6 +378,7 @@ export function FrameGeneratorTool() {
 
   // 4. STYLING & COLORS
   const [styleType, setStyleType] = useState<BorderStyleType>("royal-guilloche");
+  const [styleCategoryFilter, setStyleCategoryFilter] = useState<string>("All");
   const [selectedTheme, setSelectedTheme] = useState<string>("royal-gold");
   const [primaryColor, setPrimaryColor] = useState<string>("#B48222");
   const [secondaryColor, setSecondaryColor] = useState<string>("#8C5E13");
@@ -1306,20 +1373,60 @@ export function FrameGeneratorTool() {
               <span>Border Style & Colors</span>
             </h2>
 
+            {/* Style Category Filter Tabs */}
+            <div className="flex bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl gap-1">
+              {[
+                { id: "All", label: "All Styles" },
+                { id: "Minimal", label: "Minimal (Illustrator)" },
+                { id: "Certificate", label: "Certificate" },
+                { id: "Marksheet", label: "Marksheet" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setStyleCategoryFilter(tab.id)}
+                  className={`flex-1 py-1 px-1.5 rounded-lg text-[11px] font-medium transition-all text-center ${
+                    styleCategoryFilter === tab.id
+                      ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs font-semibold"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
             {/* Border Style Buttons */}
-            <div className="grid grid-cols-2 gap-2">
-              {STYLE_OPTIONS.map((style) => (
+            <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-1">
+              {STYLE_OPTIONS.filter((style) => {
+                if (styleCategoryFilter === "All") return true;
+                if (styleCategoryFilter === "Minimal") return style.category === "Minimal";
+                if (styleCategoryFilter === "Certificate") return style.category === "Certificate" || style.category === "Both";
+                if (styleCategoryFilter === "Marksheet") return style.category === "Marksheet" || style.category === "Both";
+                return true;
+              }).map((style) => (
                 <button
                   key={style.id}
                   onClick={() => setStyleType(style.id)}
-                  className={`text-left p-2.5 rounded-xl border transition-all ${
+                  className={`text-left p-2.5 rounded-xl border transition-all flex flex-col justify-between ${
                     styleType === style.id
                       ? "border-brass-500 bg-brass-500/10 text-brass-900 dark:text-brass-300 font-semibold ring-1 ring-brass-500"
-                      : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 text-slate-700 dark:text-slate-300"
+                      : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700"
                   }`}
                 >
-                  <div className="text-xs font-semibold">{style.name.split(" ")[0]} {style.name.split(" ")[1]}</div>
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{style.description}</div>
+                  <div>
+                    <div className="flex items-center justify-between gap-1 mb-1">
+                      <span className="text-xs font-semibold leading-tight">{style.name}</span>
+                      {style.category === "Minimal" && (
+                        <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-blue-500/15 text-blue-600 dark:text-blue-400">
+                          Minimal
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                      {style.description}
+                    </div>
+                  </div>
                 </button>
               ))}
             </div>
@@ -1794,6 +1901,350 @@ export function FrameGeneratorTool() {
 
                     {/* ==================== FRAME STYLES LAYER ==================== */}
 
+                    {/* 1. MINIMAL: Clean Hairline */}
+                    {styleType === "minimal-single-line" && (
+                      <g id="minimal-single-line-border">
+                        <rect
+                          x={layout.fX_mm}
+                          y={layout.fY_mm}
+                          width={layout.fW_mm}
+                          height={layout.fH_mm}
+                          fill="none"
+                          stroke={primaryColor}
+                          strokeWidth={layout.strokeMm * 0.8}
+                        />
+                        {showInnerBorder && (
+                          <rect
+                            x={layout.innerX_mm}
+                            y={layout.innerY_mm}
+                            width={layout.innerW_mm}
+                            height={layout.innerH_mm}
+                            fill="none"
+                            stroke={secondaryColor}
+                            strokeWidth={layout.strokeMm * 0.35}
+                            opacity="0.8"
+                          />
+                        )}
+                        {showCornerAccents && (
+                          <>
+                            <circle cx={layout.fX_mm + 2.5} cy={layout.fY_mm + 2.5} r={layout.strokeMm * 0.6} fill={primaryColor} />
+                            <circle cx={layout.fX_mm + layout.fW_mm - 2.5} cy={layout.fY_mm + 2.5} r={layout.strokeMm * 0.6} fill={primaryColor} />
+                            <circle cx={layout.fX_mm + 2.5} cy={layout.fY_mm + layout.fH_mm - 2.5} r={layout.strokeMm * 0.6} fill={primaryColor} />
+                            <circle cx={layout.fX_mm + layout.fW_mm - 2.5} cy={layout.fY_mm + layout.fH_mm - 2.5} r={layout.strokeMm * 0.6} fill={primaryColor} />
+                          </>
+                        )}
+                      </g>
+                    )}
+
+                    {/* 2. MINIMAL: Double Line */}
+                    {styleType === "minimal-double-hairline" && (
+                      <g id="minimal-double-hairline-border">
+                        <rect
+                          x={layout.fX_mm}
+                          y={layout.fY_mm}
+                          width={layout.fW_mm}
+                          height={layout.fH_mm}
+                          fill="none"
+                          stroke={primaryColor}
+                          strokeWidth={layout.strokeMm * 0.9}
+                        />
+                        <rect
+                          x={layout.fX_mm + 1.2}
+                          y={layout.fY_mm + 1.2}
+                          width={layout.fW_mm - 2.4}
+                          height={layout.fH_mm - 2.4}
+                          fill="none"
+                          stroke={secondaryColor}
+                          strokeWidth={layout.strokeMm * 0.35}
+                        />
+                        {showInnerBorder && (
+                          <rect
+                            x={layout.innerX_mm}
+                            y={layout.innerY_mm}
+                            width={layout.innerW_mm}
+                            height={layout.innerH_mm}
+                            fill="none"
+                            stroke={primaryColor}
+                            strokeWidth={layout.strokeMm * 0.45}
+                          />
+                        )}
+                        {showCornerAccents && (
+                          <>
+                            <rect x={layout.fX_mm} y={layout.fY_mm} width={2} height={2} fill={primaryColor} />
+                            <rect x={layout.fX_mm + layout.fW_mm - 2} y={layout.fY_mm} width={2} height={2} fill={primaryColor} />
+                            <rect x={layout.fX_mm} y={layout.fY_mm + layout.fH_mm - 2} width={2} height={2} fill={primaryColor} />
+                            <rect x={layout.fX_mm + layout.fW_mm - 2} y={layout.fY_mm + layout.fH_mm - 2} width={2} height={2} fill={primaryColor} />
+                          </>
+                        )}
+                      </g>
+                    )}
+
+                    {/* 3. MINIMAL: Corner Brackets */}
+                    {styleType === "minimal-corner-bracket" && (() => {
+                      const bLen = Math.min(layout.fW_mm, layout.fH_mm) * 0.08 * cornerScale + 4;
+                      return (
+                        <g id="minimal-corner-bracket-border">
+                          {/* Top-Left */}
+                          <path
+                            d={`M ${layout.fX_mm},${layout.fY_mm + bLen} L ${layout.fX_mm},${layout.fY_mm} L ${layout.fX_mm + bLen},${layout.fY_mm}`}
+                            fill="none"
+                            stroke={primaryColor}
+                            strokeWidth={layout.strokeMm * 1.1}
+                          />
+                          {/* Top-Right */}
+                          <path
+                            d={`M ${layout.fX_mm + layout.fW_mm - bLen},${layout.fY_mm} L ${layout.fX_mm + layout.fW_mm},${layout.fY_mm} L ${layout.fX_mm + layout.fW_mm},${layout.fY_mm + bLen}`}
+                            fill="none"
+                            stroke={primaryColor}
+                            strokeWidth={layout.strokeMm * 1.1}
+                          />
+                          {/* Bottom-Left */}
+                          <path
+                            d={`M ${layout.fX_mm},${layout.fY_mm + layout.fH_mm - bLen} L ${layout.fX_mm},${layout.fY_mm + layout.fH_mm} L ${layout.fX_mm + bLen},${layout.fY_mm + layout.fH_mm}`}
+                            fill="none"
+                            stroke={primaryColor}
+                            strokeWidth={layout.strokeMm * 1.1}
+                          />
+                          {/* Bottom-Right */}
+                          <path
+                            d={`M ${layout.fX_mm + layout.fW_mm - bLen},${layout.fY_mm + layout.fH_mm} L ${layout.fX_mm + layout.fW_mm},${layout.fY_mm + layout.fH_mm} L ${layout.fX_mm + layout.fW_mm},${layout.fY_mm + layout.fH_mm - bLen}`}
+                            fill="none"
+                            stroke={primaryColor}
+                            strokeWidth={layout.strokeMm * 1.1}
+                          />
+
+                          {/* Subtle fine connecting dashed guidelines */}
+                          <line
+                            x1={layout.fX_mm + bLen + 2}
+                            y1={layout.fY_mm}
+                            x2={layout.fX_mm + layout.fW_mm - bLen - 2}
+                            y2={layout.fY_mm}
+                            stroke={secondaryColor}
+                            strokeWidth={layout.strokeMm * 0.4}
+                            strokeDasharray="3 2"
+                            opacity="0.75"
+                          />
+                          <line
+                            x1={layout.fX_mm + bLen + 2}
+                            y1={layout.fY_mm + layout.fH_mm}
+                            x2={layout.fX_mm + layout.fW_mm - bLen - 2}
+                            y2={layout.fY_mm + layout.fH_mm}
+                            stroke={secondaryColor}
+                            strokeWidth={layout.strokeMm * 0.4}
+                            strokeDasharray="3 2"
+                            opacity="0.75"
+                          />
+                          <line
+                            x1={layout.fX_mm}
+                            y1={layout.fY_mm + bLen + 2}
+                            x2={layout.fX_mm}
+                            y2={layout.fY_mm + layout.fH_mm - bLen - 2}
+                            stroke={secondaryColor}
+                            strokeWidth={layout.strokeMm * 0.4}
+                            strokeDasharray="3 2"
+                            opacity="0.75"
+                          />
+                          <line
+                            x1={layout.fX_mm + layout.fW_mm}
+                            y1={layout.fY_mm + bLen + 2}
+                            x2={layout.fX_mm + layout.fW_mm}
+                            y2={layout.fY_mm + layout.fH_mm - bLen - 2}
+                            stroke={secondaryColor}
+                            strokeWidth={layout.strokeMm * 0.4}
+                            strokeDasharray="3 2"
+                            opacity="0.75"
+                          />
+
+                          {showInnerBorder && (
+                            <rect
+                              x={layout.innerX_mm}
+                              y={layout.innerY_mm}
+                              width={layout.innerW_mm}
+                              height={layout.innerH_mm}
+                              fill="none"
+                              stroke={secondaryColor}
+                              strokeWidth={layout.strokeMm * 0.35}
+                            />
+                          )}
+                        </g>
+                      );
+                    })()}
+
+                    {/* 4. MINIMAL: Editorial Thick-Thin */}
+                    {styleType === "minimal-editorial" && (
+                      <g id="minimal-editorial-border">
+                        <rect
+                          x={layout.fX_mm}
+                          y={layout.fY_mm}
+                          width={layout.fW_mm}
+                          height={layout.fH_mm}
+                          fill="none"
+                          stroke={primaryColor}
+                          strokeWidth={layout.strokeMm * 1.5}
+                        />
+                        <rect
+                          x={layout.fX_mm + 1.8}
+                          y={layout.fY_mm + 1.8}
+                          width={layout.fW_mm - 3.6}
+                          height={layout.fH_mm - 3.6}
+                          fill="none"
+                          stroke={secondaryColor}
+                          strokeWidth={layout.strokeMm * 0.35}
+                        />
+                        {showInnerBorder && (
+                          <rect
+                            x={layout.innerX_mm}
+                            y={layout.innerY_mm}
+                            width={layout.innerW_mm}
+                            height={layout.innerH_mm}
+                            fill="none"
+                            stroke={primaryColor}
+                            strokeWidth={layout.strokeMm * 0.4}
+                          />
+                        )}
+                        {showCornerAccents && (
+                          <>
+                            <circle cx={layout.fX_mm + 4.5} cy={layout.fY_mm + 4.5} r={layout.strokeMm * 0.55} fill={accentColor} />
+                            <circle cx={layout.fX_mm + layout.fW_mm - 4.5} cy={layout.fY_mm + 4.5} r={layout.strokeMm * 0.55} fill={accentColor} />
+                            <circle cx={layout.fX_mm + 4.5} cy={layout.fY_mm + layout.fH_mm - 4.5} r={layout.strokeMm * 0.55} fill={accentColor} />
+                            <circle cx={layout.fX_mm + layout.fW_mm - 4.5} cy={layout.fY_mm + layout.fH_mm - 4.5} r={layout.strokeMm * 0.55} fill={accentColor} />
+                          </>
+                        )}
+                      </g>
+                    )}
+
+                    {/* 5. MINIMAL: Technical CAD Crosshair */}
+                    {styleType === "minimal-technical-cross" && (() => {
+                      const crossLen = 3.5;
+                      return (
+                        <g id="minimal-technical-cross-border">
+                          <rect
+                            x={layout.fX_mm}
+                            y={layout.fY_mm}
+                            width={layout.fW_mm}
+                            height={layout.fH_mm}
+                            fill="none"
+                            stroke={primaryColor}
+                            strokeWidth={layout.strokeMm * 0.75}
+                          />
+                          {/* Corner Crosshairs */}
+                          <line x1={layout.fX_mm - crossLen} y1={layout.fY_mm} x2={layout.fX_mm + crossLen} y2={layout.fY_mm} stroke={primaryColor} strokeWidth={layout.strokeMm * 0.5} />
+                          <line x1={layout.fX_mm} y1={layout.fY_mm - crossLen} x2={layout.fX_mm} y2={layout.fY_mm + crossLen} stroke={primaryColor} strokeWidth={layout.strokeMm * 0.5} />
+                          <line x1={layout.fX_mm + layout.fW_mm - crossLen} y1={layout.fY_mm} x2={layout.fX_mm + layout.fW_mm + crossLen} y2={layout.fY_mm} stroke={primaryColor} strokeWidth={layout.strokeMm * 0.5} />
+                          <line x1={layout.fX_mm + layout.fW_mm} y1={layout.fY_mm - crossLen} x2={layout.fX_mm + layout.fW_mm} y2={layout.fY_mm + crossLen} stroke={primaryColor} strokeWidth={layout.strokeMm * 0.5} />
+                          <line x1={layout.fX_mm - crossLen} y1={layout.fY_mm + layout.fH_mm} x2={layout.fX_mm + crossLen} y2={layout.fY_mm + layout.fH_mm} stroke={primaryColor} strokeWidth={layout.strokeMm * 0.5} />
+                          <line x1={layout.fX_mm} y1={layout.fY_mm + layout.fH_mm - crossLen} x2={layout.fX_mm} y2={layout.fY_mm + layout.fH_mm + crossLen} stroke={primaryColor} strokeWidth={layout.strokeMm * 0.5} />
+                          <line x1={layout.fX_mm + layout.fW_mm - crossLen} y1={layout.fY_mm + layout.fH_mm} x2={layout.fX_mm + layout.fW_mm + crossLen} y2={layout.fY_mm + layout.fH_mm} stroke={primaryColor} strokeWidth={layout.strokeMm * 0.5} />
+                          <line x1={layout.fX_mm + layout.fW_mm} y1={layout.fY_mm + layout.fH_mm - crossLen} x2={layout.fX_mm + layout.fW_mm} y2={layout.fY_mm + layout.fH_mm + crossLen} stroke={primaryColor} strokeWidth={layout.strokeMm * 0.5} />
+
+                          {showInnerBorder && (
+                            <rect
+                              x={layout.innerX_mm}
+                              y={layout.innerY_mm}
+                              width={layout.innerW_mm}
+                              height={layout.innerH_mm}
+                              fill="none"
+                              stroke={secondaryColor}
+                              strokeWidth={layout.strokeMm * 0.35}
+                              strokeDasharray="1.5 1.5"
+                            />
+                          )}
+                        </g>
+                      );
+                    })()}
+
+                    {/* 6. MINIMAL: Dashed Precision */}
+                    {styleType === "minimal-dashed-precision" && (
+                      <g id="minimal-dashed-precision-border">
+                        <rect
+                          x={layout.fX_mm}
+                          y={layout.fY_mm}
+                          width={layout.fW_mm}
+                          height={layout.fH_mm}
+                          fill="none"
+                          stroke={primaryColor}
+                          strokeWidth={layout.strokeMm * 0.9}
+                        />
+                        <rect
+                          x={layout.fX_mm + 1.5}
+                          y={layout.fY_mm + 1.5}
+                          width={layout.fW_mm - 3}
+                          height={layout.fH_mm - 3}
+                          fill="none"
+                          stroke={secondaryColor}
+                          strokeWidth={layout.strokeMm * 0.5}
+                          strokeDasharray="3 1.5"
+                        />
+                        {showInnerBorder && (
+                          <rect
+                            x={layout.innerX_mm}
+                            y={layout.innerY_mm}
+                            width={layout.innerW_mm}
+                            height={layout.innerH_mm}
+                            fill="none"
+                            stroke={primaryColor}
+                            strokeWidth={layout.strokeMm * 0.35}
+                          />
+                        )}
+                      </g>
+                    )}
+
+                    {/* 7. MINIMAL: Floating Corners */}
+                    {styleType === "minimal-floating-corners" && (() => {
+                      const cOff = 3;
+                      const cLen = 7;
+                      return (
+                        <g id="minimal-floating-corners-border">
+                          <rect
+                            x={layout.fX_mm + cOff}
+                            y={layout.fY_mm + cOff}
+                            width={layout.fW_mm - cOff * 2}
+                            height={layout.fH_mm - cOff * 2}
+                            fill="none"
+                            stroke={primaryColor}
+                            strokeWidth={layout.strokeMm * 0.8}
+                          />
+                          {/* 4 Floating Corner Accents */}
+                          <path
+                            d={`M ${layout.fX_mm},${layout.fY_mm + cLen} L ${layout.fX_mm},${layout.fY_mm} L ${layout.fX_mm + cLen},${layout.fY_mm}`}
+                            fill="none"
+                            stroke={secondaryColor}
+                            strokeWidth={layout.strokeMm * 0.6}
+                          />
+                          <path
+                            d={`M ${layout.fX_mm + layout.fW_mm - cLen},${layout.fY_mm} L ${layout.fX_mm + layout.fW_mm},${layout.fY_mm} L ${layout.fX_mm + layout.fW_mm},${layout.fY_mm + cLen}`}
+                            fill="none"
+                            stroke={secondaryColor}
+                            strokeWidth={layout.strokeMm * 0.6}
+                          />
+                          <path
+                            d={`M ${layout.fX_mm},${layout.fY_mm + layout.fH_mm - cLen} L ${layout.fX_mm},${layout.fY_mm + layout.fH_mm} L ${layout.fX_mm + cLen},${layout.fY_mm + layout.fH_mm}`}
+                            fill="none"
+                            stroke={secondaryColor}
+                            strokeWidth={layout.strokeMm * 0.6}
+                          />
+                          <path
+                            d={`M ${layout.fX_mm + layout.fW_mm - cLen},${layout.fY_mm + layout.fH_mm} L ${layout.fX_mm + layout.fW_mm},${layout.fY_mm + layout.fH_mm} L ${layout.fX_mm + layout.fW_mm},${layout.fY_mm + layout.fH_mm - cLen}`}
+                            fill="none"
+                            stroke={secondaryColor}
+                            strokeWidth={layout.strokeMm * 0.6}
+                          />
+                          {showInnerBorder && (
+                            <rect
+                              x={layout.innerX_mm}
+                              y={layout.innerY_mm}
+                              width={layout.innerW_mm}
+                              height={layout.innerH_mm}
+                              fill="none"
+                              stroke={primaryColor}
+                              strokeWidth={layout.strokeMm * 0.3}
+                              strokeDasharray="1 1"
+                            />
+                          )}
+                        </g>
+                      );
+                    })()}
+
                     {styleType === "royal-guilloche" && (
                       <g id="royal-guilloche-border">
                         <rect
@@ -2106,7 +2557,7 @@ export function FrameGeneratorTool() {
                     )}
 
                     {/* Top Emblem Crest */}
-                    {showTopCrest && (
+                    {showTopCrest && !styleType.startsWith("minimal-") && (
                       <g transform={`translate(${layout.fX_mm + layout.fW_mm / 2}, ${layout.fY_mm})`}>
                         <polygon
                           points="-6,-1 0,-4 6,-1 4,3 -4,3"
@@ -2119,7 +2570,7 @@ export function FrameGeneratorTool() {
                     )}
 
                     {/* Bottom Signature Seal */}
-                    {showBottomSeal && (
+                    {showBottomSeal && !styleType.startsWith("minimal-") && (
                       <g transform={`translate(${layout.fX_mm + layout.fW_mm / 2}, ${layout.fY_mm + layout.fH_mm})`}>
                         <circle cx="0" cy="0" r={4.5} fill={primaryColor} stroke={secondaryColor} strokeWidth={layout.strokeMm * 0.4} />
                         <circle cx="0" cy="0" r={3.5} fill="none" stroke={accentColor} strokeWidth={layout.strokeMm * 0.2} strokeDasharray="0.8 0.4" />
