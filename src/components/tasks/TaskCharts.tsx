@@ -189,7 +189,7 @@ export function TaskCharts({ metrics }: TaskChartsProps) {
               </strong>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50"></span>
+              <span className="w-2.5 h-2.5 rounded-full bg-sky-500 shadow-sm shadow-sky-500/50"></span>
               <span className="text-slate-600 dark:text-slate-300">To Do:</span>
               <strong className="text-slate-900 dark:text-slate-100 font-mono ml-auto">
                 {metrics.todoTasks ?? pendingTasks} <span className="text-[10px] text-slate-400">({pPending.toFixed(0)}%)</span>
@@ -230,7 +230,7 @@ export function TaskCharts({ metrics }: TaskChartsProps) {
         <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
           <div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
               <span>Upcoming 7 Days Workload</span>
             </h3>
             <p className="text-[11px] text-slate-500 dark:text-slate-400">
@@ -240,7 +240,7 @@ export function TaskCharts({ metrics }: TaskChartsProps) {
 
           <div className="flex items-center gap-2">
             {peakDay && peakDay.count > 0 && (
-              <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30 flex items-center gap-1">
+              <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/30 flex items-center gap-1">
                 <span>🔥 Peak:</span>
                 <span className="font-bold">{peakDay.label.split(",")[0]} ({peakDay.count})</span>
               </span>
@@ -285,7 +285,7 @@ export function TaskCharts({ metrics }: TaskChartsProps) {
                       <span
                         className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-bold shadow-xs border ${
                           isToday
-                            ? "bg-brass-500 text-slate-950 border-amber-400 shadow-amber-500/30"
+                            ? "bg-blue-600 text-white border-blue-400 shadow-blue-500/30"
                             : "bg-sky-500 text-white border-sky-400 shadow-sky-500/20"
                         }`}
                       >
@@ -306,9 +306,9 @@ export function TaskCharts({ metrics }: TaskChartsProps) {
                       }}
                       className={`w-full rounded-xl transition-all duration-700 ease-out ${
                         isToday && hasTasks
-                          ? "bg-gradient-to-t from-brass-600 via-amber-500 to-amber-400 shadow-lg shadow-amber-500/30"
+                          ? "bg-gradient-to-t from-blue-700 via-blue-600 to-indigo-500 shadow-lg shadow-blue-500/30"
                           : isToday && !hasTasks
-                          ? "bg-gradient-to-t from-brass-500/40 to-amber-400/40"
+                          ? "bg-gradient-to-t from-blue-500/40 to-indigo-400/40"
                           : hasTasks
                           ? "bg-gradient-to-t from-sky-600 via-sky-500 to-cyan-400 shadow-md shadow-sky-500/25 group-hover:from-sky-500 group-hover:to-cyan-300"
                           : "bg-slate-300/40 dark:bg-slate-700/40 group-hover:bg-slate-400/50"

@@ -157,8 +157,8 @@ export default function EmployeesPage() {
         title="Employee & Team Management"
         subtitle="Access Restricted"
       >
-        <div className="max-w-xl mx-auto my-12 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-8 text-center shadow-lg">
-          <div className="w-16 h-16 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 mx-auto flex items-center justify-center mb-4">
+        <div className="max-w-xl mx-auto my-12 rounded-2xl border border-sky-500/30 bg-sky-500/10 p-8 text-center shadow-lg">
+          <div className="w-16 h-16 rounded-full bg-sky-500/20 text-sky-600 dark:text-sky-400 mx-auto flex items-center justify-center mb-4">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
@@ -171,7 +171,7 @@ export default function EmployeesPage() {
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Link href="/profile">
-              <Button className="bg-brass-500 hover:bg-brass-400 text-slate-950 font-bold">
+              <Button className="bg-brass-500 hover:bg-brass-400 text-white font-bold">
                 Go to My Profile →
               </Button>
             </Link>
@@ -193,7 +193,7 @@ export default function EmployeesPage() {
       totalCountText={`${employees.length} Active Employees`}
     >
       {/* Top Banner & Control Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 p-5 rounded-2xl border border-brass-500/30 dark:border-brass-500/30 bg-gradient-to-r from-brass-500/10 via-amber-500/10 to-brass-500/5 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-slate-900 dark:text-white shadow-sm dark:shadow-xl relative overflow-hidden">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 p-5 rounded-2xl border border-brass-500/30 dark:border-brass-500/30 bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-blue-600/5 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-slate-900 dark:text-white shadow-sm dark:shadow-xl relative overflow-hidden">
         <div className="z-10">
           <h2 className="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
             <svg className="w-5 h-5 text-brass-700 dark:text-brass-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -319,7 +319,7 @@ export default function EmployeesPage() {
                     </div>
 
                     <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
-                      <div className="p-1.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 font-bold">
+                      <div className="p-1.5 rounded bg-sky-500/10 border border-sky-500/20 text-sky-600 dark:text-sky-400 font-bold">
                         <div>{stats.pending}</div>
                         <div className="font-normal opacity-80 text-[9px]">Pending</div>
                       </div>

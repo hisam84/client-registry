@@ -9,14 +9,14 @@ const config: Config = {
         ink: "#070E1A",
         // The requested 4-color blue palette
         palette: {
-          50: "#E3F2FD",
-          200: "#90CAF9",
-          500: "#2196F3",
-          900: "#0D47A1",
-          soft: "#E3F2FD",
-          sky: "#90CAF9",
-          vibrant: "#2196F3",
-          navy: "#0D47A1",
+          50: "#EEF2FF",
+          200: "#C7D2FE",
+          500: "#3B82F6",
+          900: "#1E3A8A",
+          soft: "#EEF2FF",
+          sky: "#93C5FD",
+          vibrant: "#2563EB",
+          navy: "#1E3A8A",
         },
         slate: {
           950: "#070E1A",
@@ -32,18 +32,18 @@ const config: Config = {
           100: "#E3F2FD",
           50: "#F0F7FF",
         },
-        // Re-mapped brass to the blue palette spectrum so all existing component accents inherit it seamlessly
+        // Re-mapped brass to vibrant Royal Blue / Indigo palette
         brass: {
-          50: "#E3F2FD",
-          100: "#E3F2FD",
-          200: "#BBDEFB",
-          300: "#90CAF9",
-          400: "#64B5F6",
-          500: "#2196F3",
-          600: "#1E88E5",
-          700: "#1976D2",
-          800: "#1565C0",
-          900: "#0D47A1",
+          50: "#EEF2FF",
+          100: "#E0E7FF",
+          200: "#C7D2FE",
+          300: "#93C5FD",
+          400: "#60A5FA",
+          500: "#2563EB",
+          600: "#1D4ED8",
+          700: "#1E40AF",
+          800: "#1E3A8A",
+          900: "#0F172A",
         },
         moss: {
           500: "#10B981",
@@ -54,7 +54,7 @@ const config: Config = {
           400: "#F87171",
         },
         amberflag: {
-          500: "#F59E0B",
+          500: "#0284C7", // Replaced orange flag with sleek Sky/Cyan Blue
         },
       },
       fontFamily: {
@@ -64,7 +64,7 @@ const config: Config = {
         mono: ["var(--font-mono)", "monospace"],
       },
       boxShadow: {
-        panel: "0 1px 0 rgba(255,255,255,0.06) inset, 0 8px 24px rgba(13,71,161,0.12)",
+        panel: "0 1px 0 rgba(255,255,255,0.06) inset, 0 8px 24px rgba(37,99,235,0.12)",
       },
     },
   },

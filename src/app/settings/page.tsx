@@ -96,7 +96,7 @@ export default function SettingsPage() {
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 shadow-sm backdrop-blur-md overflow-hidden">
           <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xl">
+              <span className="p-2.5 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 text-xl">
                 ⏱️
               </span>
               <div>
@@ -205,7 +205,7 @@ export default function SettingsPage() {
                 {/* Yearly */}
                 <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/50 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
                       Yearly
                     </span>
                     <span className="text-[11px] font-mono text-slate-400">Yearly Cycle</span>

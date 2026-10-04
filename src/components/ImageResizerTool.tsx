@@ -394,10 +394,10 @@ export function ImageResizerTool() {
   return (
     <div className="w-full space-y-8">
       {/* Header Banner */}
-      <div className="rounded-2xl bg-gradient-to-r from-brass-600/10 via-amber-500/10 to-brass-600/10 dark:from-brass-900/30 dark:via-slate-900 dark:to-brass-950/40 p-6 border border-brass-500/20 shadow-sm backdrop-blur-sm">
+      <div className="rounded-2xl bg-gradient-to-r from-blue-600/10 via-indigo-500/10 to-blue-600/10 dark:from-blue-900/30 dark:via-slate-900 dark:to-indigo-950/40 p-6 border border-blue-500/20 shadow-sm backdrop-blur-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-brass-500/15 text-brass-700 dark:text-brass-300 border border-brass-500/30 mb-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 mb-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               High-DPI Super-Sampled Crisp Rendering
             </div>
@@ -425,7 +425,7 @@ export function ImageResizerTool() {
                   onClick={() => setDpiScale(item.val)}
                   className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all ${
                     dpiScale === item.val
-                      ? "bg-brass-500 text-white shadow-sm"
+                      ? "bg-blue-600 text-white shadow-sm"
                       : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                   }`}
                 >
@@ -439,7 +439,7 @@ export function ImageResizerTool() {
               className="px-3.5 py-2 text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors flex items-center gap-1.5"
               title="Test with the project's default Pad.png logo"
             >
-              <svg className="w-4 h-4 text-brass-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               <span>Load Demo Logo</span>
@@ -448,7 +448,7 @@ export function ImageResizerTool() {
             <button
               onClick={downloadAllZip}
               disabled={isZipGenerating}
-              className="px-5 py-2.5 text-xs sm:text-sm font-semibold rounded-xl bg-gradient-to-r from-brass-600 to-amber-600 hover:from-brass-500 hover:to-amber-500 text-white shadow-lg shadow-brass-600/20 hover:shadow-brass-600/30 transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50"
+              className="px-5 py-2.5 text-xs sm:text-sm font-semibold rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50"
             >
               {isZipGenerating ? (
                 <>
@@ -574,7 +574,7 @@ export function ImageResizerTool() {
                 </span>
                 <span>230×50 Banner Customizer (JPG)</span>
               </h2>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                 230.jpg
               </span>
             </div>
@@ -799,7 +799,7 @@ export function ImageResizerTool() {
                         <span
                           className={`text-[10px] font-bold px-2 py-0.5 rounded ${
                             spec.ext === ".jpg"
-                              ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                              ? "bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20"
                               : "bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20"
                           }`}
                         >

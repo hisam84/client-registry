@@ -195,7 +195,7 @@ export default function CompanyLedgerPage() {
     <>
       <button
         onClick={() => setShowSettingsModal(true)}
-        className="px-3 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 font-semibold text-xs rounded-xl transition-all border border-amber-500/30 flex items-center gap-1.5"
+        className="px-3 py-2 bg-sky-500/10 hover:bg-sky-500/20 text-sky-700 dark:text-sky-300 font-semibold text-xs rounded-xl transition-all border border-sky-500/30 flex items-center gap-1.5"
         title="Expiry Settings: Configure threshold days for Expiring Soon status"
       >
         <span>⏱️</span>

@@ -217,7 +217,7 @@ export function HeaderNav({ onAddTaskClick, title, subtitle, totalCountText }: H
           {onAddTaskClick && (
             <button
               onClick={onAddTaskClick}
-              className="px-4 py-2 bg-gradient-to-r from-brass-600 to-amber-600 hover:from-brass-500 hover:to-amber-500 text-white font-medium text-xs sm:text-sm rounded-lg shadow hover:shadow-md transition-all flex items-center gap-1.5 active:scale-95"
+              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-xs sm:text-sm rounded-lg shadow hover:shadow-md transition-all flex items-center gap-1.5 active:scale-95"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />

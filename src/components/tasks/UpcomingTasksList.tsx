@@ -194,7 +194,7 @@ export function UpcomingTasksList({
         );
       }
       return (
-        <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 whitespace-nowrap">
+        <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30 whitespace-nowrap">
           Due Today ({timeStr})
         </span>
       );
@@ -627,8 +627,8 @@ export function UpcomingTasksList({
 
               {/* Completion Reason Box */}
               {task.completionNote && (
-                <div className="mt-2.5 rounded-lg bg-amber-500/10 dark:bg-amber-500/15 p-2.5 text-xs border border-amber-500/20 text-amber-900 dark:text-amber-300">
-                  <span className="font-bold flex items-center gap-1.5 text-amber-700 dark:text-amber-400">
+                <div className="mt-2.5 rounded-lg bg-blue-500/10 dark:bg-blue-500/15 p-2.5 text-xs border border-blue-500/20 text-blue-900 dark:text-blue-200">
+                  <span className="font-bold flex items-center gap-1.5 text-blue-700 dark:text-blue-300">
                     <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
@@ -694,7 +694,7 @@ export function UpcomingTasksList({
                         className={`px-2 py-0.5 rounded text-[11px] font-bold border whitespace-nowrap flex items-center gap-1 ${
                           isSelf
                             ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
-                            : "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                            : "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30"
                         }`}
                         title={`Task Assigner: ${assignerName}`}
                       >
@@ -794,7 +794,7 @@ export function UpcomingTasksList({
             {/* Reason Note Button */}
             <button
               onClick={() => setNoteModalTask(task)}
-              className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-colors whitespace-nowrap"
+              className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-sky-500/10 text-sky-700 dark:text-sky-400 border border-sky-500/20 hover:bg-sky-500/20 transition-colors whitespace-nowrap"
               title="Add or update completion/failure reason"
             >
               {task.completionNote ? "Edit Reason" : "+ Note / Reason"}
@@ -861,7 +861,7 @@ export function UpcomingTasksList({
                 )}
 
                 {group.stats.pending > 0 && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-sky-500/15 text-sky-700 dark:text-sky-400 border border-sky-500/30">
                     {group.stats.pending} Pending
                   </span>
                 )}

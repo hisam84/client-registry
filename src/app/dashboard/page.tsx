@@ -209,7 +209,7 @@ export default function DashboardPage() {
       ) : (
         <div className="space-y-8">
           {/* WELCOME BANNER FOR ACTIVE USER */}
-          <div className="rounded-2xl border border-brass-500/30 dark:border-brass-500/30 bg-gradient-to-r from-brass-500/10 via-amber-500/10 to-brass-500/5 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-slate-900 dark:text-white p-6 shadow-sm dark:shadow-xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="rounded-2xl border border-brass-500/30 dark:border-brass-500/30 bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-blue-600/5 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-slate-900 dark:text-white p-6 shadow-sm dark:shadow-xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-4 z-10">
               {currentUser.avatarUrl ? (
                 <img
@@ -246,7 +246,7 @@ export default function DashboardPage() {
 
             <div className="flex items-center gap-3 z-10 shrink-0">
               <Link href="/profile">
-                <button className="px-4 py-2.5 bg-brass-500 hover:bg-brass-400 text-slate-950 font-bold text-xs rounded-xl shadow transition-transform active:scale-95 flex items-center gap-1.5 border border-brass-600/30">
+                <button className="px-4 py-2.5 bg-brass-500 hover:bg-brass-400 text-white font-bold text-xs rounded-xl shadow transition-transform active:scale-95 flex items-center gap-1.5 border border-brass-600/30">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
@@ -261,9 +261,9 @@ export default function DashboardPage() {
 
           {/* URGENT TASK DEADLINE ALERT BANNER */}
           {!bannerDismissed && ((tsk?.overdue || 0) > 0 || (tsk?.tasksToday || 0) > 0) && (
-            <div className="rounded-xl border border-amber-500/40 dark:border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="rounded-xl border border-sky-500/40 dark:border-sky-500/30 bg-gradient-to-r from-sky-500/10 via-blue-500/10 to-sky-500/10 p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <svg className="w-6 h-6 text-amber-600 dark:text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-sky-600 dark:text-sky-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
                 <div>
@@ -277,7 +277,7 @@ export default function DashboardPage() {
                       </span>
                     ) : null}
                     {tsk?.tasksToday ? (
-                      <span className="text-amber-700 dark:text-amber-400 font-medium">
+                      <span className="text-sky-700 dark:text-sky-400 font-medium">
                         {tsk.tasksToday} Task(s) due today!
                       </span>
                     ) : null}
@@ -287,13 +287,13 @@ export default function DashboardPage() {
 
               <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
                 <Link href="/tasks">
-                  <button className="px-3.5 py-1.5 bg-amber-500 text-slate-950 font-semibold text-xs rounded-lg hover:bg-amber-400 transition-colors shadow shrink-0">
+                  <button className="px-3.5 py-1.5 bg-sky-600 text-white font-semibold text-xs rounded-lg hover:bg-sky-500 transition-colors shadow shrink-0">
                     View Tasks →
                   </button>
                 </Link>
                 <button
                   onClick={() => setBannerDismissed(true)}
-                  className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-amber-500/20 rounded-lg transition-colors"
+                  className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-sky-500/20 rounded-lg transition-colors"
                   title="Dismiss alert"
                   aria-label="Dismiss alert"
                 >
@@ -345,30 +345,30 @@ export default function DashboardPage() {
 
             {/* Card 2: Expiring Soon Alert */}
             <Link href="/?status=expiring_soon" className="group block">
-              <div className="rounded-2xl border border-amber-500/30 dark:border-amber-500/30 bg-amber-500/5 dark:bg-amber-500/10 p-5 shadow-sm hover:shadow-md hover:border-amber-500 transition-all flex flex-col justify-between h-full">
+              <div className="rounded-2xl border border-sky-500/30 dark:border-sky-500/30 bg-sky-500/5 dark:bg-sky-500/10 p-5 shadow-sm hover:shadow-md hover:border-sky-500 transition-all flex flex-col justify-between h-full">
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
                     <div className="flex items-center gap-2.5">
-                      <div className="p-2 rounded-xl bg-amber-500/20 text-amber-700 dark:text-amber-400">
+                      <div className="p-2 rounded-xl bg-sky-500/20 text-sky-700 dark:text-sky-400">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       </div>
-                      <span className="text-xs font-bold text-amber-900 dark:text-amber-300">
+                      <span className="text-xs font-bold text-sky-900 dark:text-sky-300">
                         Expiring Soon (60d)
                       </span>
                     </div>
-                    <span className="text-[11px] text-amber-700 dark:text-amber-400 font-bold group-hover:translate-x-0.5 transition-transform shrink-0">
+                    <span className="text-[11px] text-sky-700 dark:text-sky-400 font-bold group-hover:translate-x-0.5 transition-transform shrink-0">
                       Action →
                     </span>
                   </div>
 
-                  <div className="text-3xl font-extrabold text-amber-600 dark:text-amber-400 font-mono tracking-tight my-1">
+                  <div className="text-3xl font-extrabold text-sky-600 dark:text-sky-400 font-mono tracking-tight my-1">
                     {inst?.expiringSoon || 0}
                   </div>
                 </div>
 
-                <div className="mt-3 pt-2.5 border-t border-amber-500/20 flex items-center gap-1.5 flex-wrap">
+                <div className="mt-3 pt-2.5 border-t border-sky-500/20 flex items-center gap-1.5 flex-wrap">
                   <Link href="/?status=expired" onClick={(e) => e.stopPropagation()}>
                     <span className="px-2 py-0.5 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-700 dark:text-red-400 border border-red-500/20 font-bold text-[10px] cursor-pointer transition-colors" title="Filter by Expire Date">
                       {inst?.expired || 0} Expired
@@ -525,9 +525,9 @@ export default function DashboardPage() {
                     <strong className="text-slate-900 dark:text-slate-100">{inst?.active}</strong>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
                     <span className="text-slate-600 dark:text-slate-300">Expiring Soon:</span>
-                    <strong className="text-amber-600 dark:text-amber-400">{inst?.expiringSoon}</strong>
+                    <strong className="text-sky-600 dark:text-sky-400">{inst?.expiringSoon}</strong>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-red-500"></span>
@@ -587,7 +587,7 @@ export default function DashboardPage() {
                                 : isSoftware && !isWebsite
                                 ? "bg-gradient-to-r from-sky-500 to-blue-600"
                                 : isWebsite && isSoftware
-                                ? "bg-gradient-to-r from-brass-600 to-amber-500"
+                                ? "bg-gradient-to-r from-blue-600 to-indigo-500"
                                 : "bg-gradient-to-r from-slate-400 to-slate-600"
                             }`}
                           />
@@ -640,7 +640,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
                 <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
                   <span>Expiring Soon Institutions</span>
-                  <span className="text-xs font-normal text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                  <span className="text-xs font-normal text-sky-600 dark:text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20">
                     Next 60 Days
                   </span>
                 </h3>
@@ -680,7 +680,7 @@ export default function DashboardPage() {
                         </div>
 
                         <div className="text-right">
-                          <span className="text-xs font-mono font-semibold text-amber-600 dark:text-amber-400 block">
+                          <span className="text-xs font-mono font-semibold text-sky-600 dark:text-sky-400 block">
                             {expDate}
                           </span>
                           <span className="text-[10px] text-slate-400">Expire Date</span>

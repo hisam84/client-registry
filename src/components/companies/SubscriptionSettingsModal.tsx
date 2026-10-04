@@ -101,7 +101,7 @@ export function SubscriptionSettingsModal({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
           <div className="flex items-center gap-2.5">
-            <span className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 text-lg">
+            <span className="p-2 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 text-lg">
               ⏱️
             </span>
             <div>

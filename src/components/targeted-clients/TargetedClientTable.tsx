@@ -184,8 +184,8 @@ export function TargetedClientTable({
                       }}
                       className={`py-2.5 px-3 rounded-lg border font-semibold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors active:scale-95 ${
                         client.isArchived
-                          ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 hover:bg-amber-500/20"
-                          : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 text-slate-700 dark:text-slate-300 hover:text-amber-600"
+                          ? "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20 hover:bg-sky-500/20"
+                          : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 text-slate-700 dark:text-slate-300 hover:text-sky-600"
                       }`}
                     >
                       <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -279,8 +279,8 @@ export function TargetedClientTable({
 
                     {/* Notes / Remarks */}
                     {client.notes && (
-                      <div className="mt-2 rounded-lg bg-amber-500/5 dark:bg-amber-950/20 p-3 border border-amber-500/20">
-                        <span className="font-bold text-amber-700 dark:text-amber-400 block mb-1">Notes / Remarks:</span>
+                      <div className="mt-2 rounded-lg bg-sky-500/5 dark:bg-sky-950/20 p-3 border border-sky-500/20">
+                        <span className="font-bold text-sky-700 dark:text-sky-400 block mb-1">Notes / Remarks:</span>
                         <p className="whitespace-pre-wrap text-slate-800 dark:text-slate-200 leading-relaxed">
                           {client.notes}
                         </p>
@@ -428,7 +428,7 @@ export function TargetedClientTable({
                       <button
                         type="button"
                         onClick={() => onToggleArchive(client)}
-                        className="p-1.5 text-xs rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center"
+                        className="p-1.5 text-xs rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center"
                         title={client.isArchived ? "Restore Client" : "Archive Client"}
                         aria-label={client.isArchived ? "Restore Client" : "Archive Client"}
                       >

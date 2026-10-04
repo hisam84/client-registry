@@ -406,7 +406,7 @@ export function SidebarLayout({
                                   ? "text-red-600 dark:text-red-400 font-bold"
                                   : t.isMonthly
                                   ? "text-purple-600 dark:text-purple-400 font-bold"
-                                  : "text-amber-600 dark:text-amber-400"
+                                  : "text-sky-600 dark:text-sky-400"
                               }`}
                             >
                               {isOverdue ? "Deadline was: " : t.isMonthly ? "📅 Due Tomorrow (1-Day Notice): " : "Due: "}
@@ -839,7 +839,7 @@ export function SidebarLayout({
                                       ? "text-red-600 dark:text-red-400 font-bold"
                                       : t.isMonthly
                                       ? "text-purple-600 dark:text-purple-400 font-bold"
-                                      : "text-amber-600 dark:text-amber-400"
+                                      : "text-sky-600 dark:text-sky-400"
                                   }`}
                                 >
                                   {isOverdue ? "Deadline was: " : t.isMonthly ? "📅 Due Tomorrow (1-Day Notice): " : "Due: "}

@@ -109,7 +109,7 @@ export function TaskCompletionModal({
           {isMonthly && (
             <div className={`mt-2 p-2.5 rounded-xl border text-xs flex items-center gap-2 ${
               isLocked
-                ? "bg-amber-500/10 border-amber-500/30 text-amber-800 dark:text-amber-300"
+                ? "bg-sky-500/10 border-sky-500/30 text-sky-800 dark:text-sky-300"
                 : "bg-purple-500/10 border-purple-500/20 text-purple-700 dark:text-purple-300"
             }`}>
               <span className="text-base">{isLocked ? "🔒" : "🔁"}</span>

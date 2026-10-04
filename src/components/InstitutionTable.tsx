@@ -255,7 +255,7 @@ export function InstitutionTable({
                         className={`py-2.5 px-3 rounded-lg border font-semibold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors active:scale-95 ${
                           isDeactivated
                             ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
-                            : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 hover:bg-amber-500/20"
+                            : "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20 hover:bg-sky-500/20"
                         }`}
                       >
                         {isDeactivated ? (
@@ -493,7 +493,7 @@ export function InstitutionTable({
                             className={`p-1.5 text-xs rounded-md border transition-colors flex items-center justify-center shrink-0 ${
                               isDeactivated
                                 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
-                                : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 hover:bg-amber-500/20"
+                                : "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20 hover:bg-sky-500/20"
                             }`}
                             title={isDeactivated ? "Activate Client" : "Deactivate Client"}
                             aria-label={isDeactivated ? "Activate Client" : "Deactivate Client"}

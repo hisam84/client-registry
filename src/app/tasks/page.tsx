@@ -260,10 +260,10 @@ export default function TasksPage() {
       }}
     >
       {/* Super Admin Employee Filter Bar */}
-      <div className="mb-6 p-4 rounded-xl border border-brass-500/20 bg-gradient-to-r from-brass-500/5 via-amber-500/5 to-transparent flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+      <div className="mb-6 p-4 rounded-xl border border-blue-500/20 bg-gradient-to-r from-blue-500/5 via-indigo-500/5 to-transparent flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-wider text-brass-700 dark:text-brass-400 flex items-center gap-1.5">
-            <svg className="w-4 h-4 text-brass-600 dark:text-brass-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400 flex items-center gap-1.5">
+            <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
             <span>Super Admin & Employee Task Filtering</span>
@@ -281,7 +281,7 @@ export default function TasksPage() {
               setSelectedEmployeeFilter(e.target.value);
               if (e.target.value !== "all") setActiveTab("all");
             }}
-            className="w-full sm:w-auto rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brass-500"
+            className="w-full sm:w-auto rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">All Employees</option>
             {employees.map((emp) => (
@@ -301,12 +301,12 @@ export default function TasksPage() {
             setMonthlyOnly(false);
             setUpcomingOnly(true);
           }}
-          className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm cursor-pointer hover:border-amber-400/60 transition-colors"
+          className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm cursor-pointer hover:border-sky-400/60 transition-colors"
           title="Click to filter upcoming tasks"
         >
           <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
             <span>Upcoming Tasks</span>
-            <span className="text-amber-500 font-bold">Upcoming</span>
+            <span className="text-sky-500 font-bold">Upcoming</span>
           </div>
           <div className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100 font-mono">
             {metrics.upcomingTasks}
@@ -511,8 +511,8 @@ export default function TasksPage() {
                 onClick={() => setActiveTab("unassigned")}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                   activeTab === "unassigned"
-                    ? "bg-amber-600 text-white shadow-sm"
-                    : "bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 hover:bg-amber-50"
+                    ? "bg-indigo-600 text-white shadow-sm"
+                    : "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900/50 hover:bg-indigo-50 dark:hover:bg-indigo-950/30"
                 }`}
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
