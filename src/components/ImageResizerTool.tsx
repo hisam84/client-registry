@@ -78,6 +78,9 @@ export function ImageResizerTool() {
   const [logoImg, setLogoImg] = useState<HTMLImageElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
+  // DPI Multiplier (1 = Standard, 2 = 2x High-DPI, 3 = 3x Ultra-Crisp)
+  const [dpiScale, setDpiScale] = useState<number>(2);
+
   // 230x50 Banner Settings
   const [orgName, setOrgName] = useState("Imperial IT Solution");
   const [orgAddress, setOrgAddress] = useState("Dhanmondi, Dhaka-1205");
@@ -148,9 +151,11 @@ export function ImageResizerTool() {
     }
   };
 
-  // Re-draw all canvases whenever settings or image change
+  // Re-draw all canvases with high-DPI supersampling & crystal sharpness
   const renderAllCanvases = useCallback(() => {
     if (typeof window === "undefined") return;
+
+    const scaleFactor = Math.max(1, dpiScale);
 
     CANVAS_SPECS.forEach((spec) => {
       const canvas = canvasRefs.current[spec.name];
@@ -159,29 +164,39 @@ export function ImageResizerTool() {
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
-      // Set actual canvas resolution
-      canvas.width = spec.width;
-      canvas.height = spec.height;
+      const baseW = spec.width;
+      const baseH = spec.height;
 
-      // Enable high quality image smoothing
+      // High DPI internal canvas resolution
+      const targetPixelW = Math.round(baseW * scaleFactor);
+      const targetPixelH = Math.round(baseH * scaleFactor);
+
+      canvas.width = targetPixelW;
+      canvas.height = targetPixelH;
+
+      // Enable maximum quality smoothing
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
 
       // Clear canvas
-      ctx.clearRect(0, 0, spec.width, spec.height);
+      ctx.clearRect(0, 0, targetPixelW, targetPixelH);
+
+      // Scale context coordinate system to match base dimensions
+      ctx.save();
+      ctx.scale(scaleFactor, scaleFactor);
 
       if (spec.isBanner) {
         // --- 230x50 JPG BANNER RENDERING ---
         // 1. Fill solid background (JPG format requires solid background)
         ctx.fillStyle = bannerBgColor || "#ffffff";
-        ctx.fillRect(0, 0, spec.width, spec.height);
+        ctx.fillRect(0, 0, baseW, baseH);
 
         let currentX = logoPadding;
-        const bannerH = spec.height;
+        const bannerH = baseH;
 
         // 2. Draw Logo if available
         if (logoImg) {
-          const maxLogoW = Math.max(10, Math.min(bannerLogoWidth, spec.width - 30));
+          const maxLogoW = Math.max(10, Math.min(bannerLogoWidth, baseW - 30));
           const maxLogoH = Math.max(10, bannerH - logoPadding * 2);
 
           // Preserve exact aspect ratio
@@ -221,8 +236,8 @@ export function ImageResizerTool() {
           currentX = logoPadding + placeholderW + textLeftGap;
         }
 
-        // 3. Draw Text (Name & Address)
-        const textMaxW = spec.width - currentX - 4;
+        // 3. Draw Text (Name & Address) with Crisp Rendering
+        const textMaxW = baseW - currentX - 4;
 
         // Organization Name
         ctx.textAlign = "left";
@@ -240,13 +255,15 @@ export function ImageResizerTool() {
         const addressY = 39; // baseline for second line
         ctx.fillText(orgAddress || "Address & Details", currentX, addressY, textMaxW);
 
+        ctx.restore();
+
         // Also update the zoom canvas mirror if present
         if (bannerZoomCanvasRef.current) {
           const zCanvas = bannerZoomCanvasRef.current;
           const zCtx = zCanvas.getContext("2d");
           if (zCtx) {
-            zCanvas.width = spec.width * 2;
-            zCanvas.height = spec.height * 2;
+            zCanvas.width = baseW * 3;
+            zCanvas.height = baseH * 3;
             zCtx.imageSmoothingEnabled = true;
             zCtx.imageSmoothingQuality = "high";
             zCtx.drawImage(canvas, 0, 0, zCanvas.width, zCanvas.height);
@@ -256,17 +273,17 @@ export function ImageResizerTool() {
         // --- 32, 82, 150, 162 TRANSPARENT PNG RENDERING ---
         if (logoImg) {
           const padFraction = iconPaddingPercent / 100;
-          const availW = spec.width * (1 - padFraction * 2);
-          const availH = spec.height * (1 - padFraction * 2);
+          const availW = baseW * (1 - padFraction * 2);
+          const availH = baseH * (1 - padFraction * 2);
 
-          // Fit proportionally (aspect ratio preserved without distortion)
+          // Fit proportionally (aspect ratio strictly preserved without distortion)
           const scale = Math.min(availW / logoImg.naturalWidth, availH / logoImg.naturalHeight);
           const drawW = logoImg.naturalWidth * scale;
           const drawH = logoImg.naturalHeight * scale;
 
           // Center precisely in canvas
-          const drawX = (spec.width - drawW) / 2;
-          const drawY = (spec.height - drawH) / 2;
+          const drawX = (baseW - drawW) / 2;
+          const drawY = (baseH - drawH) / 2;
 
           ctx.drawImage(logoImg, drawX, drawY, drawW, drawH);
         } else {
@@ -274,19 +291,21 @@ export function ImageResizerTool() {
           ctx.strokeStyle = "rgba(148, 163, 184, 0.4)";
           ctx.lineWidth = 1;
           ctx.setLineDash([3, 3]);
-          ctx.strokeRect(1, 1, spec.width - 2, spec.height - 2);
+          ctx.strokeRect(1, 1, baseW - 2, baseH - 2);
           ctx.setLineDash([]);
 
           ctx.fillStyle = "rgba(148, 163, 184, 0.6)";
-          ctx.font = `${Math.max(9, Math.floor(spec.width / 7))}px sans-serif`;
+          ctx.font = `${Math.max(9, Math.floor(baseW / 7))}px sans-serif`;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          ctx.fillText(`${spec.width}×${spec.height}`, spec.width / 2, spec.height / 2);
+          ctx.fillText(`${baseW}×${baseH}`, baseW / 2, baseH / 2);
         }
+        ctx.restore();
       }
     });
   }, [
     logoImg,
+    dpiScale,
     orgName,
     orgAddress,
     nameFont,
@@ -314,12 +333,12 @@ export function ImageResizerTool() {
     }
   }, [renderAllCanvases]);
 
-  // Download single canvas
+  // Download single canvas (100% maximum quality)
   const downloadSingle = (spec: CanvasSpec) => {
     const canvas = canvasRefs.current[spec.name];
     if (!canvas) return;
 
-    const quality = spec.format === "image/jpeg" ? 0.95 : undefined;
+    const quality = spec.format === "image/jpeg" ? 1.0 : undefined;
     canvas.toBlob(
       (blob) => {
         if (!blob) return;
@@ -341,7 +360,7 @@ export function ImageResizerTool() {
         const canvas = canvasRefs.current[spec.name];
         if (!canvas) continue;
 
-        const quality = spec.format === "image/jpeg" ? 0.95 : undefined;
+        const quality = spec.format === "image/jpeg" ? 1.0 : undefined;
         const blob = await new Promise<Blob | null>((resolve) => {
           canvas.toBlob((b) => resolve(b), spec.format, quality);
         });
@@ -380,7 +399,7 @@ export function ImageResizerTool() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-brass-500/15 text-brass-700 dark:text-brass-300 border border-brass-500/30 mb-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Aspect Ratio Preserved Engine
+              High-DPI Super-Sampled Crisp Rendering
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50 tracking-tight font-display">
               Smart Logo & Asset Resizer
@@ -388,11 +407,33 @@ export function ImageResizerTool() {
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-2xl">
               Upload a single logo to instantly render all 5 standard image sizes. The logo aspect ratio is
               strictly preserved without distortion. Customize the 230×50 banner with English or Bangla typography
-              and download all as a ZIP package.
+              and export with ultra-sharp high-DPI quality.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            {/* DPI Scale Selector */}
+            <div className="flex items-center gap-1.5 bg-white/80 dark:bg-slate-900/80 p-1.5 rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm">
+              <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 px-1.5">DPI:</span>
+              {[
+                { label: "1x Standard", val: 1 },
+                { label: "2x Hi-DPI (Crisp)", val: 2 },
+                { label: "3x Ultra HD", val: 3 },
+              ].map((item) => (
+                <button
+                  key={item.val}
+                  onClick={() => setDpiScale(item.val)}
+                  className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all ${
+                    dpiScale === item.val
+                      ? "bg-brass-500 text-white shadow-sm"
+                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
             <button
               onClick={loadDefaultPadLogo}
               className="px-3.5 py-2 text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors flex items-center gap-1.5"
@@ -731,12 +772,12 @@ export function ImageResizerTool() {
                   <span>Live Canvas Previews & Export</span>
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Each canvas is rendered to exact target pixel specifications.
+                  Rendered at high-resolution {dpiScale}x DPI with subpixel text clarity.
                 </p>
               </div>
 
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
-                5 Output Assets
+              <span className="text-xs font-semibold text-brass-700 dark:text-brass-300 bg-brass-500/10 border border-brass-500/20 px-2.5 py-1 rounded-lg">
+                {dpiScale}x DPI Active ({dpiScale === 1 ? "Standard" : dpiScale === 2 ? "Retina HD" : "Ultra HD"})
               </span>
             </div>
 
@@ -764,13 +805,18 @@ export function ImageResizerTool() {
                         >
                           {spec.width} × {spec.height} {spec.ext.toUpperCase().replace(".", "")}
                         </span>
+                        {dpiScale > 1 && (
+                          <span className="text-[10px] font-mono text-slate-400">
+                            ({spec.width * dpiScale}×{spec.height * dpiScale}px)
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-slate-500 dark:text-slate-400">{spec.description}</p>
                     </div>
 
                     {/* Preview Box & Download Button */}
                     <div className="flex items-center gap-3 self-end sm:self-center">
-                      {/* Live Canvas Element */}
+                      {/* Live Canvas Element (Displayed with CSS size matching base dimension for pixel perfection) */}
                       <div
                         className="p-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center justify-center shadow-inner"
                         style={{
@@ -814,16 +860,18 @@ export function ImageResizerTool() {
                   {spec.isBanner && (
                     <div className="mt-3 pt-3 border-t border-slate-200/80 dark:border-slate-800/80">
                       <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 mb-1.5">
-                        <span>2x Zoomed Live View:</span>
-                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400">Crisp JPG Output</span>
+                        <span>3x Zoomed Live Inspection View:</span>
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                          100% Quality JPG • No Blurring
+                        </span>
                       </div>
                       <div className="overflow-x-auto p-3 rounded-lg bg-slate-200/60 dark:bg-slate-900/80 flex justify-center">
                         <canvas
                           ref={bannerZoomCanvasRef}
                           className="shadow-md rounded border border-slate-300 dark:border-slate-700 max-w-full"
                           style={{
-                            width: 230 * 2,
-                            height: 50 * 2,
+                            width: 230 * 2.5,
+                            height: 50 * 2.5,
                             display: "block",
                           }}
                         />
