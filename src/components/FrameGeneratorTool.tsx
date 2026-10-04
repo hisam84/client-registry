@@ -291,24 +291,24 @@ export function FrameGeneratorTool() {
   const [frameUnit, setFrameUnit] = useState<UnitType>("mm");
   const [frameRatioLocked, setFrameRatioLocked] = useState<boolean>(false);
 
-  // Frame Alignment & Positioning (When in exact mode)
+  // Frame Alignment & Positioning
   const [isCentered, setIsCentered] = useState<boolean>(true);
   const [frameMarginLeft, setFrameMarginLeft] = useState<number>(11);
   const [frameMarginTop, setFrameMarginTop] = useState<number>(10);
 
   // Margin Mode State
-  const [uniformMargin, setUniformMargin] = useState<number>(12); // in mm
+  const [uniformMargin, setUniformMargin] = useState<number>(12);
 
   // 3. WATERMARK ENGINE STATE
   const [showWatermark, setShowWatermark] = useState<boolean>(true);
   const [watermarkType, setWatermarkType] = useState<"crest" | "seal" | "star" | "text" | "custom_logo">("crest");
   const [watermarkText, setWatermarkText] = useState<string>("OFFICIAL");
   const [watermarkImage, setWatermarkImage] = useState<string | null>(null);
-  const [watermarkSizeMm, setWatermarkSizeMm] = useState<number>(75); // size in mm
-  const [watermarkOpacityPct, setWatermarkOpacityPct] = useState<number>(8); // 1% - 50%
-  const [watermarkOffsetYMm, setWatermarkOffsetYMm] = useState<number>(0); // vertical offset in mm (0 = exact center)
-  const [watermarkOffsetXMm, setWatermarkOffsetXMm] = useState<number>(0); // horizontal offset in mm
-  const [watermarkRotationDeg, setWatermarkRotationDeg] = useState<number>(0); // -90 to +90 deg
+  const [watermarkSizeMm, setWatermarkSizeMm] = useState<number>(75);
+  const [watermarkOpacityPct, setWatermarkOpacityPct] = useState<number>(8);
+  const [watermarkOffsetYMm, setWatermarkOffsetYMm] = useState<number>(0);
+  const [watermarkOffsetXMm, setWatermarkOffsetXMm] = useState<number>(0);
+  const [watermarkRotationDeg, setWatermarkRotationDeg] = useState<number>(0);
 
   // 4. STYLING & COLORS
   const [styleType, setStyleType] = useState<BorderStyleType>("royal-guilloche");
@@ -319,8 +319,8 @@ export function FrameGeneratorTool() {
   const [backgroundType, setBackgroundType] = useState<"transparent" | "white" | "parchment">("transparent");
 
   // 5. INNER ACCENTS & SLIDERS
-  const [strokeThickness, setStrokeThickness] = useState<number>(3); // Scale
-  const [innerOffsetMm, setInnerOffsetMm] = useState<number>(3); // mm
+  const [strokeThickness, setStrokeThickness] = useState<number>(3);
+  const [innerOffsetMm, setInnerOffsetMm] = useState<number>(3);
   const [cornerScale, setCornerScale] = useState<number>(1.0);
   const [showInnerBorder, setShowInnerBorder] = useState<boolean>(true);
   const [showCornerAccents, setShowCornerAccents] = useState<boolean>(true);
@@ -330,12 +330,20 @@ export function FrameGeneratorTool() {
   // 6. SAMPLE MOCK OVERLAY
   const [sampleMockType, setSampleMockType] = useState<"none" | "certificate" | "marksheet">("certificate");
 
+  // 7. FIGMA-STYLE ARTBOARD VIEWPORT CONTROLS
+  const [zoomLevel, setZoomLevel] = useState<number>(1.0); // 0.2 to 4.0
+  const [panPosition, setPanPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isPanMode, setIsPanMode] = useState<boolean>(false);
+
   // Export State
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
 
   const svgRef = useRef<SVGSVGElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
 
   // Auto-center handler
   const autoCenter = useCallback(() => {
@@ -380,7 +388,6 @@ export function FrameGeneratorTool() {
       setFrameMarginTop(fromMillimeters(marginEachSide, p.unit, targetDpi));
       setIsCentered(true);
 
-      // Adjust default watermark size proportionally
       setWatermarkSizeMm(Math.min(newFw_mm, newFh_mm) * 0.45);
 
       if (p.category === "Marksheet") {
@@ -436,7 +443,6 @@ export function FrameGeneratorTool() {
 
     const cornerSize_mm = Math.min(fW_mm, fH_mm) * 0.12 * cornerScale;
 
-    // Watermark Center calculations (Center of Frame + Offsets)
     const wmCenterX_mm = fX_mm + fW_mm / 2 + watermarkOffsetXMm;
     const wmCenterY_mm = fY_mm + fH_mm / 2 + watermarkOffsetYMm;
 
@@ -527,6 +533,66 @@ export function FrameGeneratorTool() {
     setFrameHeight(tempFw);
 
     setSelectedCanvasPreset("custom");
+  };
+
+  // ===================== FIGMA-STYLE ARTBOARD VIEWPORT HANDLERS =====================
+  
+  // Zoom In
+  const handleZoomIn = () => {
+    setZoomLevel((prev) => Math.min(parseFloat((prev + 0.15).toFixed(2)), 3.5));
+  };
+
+  // Zoom Out
+  const handleZoomOut = () => {
+    setZoomLevel((prev) => Math.max(parseFloat((prev - 0.15).toFixed(2)), 0.3));
+  };
+
+  // Reset View (100% and centered)
+  const handleResetView = () => {
+    setZoomLevel(1.0);
+    setPanPosition({ x: 0, y: 0 });
+  };
+
+  // Fit to Viewport
+  const handleFitToView = () => {
+    setZoomLevel(1.0);
+    setPanPosition({ x: 0, y: 0 });
+  };
+
+  // Mouse Wheel Zoom
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+    setZoomLevel((prev) => {
+      const next = prev * zoomFactor;
+      return Math.min(Math.max(parseFloat(next.toFixed(2)), 0.25), 3.5);
+    });
+  };
+
+  // Mouse Down to start Pan / Move Artboard
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Only drag on left click or middle click
+    if (e.button === 0 || e.button === 1) {
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - panPosition.x,
+        y: e.clientY - panPosition.y,
+      });
+    }
+  };
+
+  // Mouse Move
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    setPanPosition({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y,
+    });
+  };
+
+  // Mouse Up / Leave
+  const handleMouseUp = () => {
+    setIsDragging(false);
   };
 
   // Generate SVG Code
@@ -642,16 +708,16 @@ export function FrameGeneratorTool() {
               <svg className="w-3.5 h-3.5 text-brass-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
               </svg>
-              <span>Certificate & Marksheet Studio</span>
+              <span>Figma-Style Artboard Studio</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white flex items-center gap-3">
               <span>Frame & Watermark Designer</span>
               <span className="text-xs font-medium px-2.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                Watermark Engine
+                Interactive Artboard
               </span>
             </h1>
             <p className="mt-2 text-sm text-slate-300 max-w-2xl leading-relaxed">
-              Generate customizable vector border frames with background watermark engine for certificates, diplomas, and transcripts. Set canvas and frame sizes independently with print-ready SVG and 300 DPI exports.
+              Generate customizable vector border frames with background watermark engine for certificates, diplomas, and transcripts. Pan, drag, and zoom the interactive artboard just like Figma.
             </p>
           </div>
 
@@ -1325,51 +1391,119 @@ export function FrameGeneratorTool() {
           </div>
         </div>
 
-        {/* ===================== RIGHT PREVIEW & EXPORTS (7 Cols) ===================== */}
+        {/* ===================== RIGHT FIGMA-STYLE ARTBOARD VIEWPORT (7 Cols) ===================== */}
         <div className="lg:col-span-7 space-y-4">
           
-          {/* Canvas Wrapper */}
-          <div className="bg-slate-950/90 rounded-2xl border border-slate-800 p-4 md:p-6 shadow-2xl relative">
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-3 text-xs text-slate-400">
-              <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1.5 text-blue-400 font-mono">
-                  <span className="w-2 h-2 rounded-full bg-blue-500" />
-                  <span>Canvas: {canvasWidth}×{canvasHeight} {canvasUnit}</span>
-                </span>
-                <span className="flex items-center gap-1.5 text-brass-400 font-mono">
-                  <span className="w-2 h-2 rounded-full bg-brass-500" />
-                  <span>Frame: {frameWidth}×{frameHeight} {frameUnit}</span>
-                </span>
-                {showWatermark && (
-                  <span className="flex items-center gap-1.5 text-amber-400 font-mono">
-                    <span className="w-2 h-2 rounded-full bg-amber-500" />
-                    <span>Watermark ({watermarkOpacityPct}%)</span>
-                  </span>
-                )}
+          {/* Figma Workspace Container */}
+          <div className="bg-slate-950 rounded-2xl border border-slate-800 shadow-2xl relative flex flex-col overflow-hidden">
+            
+            {/* Top Toolbar Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-slate-900/90 border-b border-slate-800 text-xs text-slate-300 select-none z-20">
+              
+              {/* Artboard Meta Information */}
+              <div className="flex items-center gap-2">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700/60 font-mono text-[11px] text-slate-300">
+                  <span className="w-2 h-2 rounded-full bg-blue-400" />
+                  <span className="font-semibold">Canvas:</span> {canvasWidth}×{canvasHeight} {canvasUnit}
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700/60 font-mono text-[11px] text-amber-300">
+                  <span className="w-2 h-2 rounded-full bg-amber-400" />
+                  <span className="font-semibold">Frame:</span> {frameWidth}×{frameHeight} {frameUnit}
+                </div>
+              </div>
+
+              {/* Figma Navigation & Zoom Control Toolbar */}
+              <div className="flex items-center gap-1 bg-slate-800/90 p-1 rounded-xl border border-slate-700/80">
+                {/* Hand / Pan Tool Toggle */}
+                <button
+                  type="button"
+                  onClick={() => setIsPanMode(!isPanMode)}
+                  title="Hand Tool (Click & Drag canvas)"
+                  className={`p-1.5 rounded-lg transition-all ${
+                    isPanMode
+                      ? "bg-brass-500 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white hover:bg-slate-700"
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />
+                  </svg>
+                </button>
+
+                <div className="w-[1px] h-4 bg-slate-700 mx-0.5" />
+
+                {/* Zoom Out (-) */}
+                <button
+                  type="button"
+                  onClick={handleZoomOut}
+                  title="Zoom Out"
+                  className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-all"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" />
+                  </svg>
+                </button>
+
+                {/* Zoom Percentage Badge */}
+                <button
+                  type="button"
+                  onClick={handleResetView}
+                  title="Click to reset zoom to 100%"
+                  className="px-2 py-1 rounded text-[11px] font-mono font-semibold text-slate-200 hover:bg-slate-700 transition-all min-w-[50px] text-center"
+                >
+                  {Math.round(zoomLevel * 100)}%
+                </button>
+
+                {/* Zoom In (+) */}
+                <button
+                  type="button"
+                  onClick={handleZoomIn}
+                  title="Zoom In"
+                  className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-all"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+
+                <div className="w-[1px] h-4 bg-slate-700 mx-0.5" />
+
+                {/* Fit to View */}
+                <button
+                  type="button"
+                  onClick={handleFitToView}
+                  title="Fit Artboard to Center"
+                  className="px-2 py-1 rounded text-[11px] font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition-all flex items-center gap-1"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                  </svg>
+                  <span>Fit</span>
+                </button>
               </div>
 
               {/* Sample Mock Switcher */}
-              <div className="flex gap-1 bg-slate-900 p-0.5 rounded-lg border border-slate-800">
+              <div className="flex gap-1 bg-slate-800 p-0.5 rounded-lg border border-slate-700">
                 <button
                   onClick={() => setSampleMockType("none")}
-                  className={`px-2 py-0.5 rounded text-[10px] font-medium ${
-                    sampleMockType === "none" ? "bg-slate-800 text-white" : "text-slate-400"
+                  className={`px-2 py-1 rounded text-[10px] font-medium transition-all ${
+                    sampleMockType === "none" ? "bg-slate-700 text-white font-semibold" : "text-slate-400 hover:text-slate-200"
                   }`}
                 >
                   Only Frame
                 </button>
                 <button
                   onClick={() => setSampleMockType("certificate")}
-                  className={`px-2 py-0.5 rounded text-[10px] font-medium ${
-                    sampleMockType === "certificate" ? "bg-slate-800 text-white" : "text-slate-400"
+                  className={`px-2 py-1 rounded text-[10px] font-medium transition-all ${
+                    sampleMockType === "certificate" ? "bg-slate-700 text-white font-semibold" : "text-slate-400 hover:text-slate-200"
                   }`}
                 >
-                  Cert Text
+                  Certificate Text
                 </button>
                 <button
                   onClick={() => setSampleMockType("marksheet")}
-                  className={`px-2 py-0.5 rounded text-[10px] font-medium ${
-                    sampleMockType === "marksheet" ? "bg-slate-800 text-white" : "text-slate-400"
+                  className={`px-2 py-1 rounded text-[10px] font-medium transition-all ${
+                    sampleMockType === "marksheet" ? "bg-slate-700 text-white font-semibold" : "text-slate-400 hover:text-slate-200"
                   }`}
                 >
                   Marksheet Text
@@ -1377,261 +1511,462 @@ export function FrameGeneratorTool() {
               </div>
             </div>
 
-            {/* SVG Renderer Area (ViewBox = 0 0 cW_mm cH_mm) */}
+            {/* Interactive Infinite Viewport Area */}
             <div
-              className={`w-full overflow-hidden rounded-xl border border-slate-700/60 shadow-inner flex items-center justify-center transition-all ${
-                backgroundType === "white"
-                  ? "bg-white"
-                  : backgroundType === "parchment"
-                  ? "bg-[#FAF7EE]"
-                  : "bg-slate-900/90"
+              ref={viewportRef}
+              onWheel={handleWheel}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+              className={`w-full h-[580px] md:h-[680px] relative overflow-hidden flex items-center justify-center select-none ${
+                isDragging ? "cursor-grabbing" : isPanMode ? "cursor-grab" : "cursor-default"
               }`}
               style={{
-                backgroundImage:
-                  backgroundType === "transparent"
-                    ? "radial-gradient(#334155 1px, transparent 1px)"
-                    : "none",
-                backgroundSize: "20px 20px",
+                backgroundColor: "#070E1A",
+                backgroundImage: "radial-gradient(#334155 1.5px, transparent 1.5px)",
+                backgroundSize: "24px 24px",
               }}
             >
-              <svg
-                ref={svgRef}
-                viewBox={`0 0 ${layout.cW_mm} ${layout.cH_mm}`}
-                className="w-full h-auto max-h-[640px] transition-all"
-                style={{ shapeRendering: "geometricPrecision" }}
+              {/* Pan Hint Overlay */}
+              <div className="absolute bottom-3 left-3 z-10 pointer-events-none text-[10px] text-slate-500 bg-slate-900/80 backdrop-blur-md px-2.5 py-1 rounded-md border border-slate-800">
+                💡 Scroll to Zoom • Drag or use Hand Tool to Pan
+              </div>
+
+              {/* Transform Container (Handles Zoom & Pan Translation) */}
+              <div
+                style={{
+                  transform: `translate(${panPosition.x}px, ${panPosition.y}px) scale(${zoomLevel})`,
+                  transformOrigin: "center center",
+                  transition: isDragging ? "none" : "transform 0.12s ease-out",
+                }}
+                className="relative flex flex-col items-center"
               >
-                <defs>
-                  {/* Primary Linear Gradient */}
-                  <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor={primaryColor} />
-                    <stop offset="50%" stopColor={accentColor} />
-                    <stop offset="100%" stopColor={secondaryColor} />
-                  </linearGradient>
+                {/* Figma Artboard Header Tag */}
+                <div className="mb-2 flex items-center gap-2 px-3 py-1 rounded-md bg-slate-800/90 text-slate-300 text-[11px] font-mono border border-slate-700 shadow-md">
+                  <span className="w-2 h-2 rounded-full bg-brass-400" />
+                  <span className="font-semibold text-white">Artboard:</span> {canvasWidth} × {canvasHeight} {canvasUnit}
+                  <span className="text-slate-500">({targetDpi} DPI)</span>
+                </div>
 
-                  {/* Corner Ornaments Pattern Defs */}
-                  <g id="rosetteCorner">
-                    <path
-                      d={`M 0,0 L ${layout.cornerSize_mm},0 C ${layout.cornerSize_mm * 0.7},0 ${layout.cornerSize_mm * 0.4},${layout.cornerSize_mm * 0.15} ${layout.cornerSize_mm * 0.3},${layout.cornerSize_mm * 0.3} C ${layout.cornerSize_mm * 0.15},${layout.cornerSize_mm * 0.4} 0,${layout.cornerSize_mm * 0.7} 0,${layout.cornerSize_mm} Z`}
-                      fill="url(#primaryGrad)"
-                      opacity="0.22"
-                    />
-                    <path
-                      d={`M ${layout.cornerSize_mm * 0.8},0 A ${layout.cornerSize_mm * 0.8} ${layout.cornerSize_mm * 0.8} 0 0,1 0,${layout.cornerSize_mm * 0.8}`}
-                      fill="none"
-                      stroke={secondaryColor}
-                      strokeWidth={layout.strokeMm * 0.6}
-                    />
-                    <path
-                      d={`M ${layout.cornerSize_mm * 0.5},0 A ${layout.cornerSize_mm * 0.5} ${layout.cornerSize_mm * 0.5} 0 0,1 0,${layout.cornerSize_mm * 0.5}`}
-                      fill="none"
-                      stroke={accentColor}
-                      strokeWidth={layout.strokeMm * 0.4}
-                      strokeDasharray="1 0.5"
-                    />
-                    <polygon
-                      points={`0,0 ${layout.cornerSize_mm * 0.25},0 ${layout.cornerSize_mm * 0.12},${layout.cornerSize_mm * 0.12} 0,${layout.cornerSize_mm * 0.25}`}
-                      fill={secondaryColor}
-                    />
-                  </g>
-
-                  {/* Filigree Corner */}
-                  <g id="filigreeCorner">
-                    <path
-                      d={`M 0,0 L ${layout.cornerSize_mm * 0.9},0 Q ${layout.cornerSize_mm * 0.5},${layout.cornerSize_mm * 0.2} ${layout.cornerSize_mm * 0.45},${layout.cornerSize_mm * 0.45} Q ${layout.cornerSize_mm * 0.2},${layout.cornerSize_mm * 0.5} 0,${layout.cornerSize_mm * 0.9} Z`}
-                      fill={primaryColor}
-                      opacity="0.18"
-                    />
-                    <path
-                      d={`M 0,${layout.cornerSize_mm * 0.8} C ${layout.cornerSize_mm * 0.3},${layout.cornerSize_mm * 0.8} ${layout.cornerSize_mm * 0.8},${layout.cornerSize_mm * 0.3} ${layout.cornerSize_mm * 0.8},0`}
-                      fill="none"
-                      stroke={secondaryColor}
-                      strokeWidth={layout.strokeMm * 0.8}
-                    />
-                    <circle cx={layout.cornerSize_mm * 0.35} cy={layout.cornerSize_mm * 0.35} r={layout.strokeMm * 1.5} fill={accentColor} />
-                  </g>
-                </defs>
-
-                {/* Background Paper Fill */}
-                {backgroundType === "white" && (
-                  <rect x="0" y="0" width={layout.cW_mm} height={layout.cH_mm} fill="#FFFFFF" />
-                )}
-                {backgroundType === "parchment" && (
-                  <rect x="0" y="0" width={layout.cW_mm} height={layout.cH_mm} fill="#FAF7EE" />
-                )}
-
-                {/* ==================== WATERMARK LAYER (Underneath Text) ==================== */}
-                {showWatermark && (
-                  <g
-                    id="watermark-layer"
-                    transform={`translate(${layout.wmCenterX_mm}, ${layout.wmCenterY_mm}) rotate(${watermarkRotationDeg})`}
-                    opacity={watermarkOpacityPct / 100}
-                    style={{ pointerEvents: "none" }}
+                {/* The Paper Sheet / Artboard */}
+                <div
+                  className={`relative rounded-sm shadow-2xl transition-all ${
+                    backgroundType === "white"
+                      ? "bg-white text-slate-900"
+                      : backgroundType === "parchment"
+                      ? "bg-[#FAF7EE] text-slate-900"
+                      : "bg-slate-900/95 text-white"
+                  }`}
+                  style={{
+                    width: `${layout.cW_mm * 2.2}px`,
+                    height: `${layout.cH_mm * 2.2}px`,
+                    boxShadow: "0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.1)",
+                    backgroundImage:
+                      backgroundType === "transparent"
+                        ? "radial-gradient(#475569 1px, transparent 1px)"
+                        : "none",
+                    backgroundSize: "16px 16px",
+                  }}
+                >
+                  <svg
+                    ref={svgRef}
+                    viewBox={`0 0 ${layout.cW_mm} ${layout.cH_mm}`}
+                    className="w-full h-full"
+                    style={{ shapeRendering: "geometricPrecision" }}
                   >
-                    {/* Watermark Type 1: Royal Crest Emblem */}
-                    {watermarkType === "crest" && (
-                      <g transform={`scale(${watermarkSizeMm / 100})`}>
-                        {/* Outer concentric rosette circles */}
-                        <circle cx="0" cy="0" r="48" fill="none" stroke={primaryColor} strokeWidth="1.5" />
-                        <circle cx="0" cy="0" r="44" fill="none" stroke={secondaryColor} strokeWidth="1" strokeDasharray="3 1.5" />
-                        <circle cx="0" cy="0" r="38" fill="none" stroke={primaryColor} strokeWidth="0.8" />
-                        
-                        {/* 16-point Guilloche sunburst rays */}
-                        {Array.from({ length: 16 }).map((_, i) => (
-                          <line
-                            key={i}
-                            x1="0"
-                            y1="38"
-                            x2="0"
-                            y2="44"
-                            stroke={primaryColor}
-                            strokeWidth="1.2"
-                            transform={`rotate(${i * 22.5})`}
-                          />
-                        ))}
+                    <defs>
+                      {/* Primary Linear Gradient */}
+                      <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor={primaryColor} />
+                        <stop offset="50%" stopColor={accentColor} />
+                        <stop offset="100%" stopColor={secondaryColor} />
+                      </linearGradient>
 
-                        {/* Center Shield & Royal Emblem */}
-                        <polygon
-                          points="-22,-20 0,-32 22,-20 18,18 0,30 -18,18"
-                          fill="none"
-                          stroke={primaryColor}
-                          strokeWidth="2"
+                      {/* Corner Ornaments Pattern Defs */}
+                      <g id="rosetteCorner">
+                        <path
+                          d={`M 0,0 L ${layout.cornerSize_mm},0 C ${layout.cornerSize_mm * 0.7},0 ${layout.cornerSize_mm * 0.4},${layout.cornerSize_mm * 0.15} ${layout.cornerSize_mm * 0.3},${layout.cornerSize_mm * 0.3} C ${layout.cornerSize_mm * 0.15},${layout.cornerSize_mm * 0.4} 0,${layout.cornerSize_mm * 0.7} 0,${layout.cornerSize_mm} Z`}
+                          fill="url(#primaryGrad)"
+                          opacity="0.22"
                         />
-                        <polygon
-                          points="-16,-14 0,-24 16,-14 13,13 0,22 -13,13"
-                          fill={primaryColor}
-                          opacity="0.3"
-                        />
-                        {/* Center Star */}
-                        <polygon
-                          points="0,-12 3.5,-3.5 12,0 3.5,3.5 0,12 -3.5,3.5 -12,0 -3.5,-3.5"
-                          fill={primaryColor}
-                        />
-                        {/* Circular Academic Text Ring */}
-                        <circle cx="0" cy="0" r="28" fill="none" stroke={secondaryColor} strokeWidth="0.6" strokeDasharray="2 1" />
-                      </g>
-                    )}
-
-                    {/* Watermark Type 2: Academic Seal / Rosette Badge */}
-                    {watermarkType === "seal" && (
-                      <g transform={`scale(${watermarkSizeMm / 100})`}>
-                        <circle cx="0" cy="0" r="46" fill="none" stroke={primaryColor} strokeWidth="2.5" />
-                        <circle cx="0" cy="0" r="42" fill="none" stroke={secondaryColor} strokeWidth="1" strokeDasharray="2 1" />
-                        <circle cx="0" cy="0" r="30" fill="none" stroke={primaryColor} strokeWidth="1.5" />
-                        {/* Star of knowledge */}
-                        <polygon
-                          points="0,-20 5.8,-5.8 20,0 5.8,5.8 0,20 -5.8,5.8 -20,0 -5.8,-5.8"
-                          fill={primaryColor}
-                          opacity="0.4"
-                        />
-                        <text
-                          x="0"
-                          y="3"
-                          textAnchor="middle"
-                          fill={primaryColor}
-                          fontFamily="Georgia, serif"
-                          fontSize="7"
-                          fontWeight="bold"
-                          letterSpacing="1"
-                        >
-                          OFFICIAL
-                        </text>
-                        <text
-                          x="0"
-                          y="10"
-                          textAnchor="middle"
-                          fill={secondaryColor}
-                          fontFamily="sans-serif"
-                          fontSize="4"
-                          letterSpacing="1"
-                        >
-                          ★ SEAL ★
-                        </text>
-                      </g>
-                    )}
-
-                    {/* Watermark Type 3: Star of Excellence */}
-                    {watermarkType === "star" && (
-                      <g transform={`scale(${watermarkSizeMm / 100})`}>
-                        <polygon
-                          points="0,-45 13,-13 45,0 13,13 0,45 -13,13 -45,0 -13,-13"
-                          fill={primaryColor}
-                          opacity="0.3"
-                          stroke={primaryColor}
-                          strokeWidth="2"
-                        />
-                        <polygon
-                          points="0,-30 9,-9 30,0 9,9 0,30 -9,9 -30,0 -9,-9"
+                        <path
+                          d={`M ${layout.cornerSize_mm * 0.8},0 A ${layout.cornerSize_mm * 0.8} ${layout.cornerSize_mm * 0.8} 0 0,1 0,${layout.cornerSize_mm * 0.8}`}
                           fill="none"
                           stroke={secondaryColor}
-                          strokeWidth="1.5"
-                          transform="rotate(45)"
+                          strokeWidth={layout.strokeMm * 0.6}
                         />
-                        <circle cx="0" cy="0" r="14" fill={primaryColor} opacity="0.4" />
-                        <circle cx="0" cy="0" r="8" fill="#FFFFFF" opacity="0.6" />
+                        <path
+                          d={`M ${layout.cornerSize_mm * 0.5},0 A ${layout.cornerSize_mm * 0.5} ${layout.cornerSize_mm * 0.5} 0 0,1 0,${layout.cornerSize_mm * 0.5}`}
+                          fill="none"
+                          stroke={accentColor}
+                          strokeWidth={layout.strokeMm * 0.4}
+                          strokeDasharray="1 0.5"
+                        />
+                        <polygon
+                          points={`0,0 ${layout.cornerSize_mm * 0.25},0 ${layout.cornerSize_mm * 0.12},${layout.cornerSize_mm * 0.12} 0,${layout.cornerSize_mm * 0.25}`}
+                          fill={secondaryColor}
+                        />
                       </g>
-                    )}
 
-                    {/* Watermark Type 4: Large Diagonal Text */}
-                    {watermarkType === "text" && (
-                      <g>
-                        <text
-                          x="0"
-                          y="0"
-                          textAnchor="middle"
-                          dominantBaseline="central"
+                      {/* Filigree Corner */}
+                      <g id="filigreeCorner">
+                        <path
+                          d={`M 0,0 L ${layout.cornerSize_mm * 0.9},0 Q ${layout.cornerSize_mm * 0.5},${layout.cornerSize_mm * 0.2} ${layout.cornerSize_mm * 0.45},${layout.cornerSize_mm * 0.45} Q ${layout.cornerSize_mm * 0.2},${layout.cornerSize_mm * 0.5} 0,${layout.cornerSize_mm * 0.9} Z`}
                           fill={primaryColor}
-                          fontFamily="Arial Black, Impact, sans-serif"
-                          fontSize={watermarkSizeMm * 0.35}
-                          fontWeight="bold"
-                          letterSpacing="4"
-                        >
-                          {watermarkText || "OFFICIAL"}
-                        </text>
+                          opacity="0.18"
+                        />
+                        <path
+                          d={`M 0,${layout.cornerSize_mm * 0.8} C ${layout.cornerSize_mm * 0.3},${layout.cornerSize_mm * 0.8} ${layout.cornerSize_mm * 0.8},${layout.cornerSize_mm * 0.3} ${layout.cornerSize_mm * 0.8},0`}
+                          fill="none"
+                          stroke={secondaryColor}
+                          strokeWidth={layout.strokeMm * 0.8}
+                        />
+                        <circle cx={layout.cornerSize_mm * 0.35} cy={layout.cornerSize_mm * 0.35} r={layout.strokeMm * 1.5} fill={accentColor} />
+                      </g>
+                    </defs>
+
+                    {/* Background Paper Fill */}
+                    {backgroundType === "white" && (
+                      <rect x="0" y="0" width={layout.cW_mm} height={layout.cH_mm} fill="#FFFFFF" />
+                    )}
+                    {backgroundType === "parchment" && (
+                      <rect x="0" y="0" width={layout.cW_mm} height={layout.cH_mm} fill="#FAF7EE" />
+                    )}
+
+                    {/* ==================== WATERMARK LAYER (Underneath Text) ==================== */}
+                    {showWatermark && (
+                      <g
+                        id="watermark-layer"
+                        transform={`translate(${layout.wmCenterX_mm}, ${layout.wmCenterY_mm}) rotate(${watermarkRotationDeg})`}
+                        opacity={watermarkOpacityPct / 100}
+                        style={{ pointerEvents: "none" }}
+                      >
+                        {watermarkType === "crest" && (
+                          <g transform={`scale(${watermarkSizeMm / 100})`}>
+                            <circle cx="0" cy="0" r="48" fill="none" stroke={primaryColor} strokeWidth="1.5" />
+                            <circle cx="0" cy="0" r="44" fill="none" stroke={secondaryColor} strokeWidth="1" strokeDasharray="3 1.5" />
+                            <circle cx="0" cy="0" r="38" fill="none" stroke={primaryColor} strokeWidth="0.8" />
+                            
+                            {Array.from({ length: 16 }).map((_, i) => (
+                              <line
+                                key={i}
+                                x1="0"
+                                y1="38"
+                                x2="0"
+                                y2="44"
+                                stroke={primaryColor}
+                                strokeWidth="1.2"
+                                transform={`rotate(${i * 22.5})`}
+                              />
+                            ))}
+
+                            <polygon
+                              points="-22,-20 0,-32 22,-20 18,18 0,30 -18,18"
+                              fill="none"
+                              stroke={primaryColor}
+                              strokeWidth="2"
+                            />
+                            <polygon
+                              points="-16,-14 0,-24 16,-14 13,13 0,22 -13,13"
+                              fill={primaryColor}
+                              opacity="0.3"
+                            />
+                            <polygon
+                              points="0,-12 3.5,-3.5 12,0 3.5,3.5 0,12 -3.5,3.5 -12,0 -3.5,-3.5"
+                              fill={primaryColor}
+                            />
+                            <circle cx="0" cy="0" r="28" fill="none" stroke={secondaryColor} strokeWidth="0.6" strokeDasharray="2 1" />
+                          </g>
+                        )}
+
+                        {watermarkType === "seal" && (
+                          <g transform={`scale(${watermarkSizeMm / 100})`}>
+                            <circle cx="0" cy="0" r="46" fill="none" stroke={primaryColor} strokeWidth="2.5" />
+                            <circle cx="0" cy="0" r="42" fill="none" stroke={secondaryColor} strokeWidth="1" strokeDasharray="2 1" />
+                            <circle cx="0" cy="0" r="30" fill="none" stroke={primaryColor} strokeWidth="1.5" />
+                            <polygon
+                              points="0,-20 5.8,-5.8 20,0 5.8,5.8 0,20 -5.8,5.8 -20,0 -5.8,-5.8"
+                              fill={primaryColor}
+                              opacity="0.4"
+                            />
+                            <text
+                              x="0"
+                              y="3"
+                              textAnchor="middle"
+                              fill={primaryColor}
+                              fontFamily="Georgia, serif"
+                              fontSize="7"
+                              fontWeight="bold"
+                              letterSpacing="1"
+                            >
+                              OFFICIAL
+                            </text>
+                            <text
+                              x="0"
+                              y="10"
+                              textAnchor="middle"
+                              fill={secondaryColor}
+                              fontFamily="sans-serif"
+                              fontSize="4"
+                              letterSpacing="1"
+                            >
+                              ★ SEAL ★
+                            </text>
+                          </g>
+                        )}
+
+                        {watermarkType === "star" && (
+                          <g transform={`scale(${watermarkSizeMm / 100})`}>
+                            <polygon
+                              points="0,-45 13,-13 45,0 13,13 0,45 -13,13 -45,0 -13,-13"
+                              fill={primaryColor}
+                              opacity="0.3"
+                              stroke={primaryColor}
+                              strokeWidth="2"
+                            />
+                            <polygon
+                              points="0,-30 9,-9 30,0 9,9 0,30 -9,9 -30,0 -9,-9"
+                              fill="none"
+                              stroke={secondaryColor}
+                              strokeWidth="1.5"
+                              transform="rotate(45)"
+                            />
+                            <circle cx="0" cy="0" r="14" fill={primaryColor} opacity="0.4" />
+                            <circle cx="0" cy="0" r="8" fill="#FFFFFF" opacity="0.6" />
+                          </g>
+                        )}
+
+                        {watermarkType === "text" && (
+                          <g>
+                            <text
+                              x="0"
+                              y="0"
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              fill={primaryColor}
+                              fontFamily="Arial Black, Impact, sans-serif"
+                              fontSize={watermarkSizeMm * 0.35}
+                              fontWeight="bold"
+                              letterSpacing="4"
+                            >
+                              {watermarkText || "OFFICIAL"}
+                            </text>
+                          </g>
+                        )}
+
+                        {watermarkType === "custom_logo" && watermarkImage && (
+                          <image
+                            href={watermarkImage}
+                            x={-watermarkSizeMm / 2}
+                            y={-watermarkSizeMm / 2}
+                            width={watermarkSizeMm}
+                            height={watermarkSizeMm}
+                            preserveAspectRatio="xMidYMid meet"
+                          />
+                        )}
                       </g>
                     )}
 
-                    {/* Watermark Type 5: Custom Uploaded Logo */}
-                    {watermarkType === "custom_logo" && watermarkImage && (
-                      <image
-                        href={watermarkImage}
-                        x={-watermarkSizeMm / 2}
-                        y={-watermarkSizeMm / 2}
-                        width={watermarkSizeMm}
-                        height={watermarkSizeMm}
-                        preserveAspectRatio="xMidYMid meet"
-                      />
+                    {/* ==================== FRAME STYLES LAYER ==================== */}
+
+                    {styleType === "royal-guilloche" && (
+                      <g id="royal-guilloche-border">
+                        <rect
+                          x={layout.fX_mm}
+                          y={layout.fY_mm}
+                          width={layout.fW_mm}
+                          height={layout.fH_mm}
+                          fill="none"
+                          stroke={primaryColor}
+                          strokeWidth={layout.strokeMm * 1.2}
+                          rx={0.5}
+                        />
+                        <rect
+                          x={layout.fX_mm - 0.8}
+                          y={layout.fY_mm - 0.8}
+                          width={layout.fW_mm + 1.6}
+                          height={layout.fH_mm + 1.6}
+                          fill="none"
+                          stroke={secondaryColor}
+                          strokeWidth={layout.strokeMm * 0.4}
+                          opacity="0.75"
+                        />
+
+                        {showInnerBorder && (
+                          <>
+                            <rect
+                              x={layout.innerX_mm}
+                              y={layout.innerY_mm}
+                              width={layout.innerW_mm}
+                              height={layout.innerH_mm}
+                              fill="none"
+                              stroke={secondaryColor}
+                              strokeWidth={layout.strokeMm * 0.6}
+                            />
+                            <rect
+                              x={layout.innerX_mm + 1}
+                              y={layout.innerY_mm + 1}
+                              width={layout.innerW_mm - 2}
+                              height={layout.innerH_mm - 2}
+                              fill="none"
+                              stroke={primaryColor}
+                              strokeWidth={layout.strokeMm * 0.3}
+                              opacity="0.6"
+                            />
+                          </>
+                        )}
+
+                        {showCornerAccents && (
+                          <>
+                            <g transform={`translate(${layout.fX_mm}, ${layout.fY_mm})`}>
+                              <use href="#rosetteCorner" />
+                            </g>
+                            <g transform={`translate(${layout.fX_mm + layout.fW_mm}, ${layout.fY_mm}) scale(-1, 1)`}>
+                              <use href="#rosetteCorner" />
+                            </g>
+                            <g transform={`translate(${layout.fX_mm}, ${layout.fY_mm + layout.fH_mm}) scale(1, -1)`}>
+                              <use href="#rosetteCorner" />
+                            </g>
+                            <g transform={`translate(${layout.fX_mm + layout.fW_mm}, ${layout.fY_mm + layout.fH_mm}) scale(-1, -1)`}>
+                              <use href="#rosetteCorner" />
+                            </g>
+                          </>
+                        )}
+                      </g>
                     )}
-                  </g>
-                )}
 
-                {/* ==================== FRAME STYLES LAYER ==================== */}
+                    {styleType === "vintage-baroque" && (
+                      <g id="vintage-baroque-border">
+                        <rect
+                          x={layout.fX_mm}
+                          y={layout.fY_mm}
+                          width={layout.fW_mm}
+                          height={layout.fH_mm}
+                          fill="none"
+                          stroke={primaryColor}
+                          strokeWidth={layout.strokeMm * 0.9}
+                        />
+                        {showInnerBorder && (
+                          <rect
+                            x={layout.innerX_mm}
+                            y={layout.innerY_mm}
+                            width={layout.innerW_mm}
+                            height={layout.innerH_mm}
+                            fill="none"
+                            stroke={secondaryColor}
+                            strokeWidth={layout.strokeMm * 0.5}
+                          />
+                        )}
+                        {showCornerAccents && (
+                          <>
+                            <g transform={`translate(${layout.fX_mm}, ${layout.fY_mm})`}>
+                              <use href="#filigreeCorner" />
+                            </g>
+                            <g transform={`translate(${layout.fX_mm + layout.fW_mm}, ${layout.fY_mm}) scale(-1, 1)`}>
+                              <use href="#filigreeCorner" />
+                            </g>
+                            <g transform={`translate(${layout.fX_mm}, ${layout.fY_mm + layout.fH_mm}) scale(1, -1)`}>
+                              <use href="#filigreeCorner" />
+                            </g>
+                            <g transform={`translate(${layout.fX_mm + layout.fW_mm}, ${layout.fY_mm + layout.fH_mm}) scale(-1, -1)`}>
+                              <use href="#filigreeCorner" />
+                            </g>
+                          </>
+                        )}
+                      </g>
+                    )}
 
-                {/* 1. ROYAL GUILLOCHE */}
-                {styleType === "royal-guilloche" && (
-                  <g id="royal-guilloche-border">
-                    <rect
-                      x={layout.fX_mm}
-                      y={layout.fY_mm}
-                      width={layout.fW_mm}
-                      height={layout.fH_mm}
-                      fill="none"
-                      stroke={primaryColor}
-                      strokeWidth={layout.strokeMm * 1.2}
-                      rx={0.5}
-                    />
-                    <rect
-                      x={layout.fX_mm - 0.8}
-                      y={layout.fY_mm - 0.8}
-                      width={layout.fW_mm + 1.6}
-                      height={layout.fH_mm + 1.6}
-                      fill="none"
-                      stroke={secondaryColor}
-                      strokeWidth={layout.strokeMm * 0.4}
-                      opacity="0.75"
-                    />
+                    {styleType === "modern-geometric" && (
+                      <g id="modern-geometric-border">
+                        <path
+                          d={`
+                            M ${layout.fX_mm + 6},${layout.fY_mm} 
+                            L ${layout.fX_mm + layout.fW_mm - 6},${layout.fY_mm} 
+                            L ${layout.fX_mm + layout.fW_mm},${layout.fY_mm + 6} 
+                            L ${layout.fX_mm + layout.fW_mm},${layout.fY_mm + layout.fH_mm - 6} 
+                            L ${layout.fX_mm + layout.fW_mm - 6},${layout.fY_mm + layout.fH_mm} 
+                            L ${layout.fX_mm + 6},${layout.fY_mm + layout.fH_mm} 
+                            L ${layout.fX_mm},${layout.fY_mm + layout.fH_mm - 6} 
+                            L ${layout.fX_mm},${layout.fY_mm + 6} Z
+                          `}
+                          fill="none"
+                          stroke={primaryColor}
+                          strokeWidth={layout.strokeMm * 1.0}
+                        />
+                        {showInnerBorder && (
+                          <path
+                            d={`
+                              M ${layout.innerX_mm + 4},${layout.innerY_mm} 
+                              L ${layout.innerX_mm + layout.innerW_mm - 4},${layout.innerY_mm} 
+                              L ${layout.innerX_mm + layout.innerW_mm},${layout.innerY_mm + 4} 
+                              L ${layout.innerX_mm + layout.innerW_mm},${layout.innerY_mm + layout.innerH_mm - 4} 
+                              L ${layout.innerX_mm + layout.innerW_mm - 4},${layout.innerY_mm + layout.innerH_mm} 
+                              L ${layout.innerX_mm + 4},${layout.innerY_mm + layout.innerH_mm} 
+                              L ${layout.innerX_mm},${layout.innerY_mm + layout.innerH_mm - 4} 
+                              L ${layout.innerX_mm},${layout.innerY_mm + 4} Z
+                            `}
+                            fill="none"
+                            stroke={secondaryColor}
+                            strokeWidth={layout.strokeMm * 0.4}
+                          />
+                        )}
+                      </g>
+                    )}
 
-                    {showInnerBorder && (
-                      <>
+                    {styleType === "marksheet-pinstripe" && (
+                      <g id="marksheet-pinstripe-border">
+                        <rect
+                          x={layout.fX_mm}
+                          y={layout.fY_mm}
+                          width={layout.fW_mm}
+                          height={layout.fH_mm}
+                          fill="none"
+                          stroke={primaryColor}
+                          strokeWidth={layout.strokeMm * 1.2}
+                        />
+                        <rect
+                          x={layout.fX_mm + 1}
+                          y={layout.fY_mm + 1}
+                          width={layout.fW_mm - 2}
+                          height={layout.fH_mm - 2}
+                          fill="none"
+                          stroke={primaryColor}
+                          strokeWidth={layout.strokeMm * 0.3}
+                        />
+                        {showInnerBorder && (
+                          <rect
+                            x={layout.innerX_mm}
+                            y={layout.innerY_mm}
+                            width={layout.innerW_mm}
+                            height={layout.innerH_mm}
+                            fill="none"
+                            stroke={secondaryColor}
+                            strokeWidth={layout.strokeMm * 0.5}
+                          />
+                        )}
+                        {showCornerAccents && (
+                          <>
+                            <line x1={layout.fX_mm} y1={layout.fY_mm + 5} x2={layout.fX_mm + 5} y2={layout.fY_mm} stroke={primaryColor} strokeWidth={layout.strokeMm * 0.8} />
+                            <line x1={layout.fX_mm + layout.fW_mm} y1={layout.fY_mm + 5} x2={layout.fX_mm + layout.fW_mm - 5} y2={layout.fY_mm} stroke={primaryColor} strokeWidth={layout.strokeMm * 0.8} />
+                            <line x1={layout.fX_mm} y1={layout.fY_mm + layout.fH_mm - 5} x2={layout.fX_mm + 5} y2={layout.fY_mm + layout.fH_mm} stroke={primaryColor} strokeWidth={layout.strokeMm * 0.8} />
+                            <line x1={layout.fX_mm + layout.fW_mm} y1={layout.fY_mm + layout.fH_mm - 5} x2={layout.fX_mm + layout.fW_mm - 5} y2={layout.fY_mm + layout.fH_mm} stroke={primaryColor} strokeWidth={layout.strokeMm * 0.8} />
+                          </>
+                        )}
+                      </g>
+                    )}
+
+                    {styleType === "greek-key" && (
+                      <g id="greek-key-border">
+                        <rect
+                          x={layout.fX_mm}
+                          y={layout.fY_mm}
+                          width={layout.fW_mm}
+                          height={layout.fH_mm}
+                          fill="none"
+                          stroke={primaryColor}
+                          strokeWidth={layout.strokeMm * 1.3}
+                        />
                         <rect
                           x={layout.innerX_mm}
                           y={layout.innerY_mm}
@@ -1640,392 +1975,215 @@ export function FrameGeneratorTool() {
                           fill="none"
                           stroke={secondaryColor}
                           strokeWidth={layout.strokeMm * 0.6}
+                          strokeDasharray="3 1 1 1"
                         />
+                        {showCornerAccents && (
+                          <>
+                            <rect x={layout.fX_mm + 1} y={layout.fY_mm + 1} width={4} height={4} fill={primaryColor} />
+                            <rect x={layout.fX_mm + layout.fW_mm - 5} y={layout.fY_mm + 1} width={4} height={4} fill={primaryColor} />
+                            <rect x={layout.fX_mm + 1} y={layout.fY_mm + layout.fH_mm - 5} width={4} height={4} fill={primaryColor} />
+                            <rect x={layout.fX_mm + layout.fW_mm - 5} y={layout.fY_mm + layout.fH_mm - 5} width={4} height={4} fill={primaryColor} />
+                          </>
+                        )}
+                      </g>
+                    )}
+
+                    {styleType === "art-deco" && (
+                      <g id="art-deco-border">
                         <rect
-                          x={layout.innerX_mm + 1}
-                          y={layout.innerY_mm + 1}
-                          width={layout.innerW_mm - 2}
-                          height={layout.innerH_mm - 2}
+                          x={layout.fX_mm}
+                          y={layout.fY_mm}
+                          width={layout.fW_mm}
+                          height={layout.fH_mm}
                           fill="none"
                           stroke={primaryColor}
+                          strokeWidth={layout.strokeMm * 1.0}
+                        />
+                        {showCornerAccents && (
+                          <>
+                            <path
+                              d={`M ${layout.fX_mm},${layout.fY_mm + 8} L ${layout.fX_mm + 3.5},${layout.fY_mm + 8} L ${layout.fX_mm + 3.5},${layout.fY_mm + 3.5} L ${layout.fX_mm + 8},${layout.fY_mm + 3.5} L ${layout.fX_mm + 8},${layout.fY_mm}`}
+                              fill="none"
+                              stroke={secondaryColor}
+                              strokeWidth={layout.strokeMm * 0.7}
+                            />
+                            <path
+                              d={`M ${layout.fX_mm + layout.fW_mm},${layout.fY_mm + 8} L ${layout.fX_mm + layout.fW_mm - 3.5},${layout.fY_mm + 8} L ${layout.fX_mm + layout.fW_mm - 3.5},${layout.fY_mm + 3.5} L ${layout.fX_mm + layout.fW_mm - 8},${layout.fY_mm + 3.5} L ${layout.fX_mm + layout.fW_mm - 8},${layout.fY_mm}`}
+                              fill="none"
+                              stroke={secondaryColor}
+                              strokeWidth={layout.strokeMm * 0.7}
+                            />
+                          </>
+                        )}
+                        {showInnerBorder && (
+                          <rect
+                            x={layout.innerX_mm + 2}
+                            y={layout.innerY_mm + 2}
+                            width={layout.innerW_mm - 4}
+                            height={layout.innerH_mm - 4}
+                            fill="none"
+                            stroke={accentColor}
+                            strokeWidth={layout.strokeMm * 0.4}
+                          />
+                        )}
+                      </g>
+                    )}
+
+                    {styleType === "security-wave" && (
+                      <g id="security-wave-border">
+                        <rect
+                          x={layout.fX_mm}
+                          y={layout.fY_mm}
+                          width={layout.fW_mm}
+                          height={layout.fH_mm}
+                          fill="none"
+                          stroke={primaryColor}
+                          strokeWidth={layout.strokeMm * 1.4}
+                          strokeDasharray="2 0.8 0.8 0.8"
+                        />
+                        <rect
+                          x={layout.innerX_mm}
+                          y={layout.innerY_mm}
+                          width={layout.innerW_mm}
+                          height={layout.innerH_mm}
+                          fill="none"
+                          stroke={secondaryColor}
+                          strokeWidth={layout.strokeMm * 0.4}
+                          strokeDasharray="0.8 0.8"
+                        />
+                      </g>
+                    )}
+
+                    {styleType === "floral-garland" && (
+                      <g id="floral-garland-border">
+                        <rect
+                          x={layout.fX_mm}
+                          y={layout.fY_mm}
+                          width={layout.fW_mm}
+                          height={layout.fH_mm}
+                          fill="none"
+                          stroke={primaryColor}
+                          strokeWidth={layout.strokeMm * 0.8}
+                          rx={2}
+                        />
+                        {showInnerBorder && (
+                          <rect
+                            x={layout.innerX_mm}
+                            y={layout.innerY_mm}
+                            width={layout.innerW_mm}
+                            height={layout.innerH_mm}
+                            fill="none"
+                            stroke={secondaryColor}
+                            strokeWidth={layout.strokeMm * 0.4}
+                            rx={1}
+                          />
+                        )}
+                      </g>
+                    )}
+
+                    {/* Top Emblem Crest */}
+                    {showTopCrest && (
+                      <g transform={`translate(${layout.fX_mm + layout.fW_mm / 2}, ${layout.fY_mm})`}>
+                        <polygon
+                          points="-6,-1 0,-4 6,-1 4,3 -4,3"
+                          fill={primaryColor}
+                          stroke={secondaryColor}
                           strokeWidth={layout.strokeMm * 0.3}
-                          opacity="0.6"
                         />
-                      </>
+                        <circle cx="0" cy="0" r={1.2} fill={accentColor} />
+                      </g>
                     )}
 
-                    {showCornerAccents && (
-                      <>
-                        <g transform={`translate(${layout.fX_mm}, ${layout.fY_mm})`}>
-                          <use href="#rosetteCorner" />
-                        </g>
-                        <g transform={`translate(${layout.fX_mm + layout.fW_mm}, ${layout.fY_mm}) scale(-1, 1)`}>
-                          <use href="#rosetteCorner" />
-                        </g>
-                        <g transform={`translate(${layout.fX_mm}, ${layout.fY_mm + layout.fH_mm}) scale(1, -1)`}>
-                          <use href="#rosetteCorner" />
-                        </g>
-                        <g transform={`translate(${layout.fX_mm + layout.fW_mm}, ${layout.fY_mm + layout.fH_mm}) scale(-1, -1)`}>
-                          <use href="#rosetteCorner" />
-                        </g>
-                      </>
+                    {/* Bottom Signature Seal */}
+                    {showBottomSeal && (
+                      <g transform={`translate(${layout.fX_mm + layout.fW_mm / 2}, ${layout.fY_mm + layout.fH_mm})`}>
+                        <circle cx="0" cy="0" r={4.5} fill={primaryColor} stroke={secondaryColor} strokeWidth={layout.strokeMm * 0.4} />
+                        <circle cx="0" cy="0" r={3.5} fill="none" stroke={accentColor} strokeWidth={layout.strokeMm * 0.2} strokeDasharray="0.8 0.4" />
+                      </g>
                     )}
-                  </g>
-                )}
 
-                {/* 2. VINTAGE BAROQUE */}
-                {styleType === "vintage-baroque" && (
-                  <g id="vintage-baroque-border">
-                    <rect
-                      x={layout.fX_mm}
-                      y={layout.fY_mm}
-                      width={layout.fW_mm}
-                      height={layout.fH_mm}
-                      fill="none"
-                      stroke={primaryColor}
-                      strokeWidth={layout.strokeMm * 0.9}
-                    />
-                    {showInnerBorder && (
-                      <rect
-                        x={layout.innerX_mm}
-                        y={layout.innerY_mm}
-                        width={layout.innerW_mm}
-                        height={layout.innerH_mm}
-                        fill="none"
-                        stroke={secondaryColor}
-                        strokeWidth={layout.strokeMm * 0.5}
-                      />
+                    {/* ==================== SAMPLE MOCK TEXT ==================== */}
+                    {sampleMockType === "certificate" && (
+                      <g id="mock-cert-text" style={{ pointerEvents: "none", userSelect: "none" }}>
+                        <text
+                          x={layout.fX_mm + layout.fW_mm / 2}
+                          y={layout.fY_mm + 15}
+                          textAnchor="middle"
+                          fill={primaryColor}
+                          fontFamily="Georgia, serif"
+                          fontSize="3.2"
+                          letterSpacing="1"
+                          fontWeight="bold"
+                        >
+                          INSTITUTION OF EXCELLENCE
+                        </text>
+                        <text
+                          x={layout.fX_mm + layout.fW_mm / 2}
+                          y={layout.fY_mm + 27}
+                          textAnchor="middle"
+                          fill={primaryColor}
+                          fontFamily="Georgia, serif"
+                          fontSize="8"
+                          fontStyle="italic"
+                          fontWeight="bold"
+                        >
+                          Certificate of Achievement
+                        </text>
+                        <text
+                          x={layout.fX_mm + layout.fW_mm / 2}
+                          y={layout.fY_mm + 37}
+                          textAnchor="middle"
+                          fill="#64748B"
+                          fontFamily="sans-serif"
+                          fontSize="2.5"
+                          letterSpacing="0.5"
+                        >
+                          THIS IS PROUDLY PRESENTED TO
+                        </text>
+                        <text
+                          x={layout.fX_mm + layout.fW_mm / 2}
+                          y={layout.fY_mm + 50}
+                          textAnchor="middle"
+                          fill="#0F172A"
+                          fontFamily="Georgia, serif"
+                          fontSize="6"
+                          fontWeight="bold"
+                        >
+                          HISAM UDDIN
+                        </text>
+                      </g>
                     )}
-                    {showCornerAccents && (
-                      <>
-                        <g transform={`translate(${layout.fX_mm}, ${layout.fY_mm})`}>
-                          <use href="#filigreeCorner" />
-                        </g>
-                        <g transform={`translate(${layout.fX_mm + layout.fW_mm}, ${layout.fY_mm}) scale(-1, 1)`}>
-                          <use href="#filigreeCorner" />
-                        </g>
-                        <g transform={`translate(${layout.fX_mm}, ${layout.fY_mm + layout.fH_mm}) scale(1, -1)`}>
-                          <use href="#filigreeCorner" />
-                        </g>
-                        <g transform={`translate(${layout.fX_mm + layout.fW_mm}, ${layout.fY_mm + layout.fH_mm}) scale(-1, -1)`}>
-                          <use href="#filigreeCorner" />
-                        </g>
-                      </>
+
+                    {sampleMockType === "marksheet" && (
+                      <g id="mock-sheet-text" style={{ pointerEvents: "none", userSelect: "none" }}>
+                        <text
+                          x={layout.fX_mm + layout.fW_mm / 2}
+                          y={layout.fY_mm + 12}
+                          textAnchor="middle"
+                          fill={primaryColor}
+                          fontFamily="sans-serif"
+                          fontSize="3.8"
+                          fontWeight="bold"
+                          letterSpacing="0.5"
+                        >
+                          BOARD OF INTERMEDIATE & SECONDARY EDUCATION
+                        </text>
+                        <text
+                          x={layout.fX_mm + layout.fW_mm / 2}
+                          y={layout.fY_mm + 18}
+                          textAnchor="middle"
+                          fill={secondaryColor}
+                          fontFamily="Georgia, serif"
+                          fontSize="4.2"
+                          fontWeight="bold"
+                        >
+                          ACADEMIC TRANSCRIPT / MARKSHEET
+                        </text>
+                      </g>
                     )}
-                  </g>
-                )}
-
-                {/* 3. MODERN GEOMETRIC */}
-                {styleType === "modern-geometric" && (
-                  <g id="modern-geometric-border">
-                    <path
-                      d={`
-                        M ${layout.fX_mm + 6},${layout.fY_mm} 
-                        L ${layout.fX_mm + layout.fW_mm - 6},${layout.fY_mm} 
-                        L ${layout.fX_mm + layout.fW_mm},${layout.fY_mm + 6} 
-                        L ${layout.fX_mm + layout.fW_mm},${layout.fY_mm + layout.fH_mm - 6} 
-                        L ${layout.fX_mm + layout.fW_mm - 6},${layout.fY_mm + layout.fH_mm} 
-                        L ${layout.fX_mm + 6},${layout.fY_mm + layout.fH_mm} 
-                        L ${layout.fX_mm},${layout.fY_mm + layout.fH_mm - 6} 
-                        L ${layout.fX_mm},${layout.fY_mm + 6} Z
-                      `}
-                      fill="none"
-                      stroke={primaryColor}
-                      strokeWidth={layout.strokeMm * 1.0}
-                    />
-                    {showInnerBorder && (
-                      <path
-                        d={`
-                          M ${layout.innerX_mm + 4},${layout.innerY_mm} 
-                          L ${layout.innerX_mm + layout.innerW_mm - 4},${layout.innerY_mm} 
-                          L ${layout.innerX_mm + layout.innerW_mm},${layout.innerY_mm + 4} 
-                          L ${layout.innerX_mm + layout.innerW_mm},${layout.innerY_mm + layout.innerH_mm - 4} 
-                          L ${layout.innerX_mm + layout.innerW_mm - 4},${layout.innerY_mm + layout.innerH_mm} 
-                          L ${layout.innerX_mm + 4},${layout.innerY_mm + layout.innerH_mm} 
-                          L ${layout.innerX_mm},${layout.innerY_mm + layout.innerH_mm - 4} 
-                          L ${layout.innerX_mm},${layout.innerY_mm + 4} Z
-                        `}
-                        fill="none"
-                        stroke={secondaryColor}
-                        strokeWidth={layout.strokeMm * 0.4}
-                      />
-                    )}
-                  </g>
-                )}
-
-                {/* 4. MARKSHEET PINSTRIPE */}
-                {styleType === "marksheet-pinstripe" && (
-                  <g id="marksheet-pinstripe-border">
-                    <rect
-                      x={layout.fX_mm}
-                      y={layout.fY_mm}
-                      width={layout.fW_mm}
-                      height={layout.fH_mm}
-                      fill="none"
-                      stroke={primaryColor}
-                      strokeWidth={layout.strokeMm * 1.2}
-                    />
-                    <rect
-                      x={layout.fX_mm + 1}
-                      y={layout.fY_mm + 1}
-                      width={layout.fW_mm - 2}
-                      height={layout.fH_mm - 2}
-                      fill="none"
-                      stroke={primaryColor}
-                      strokeWidth={layout.strokeMm * 0.3}
-                    />
-                    {showInnerBorder && (
-                      <rect
-                        x={layout.innerX_mm}
-                        y={layout.innerY_mm}
-                        width={layout.innerW_mm}
-                        height={layout.innerH_mm}
-                        fill="none"
-                        stroke={secondaryColor}
-                        strokeWidth={layout.strokeMm * 0.5}
-                      />
-                    )}
-                    {showCornerAccents && (
-                      <>
-                        <line x1={layout.fX_mm} y1={layout.fY_mm + 5} x2={layout.fX_mm + 5} y2={layout.fY_mm} stroke={primaryColor} strokeWidth={layout.strokeMm * 0.8} />
-                        <line x1={layout.fX_mm + layout.fW_mm} y1={layout.fY_mm + 5} x2={layout.fX_mm + layout.fW_mm - 5} y2={layout.fY_mm} stroke={primaryColor} strokeWidth={layout.strokeMm * 0.8} />
-                        <line x1={layout.fX_mm} y1={layout.fY_mm + layout.fH_mm - 5} x2={layout.fX_mm + 5} y2={layout.fY_mm + layout.fH_mm} stroke={primaryColor} strokeWidth={layout.strokeMm * 0.8} />
-                        <line x1={layout.fX_mm + layout.fW_mm} y1={layout.fY_mm + layout.fH_mm - 5} x2={layout.fX_mm + layout.fW_mm - 5} y2={layout.fY_mm + layout.fH_mm} stroke={primaryColor} strokeWidth={layout.strokeMm * 0.8} />
-                      </>
-                    )}
-                  </g>
-                )}
-
-                {/* 5. GREEK KEY */}
-                {styleType === "greek-key" && (
-                  <g id="greek-key-border">
-                    <rect
-                      x={layout.fX_mm}
-                      y={layout.fY_mm}
-                      width={layout.fW_mm}
-                      height={layout.fH_mm}
-                      fill="none"
-                      stroke={primaryColor}
-                      strokeWidth={layout.strokeMm * 1.3}
-                    />
-                    <rect
-                      x={layout.innerX_mm}
-                      y={layout.innerY_mm}
-                      width={layout.innerW_mm}
-                      height={layout.innerH_mm}
-                      fill="none"
-                      stroke={secondaryColor}
-                      strokeWidth={layout.strokeMm * 0.6}
-                      strokeDasharray="3 1 1 1"
-                    />
-                    {showCornerAccents && (
-                      <>
-                        <rect x={layout.fX_mm + 1} y={layout.fY_mm + 1} width={4} height={4} fill={primaryColor} />
-                        <rect x={layout.fX_mm + layout.fW_mm - 5} y={layout.fY_mm + 1} width={4} height={4} fill={primaryColor} />
-                        <rect x={layout.fX_mm + 1} y={layout.fY_mm + layout.fH_mm - 5} width={4} height={4} fill={primaryColor} />
-                        <rect x={layout.fX_mm + layout.fW_mm - 5} y={layout.fY_mm + layout.fH_mm - 5} width={4} height={4} fill={primaryColor} />
-                      </>
-                    )}
-                  </g>
-                )}
-
-                {/* 6. ART DECO */}
-                {styleType === "art-deco" && (
-                  <g id="art-deco-border">
-                    <rect
-                      x={layout.fX_mm}
-                      y={layout.fY_mm}
-                      width={layout.fW_mm}
-                      height={layout.fH_mm}
-                      fill="none"
-                      stroke={primaryColor}
-                      strokeWidth={layout.strokeMm * 1.0}
-                    />
-                    {showCornerAccents && (
-                      <>
-                        <path
-                          d={`M ${layout.fX_mm},${layout.fY_mm + 8} L ${layout.fX_mm + 3.5},${layout.fY_mm + 8} L ${layout.fX_mm + 3.5},${layout.fY_mm + 3.5} L ${layout.fX_mm + 8},${layout.fY_mm + 3.5} L ${layout.fX_mm + 8},${layout.fY_mm}`}
-                          fill="none"
-                          stroke={secondaryColor}
-                          strokeWidth={layout.strokeMm * 0.7}
-                        />
-                        <path
-                          d={`M ${layout.fX_mm + layout.fW_mm},${layout.fY_mm + 8} L ${layout.fX_mm + layout.fW_mm - 3.5},${layout.fY_mm + 8} L ${layout.fX_mm + layout.fW_mm - 3.5},${layout.fY_mm + 3.5} L ${layout.fX_mm + layout.fW_mm - 8},${layout.fY_mm + 3.5} L ${layout.fX_mm + layout.fW_mm - 8},${layout.fY_mm}`}
-                          fill="none"
-                          stroke={secondaryColor}
-                          strokeWidth={layout.strokeMm * 0.7}
-                        />
-                      </>
-                    )}
-                    {showInnerBorder && (
-                      <rect
-                        x={layout.innerX_mm + 2}
-                        y={layout.innerY_mm + 2}
-                        width={layout.innerW_mm - 4}
-                        height={layout.innerH_mm - 4}
-                        fill="none"
-                        stroke={accentColor}
-                        strokeWidth={layout.strokeMm * 0.4}
-                      />
-                    )}
-                  </g>
-                )}
-
-                {/* 7. SECURITY WAVE */}
-                {styleType === "security-wave" && (
-                  <g id="security-wave-border">
-                    <rect
-                      x={layout.fX_mm}
-                      y={layout.fY_mm}
-                      width={layout.fW_mm}
-                      height={layout.fH_mm}
-                      fill="none"
-                      stroke={primaryColor}
-                      strokeWidth={layout.strokeMm * 1.4}
-                      strokeDasharray="2 0.8 0.8 0.8"
-                    />
-                    <rect
-                      x={layout.innerX_mm}
-                      y={layout.innerY_mm}
-                      width={layout.innerW_mm}
-                      height={layout.innerH_mm}
-                      fill="none"
-                      stroke={secondaryColor}
-                      strokeWidth={layout.strokeMm * 0.4}
-                      strokeDasharray="0.8 0.8"
-                    />
-                  </g>
-                )}
-
-                {/* 8. FLORAL GARLAND */}
-                {styleType === "floral-garland" && (
-                  <g id="floral-garland-border">
-                    <rect
-                      x={layout.fX_mm}
-                      y={layout.fY_mm}
-                      width={layout.fW_mm}
-                      height={layout.fH_mm}
-                      fill="none"
-                      stroke={primaryColor}
-                      strokeWidth={layout.strokeMm * 0.8}
-                      rx={2}
-                    />
-                    {showInnerBorder && (
-                      <rect
-                        x={layout.innerX_mm}
-                        y={layout.innerY_mm}
-                        width={layout.innerW_mm}
-                        height={layout.innerH_mm}
-                        fill="none"
-                        stroke={secondaryColor}
-                        strokeWidth={layout.strokeMm * 0.4}
-                        rx={1}
-                      />
-                    )}
-                  </g>
-                )}
-
-                {/* Top Emblem Crest */}
-                {showTopCrest && (
-                  <g transform={`translate(${layout.fX_mm + layout.fW_mm / 2}, ${layout.fY_mm})`}>
-                    <polygon
-                      points="-6,-1 0,-4 6,-1 4,3 -4,3"
-                      fill={primaryColor}
-                      stroke={secondaryColor}
-                      strokeWidth={layout.strokeMm * 0.3}
-                    />
-                    <circle cx="0" cy="0" r={1.2} fill={accentColor} />
-                  </g>
-                )}
-
-                {/* Bottom Signature Seal */}
-                {showBottomSeal && (
-                  <g transform={`translate(${layout.fX_mm + layout.fW_mm / 2}, ${layout.fY_mm + layout.fH_mm})`}>
-                    <circle cx="0" cy="0" r={4.5} fill={primaryColor} stroke={secondaryColor} strokeWidth={layout.strokeMm * 0.4} />
-                    <circle cx="0" cy="0" r={3.5} fill="none" stroke={accentColor} strokeWidth={layout.strokeMm * 0.2} strokeDasharray="0.8 0.4" />
-                  </g>
-                )}
-
-                {/* ==================== SAMPLE MOCK TEXT ==================== */}
-                {sampleMockType === "certificate" && (
-                  <g id="mock-cert-text" style={{ pointerEvents: "none", userSelect: "none" }}>
-                    <text
-                      x={layout.fX_mm + layout.fW_mm / 2}
-                      y={layout.fY_mm + 15}
-                      textAnchor="middle"
-                      fill={primaryColor}
-                      fontFamily="Georgia, serif"
-                      fontSize="3.2"
-                      letterSpacing="1"
-                      fontWeight="bold"
-                    >
-                      INSTITUTION OF EXCELLENCE
-                    </text>
-                    <text
-                      x={layout.fX_mm + layout.fW_mm / 2}
-                      y={layout.fY_mm + 27}
-                      textAnchor="middle"
-                      fill={primaryColor}
-                      fontFamily="Georgia, serif"
-                      fontSize="8"
-                      fontStyle="italic"
-                      fontWeight="bold"
-                    >
-                      Certificate of Achievement
-                    </text>
-                    <text
-                      x={layout.fX_mm + layout.fW_mm / 2}
-                      y={layout.fY_mm + 37}
-                      textAnchor="middle"
-                      fill="#64748B"
-                      fontFamily="sans-serif"
-                      fontSize="2.5"
-                      letterSpacing="0.5"
-                    >
-                      THIS IS PROUDLY PRESENTED TO
-                    </text>
-                    <text
-                      x={layout.fX_mm + layout.fW_mm / 2}
-                      y={layout.fY_mm + 50}
-                      textAnchor="middle"
-                      fill="#0F172A"
-                      fontFamily="Georgia, serif"
-                      fontSize="6"
-                      fontWeight="bold"
-                    >
-                      HISAM UDDIN
-                    </text>
-                  </g>
-                )}
-
-                {sampleMockType === "marksheet" && (
-                  <g id="mock-sheet-text" style={{ pointerEvents: "none", userSelect: "none" }}>
-                    <text
-                      x={layout.fX_mm + layout.fW_mm / 2}
-                      y={layout.fY_mm + 12}
-                      textAnchor="middle"
-                      fill={primaryColor}
-                      fontFamily="sans-serif"
-                      fontSize="3.8"
-                      fontWeight="bold"
-                      letterSpacing="0.5"
-                    >
-                      BOARD OF INTERMEDIATE & SECONDARY EDUCATION
-                    </text>
-                    <text
-                      x={layout.fX_mm + layout.fW_mm / 2}
-                      y={layout.fY_mm + 18}
-                      textAnchor="middle"
-                      fill={secondaryColor}
-                      fontFamily="Georgia, serif"
-                      fontSize="4.2"
-                      fontWeight="bold"
-                    >
-                      ACADEMIC TRANSCRIPT / MARKSHEET
-                    </text>
-                  </g>
-                )}
-              </svg>
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
 
