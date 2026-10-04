@@ -145,6 +145,19 @@ export function HeaderNav({ onAddTaskClick, title, subtitle, totalCountText }: H
             </svg>
             <span>Logo Tools</span>
           </Link>
+          <Link
+            href="/frame-generator"
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+              pathname.startsWith("/frame-generator")
+                ? "bg-brass-500/15 text-brass-600 dark:text-brass-400 border border-brass-500/30"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+            </svg>
+            <span>Frame Generator</span>
+          </Link>
 
           {(currentUser.role === "SUPER_ADMIN" || currentUser.id === "super-admin") && (
             <Link
