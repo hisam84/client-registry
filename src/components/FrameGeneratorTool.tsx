@@ -651,7 +651,7 @@ export function FrameGeneratorTool() {
               </span>
             </h1>
             <p className="mt-2 text-sm text-slate-300 max-w-2xl leading-relaxed">
-              সার্টিফিকেট ও মার্কশিটের জন্য ভেক্টর ফ্রেমের পাশাপাশি কাস্টম লোগো বা অফিশিয়াল সিল দিয়ে ব্যাকগ্রাউন্ড ওয়াটারমার্ক তৈরি করুন। ওয়াটারমার্কের সাইজ, অপাসিটি এবং ভার্টিক্যাল/হরাইজন্টাল পজিশন নিখুঁতভাবে অ্যাডজাস্ট করুন।
+              Generate customizable vector border frames with background watermark engine for certificates, diplomas, and transcripts. Set canvas and frame sizes independently with print-ready SVG and 300 DPI exports.
             </p>
           </div>
 
@@ -705,7 +705,7 @@ export function FrameGeneratorTool() {
                 <span className="w-5 h-5 rounded-lg bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xs">
                   1
                 </span>
-                <span>ক্যানভাস / পেজ সাইজ (Canvas Size)</span>
+                <span>Canvas & Page Size</span>
               </h2>
               <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
                 {layout.cW_mm} × {layout.cH_mm} mm
@@ -715,7 +715,7 @@ export function FrameGeneratorTool() {
             {/* Canvas Preset Selector */}
             <div>
               <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">
-                পেজ প্রিসেট (Standard Paper Preset):
+                Paper Preset:
               </label>
               <select
                 value={selectedCanvasPreset}
@@ -743,7 +743,7 @@ export function FrameGeneratorTool() {
                     </option>
                   ))}
                 </optgroup>
-                <option value="custom">⚙️ Custom Paper Dimension (কাস্টম সাইজ)</option>
+                <option value="custom">⚙️ Custom Paper Dimension</option>
               </select>
             </div>
 
@@ -751,7 +751,7 @@ export function FrameGeneratorTool() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <div>
                 <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 block mb-1">
-                  ক্যানভাস প্রস্থ:
+                  Canvas Width:
                 </label>
                 <input
                   type="number"
@@ -772,7 +772,7 @@ export function FrameGeneratorTool() {
 
               <div>
                 <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 block mb-1">
-                  ক্যানভাস উচ্চতা:
+                  Canvas Height:
                 </label>
                 <input
                   type="number"
@@ -793,7 +793,7 @@ export function FrameGeneratorTool() {
 
               <div>
                 <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 block mb-1">
-                  ইউনিট:
+                  Unit:
                 </label>
                 <select
                   value={canvasUnit}
@@ -864,7 +864,7 @@ export function FrameGeneratorTool() {
                 <span className="w-5 h-5 rounded-lg bg-brass-500/20 text-brass-600 dark:text-brass-400 flex items-center justify-center font-bold text-xs">
                   2
                 </span>
-                <span>ফ্রেম / বর্ডার সাইজ (Frame Size)</span>
+                <span>Frame & Border Size</span>
               </h2>
               <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-brass-500/15 text-brass-700 dark:text-brass-300">
                 {layout.fW_mm} × {layout.fH_mm} mm
@@ -882,7 +882,7 @@ export function FrameGeneratorTool() {
                     : "text-slate-600 dark:text-slate-400"
                 }`}
               >
-                Exact Frame Size (কাস্টম)
+                Exact Frame Size
               </button>
               <button
                 type="button"
@@ -893,7 +893,7 @@ export function FrameGeneratorTool() {
                     : "text-slate-600 dark:text-slate-400"
                 }`}
               >
-                Margin Offset (মার্জিন)
+                Margin Offset
               </button>
             </div>
 
@@ -902,7 +902,7 @@ export function FrameGeneratorTool() {
                 <div className="grid grid-cols-3 gap-2.5">
                   <div>
                     <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 block mb-1">
-                      ফ্রেম প্রস্থ:
+                      Frame Width:
                     </label>
                     <input
                       type="number"
@@ -922,7 +922,7 @@ export function FrameGeneratorTool() {
 
                   <div>
                     <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 block mb-1">
-                      ফ্রেম উচ্চতা:
+                      Frame Height:
                     </label>
                     <input
                       type="number"
@@ -942,7 +942,7 @@ export function FrameGeneratorTool() {
 
                   <div>
                     <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 block mb-1">
-                      ইউনিট:
+                      Unit:
                     </label>
                     <select
                       value={frameUnit}
@@ -982,7 +982,7 @@ export function FrameGeneratorTool() {
             ) : (
               <div className="space-y-3">
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-slate-600 dark:text-slate-400 font-medium">মার্জিন:</span>
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">Margin Offset:</span>
                   <span className="font-mono text-slate-800 dark:text-slate-200 font-semibold">{uniformMargin} mm</span>
                 </div>
                 <input
@@ -998,14 +998,14 @@ export function FrameGeneratorTool() {
             )}
           </div>
 
-          {/* 3. WATERMARK ENGINE (ওয়াটারমার্ক কন্ট্রোল) */}
+          {/* 3. WATERMARK ENGINE */}
           <div className="bg-white dark:bg-slate-900 border-2 border-amber-500/30 dark:border-amber-500/30 rounded-2xl p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                 <span className="w-5 h-5 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-xs">
                   3
                 </span>
-                <span>ব্যাকগ্রাউন্ড ওয়াটারমার্ক (Watermark Engine)</span>
+                <span>Background Watermark</span>
               </h2>
               
               {/* Enable / Disable Watermark Toggle */}
@@ -1028,7 +1028,7 @@ export function FrameGeneratorTool() {
                 {/* Watermark Type Selector */}
                 <div>
                   <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 block mb-1.5">
-                    ওয়াটারমার্ক টাইপ (Type):
+                    Watermark Type:
                   </label>
                   <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
                     {[
@@ -1063,7 +1063,7 @@ export function FrameGeneratorTool() {
                 {watermarkType === "text" && (
                   <div>
                     <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 block mb-1">
-                      ওয়াটারমার্ক টেক্সট:
+                      Watermark Text:
                     </label>
                     <input
                       type="text"
@@ -1093,7 +1093,7 @@ export function FrameGeneratorTool() {
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      <span>{watermarkImage ? "Change Logo (লোগো পরিবর্তন)" : "Upload Logo Image"}</span>
+                      <span>{watermarkImage ? "Change Logo" : "Upload Logo Image"}</span>
                     </button>
                     {watermarkImage && (
                       <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
@@ -1109,7 +1109,7 @@ export function FrameGeneratorTool() {
                   {/* 1. Watermark Size */}
                   <div>
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-slate-600 dark:text-slate-400 font-medium">ওয়াটারমার্ক সাইজ (Size):</span>
+                      <span className="text-slate-600 dark:text-slate-400 font-medium">Watermark Size:</span>
                       <span className="font-mono text-slate-800 dark:text-slate-200 font-semibold">{watermarkSizeMm} mm</span>
                     </div>
                     <input
@@ -1126,7 +1126,7 @@ export function FrameGeneratorTool() {
                   {/* 2. Watermark Opacity */}
                   <div>
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-slate-600 dark:text-slate-400 font-medium">স্বচ্ছতা / অপাসিটি (Opacity):</span>
+                      <span className="text-slate-600 dark:text-slate-400 font-medium">Opacity:</span>
                       <span className="font-mono text-slate-800 dark:text-slate-200 font-semibold">{watermarkOpacityPct}%</span>
                     </div>
                     <input
@@ -1143,9 +1143,9 @@ export function FrameGeneratorTool() {
                   {/* 3. Vertical Position (Y-Offset) */}
                   <div>
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-slate-600 dark:text-slate-400 font-medium">ভার্টিক্যাল পজিশন (Vertical Position):</span>
+                      <span className="text-slate-600 dark:text-slate-400 font-medium">Vertical Position:</span>
                       <span className="font-mono text-slate-800 dark:text-slate-200 font-semibold">
-                        {watermarkOffsetYMm === 0 ? "Center (মাঝখানে)" : `${watermarkOffsetYMm > 0 ? "+" : ""}${watermarkOffsetYMm} mm`}
+                        {watermarkOffsetYMm === 0 ? "Center" : `${watermarkOffsetYMm > 0 ? "+" : ""}${watermarkOffsetYMm} mm`}
                       </span>
                     </div>
                     <input
@@ -1158,7 +1158,7 @@ export function FrameGeneratorTool() {
                       className="w-full accent-amber-500"
                     />
                     <div className="flex justify-between text-[10px] text-slate-400 mt-0.5">
-                      <span>Top (উপরে)</span>
+                      <span>Top</span>
                       <button
                         type="button"
                         onClick={() => setWatermarkOffsetYMm(0)}
@@ -1166,14 +1166,14 @@ export function FrameGeneratorTool() {
                       >
                         Reset Center
                       </button>
-                      <span>Bottom (নিচে)</span>
+                      <span>Bottom</span>
                     </div>
                   </div>
 
                   {/* 4. Rotation Angle */}
                   <div>
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-slate-600 dark:text-slate-400 font-medium">রোটেশন (Angle):</span>
+                      <span className="text-slate-600 dark:text-slate-400 font-medium">Rotation Angle:</span>
                       <span className="font-mono text-slate-800 dark:text-slate-200 font-semibold">{watermarkRotationDeg}°</span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -1215,7 +1215,7 @@ export function FrameGeneratorTool() {
               <span className="w-5 h-5 rounded-lg bg-brass-500/15 text-brass-600 dark:text-brass-400 flex items-center justify-center font-bold text-xs">
                 4
               </span>
-              <span>বর্ডার স্টাইল ও রং (Border Style & Colors)</span>
+              <span>Border Style & Colors</span>
             </h2>
 
             {/* Border Style Buttons */}
@@ -1309,7 +1309,7 @@ export function FrameGeneratorTool() {
             {/* Stroke Thickness Slider */}
             <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
               <div className="flex justify-between text-xs mb-1">
-                <span className="text-slate-600 dark:text-slate-400 font-medium">বর্ডার স্ট্রোক পুরুত্ব:</span>
+                <span className="text-slate-600 dark:text-slate-400 font-medium">Stroke Thickness:</span>
                 <span className="font-mono text-slate-700 dark:text-slate-300 font-semibold">{strokeThickness}x</span>
               </div>
               <input
@@ -2035,7 +2035,7 @@ export function FrameGeneratorTool() {
               <svg className="w-4 h-4 text-brass-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              <span>এক্সপোর্ট ও ডাউনলোড অপশন (Export Options)</span>
+              <span>Export Options</span>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -2050,7 +2050,7 @@ export function FrameGeneratorTool() {
                   </span>
                 </div>
                 <span className="text-[11px] text-slate-500 dark:text-slate-400 text-left">
-                  ওয়াটারমার্ক ও ফ্রেম সহ আনলিমিটেড ক্রিস্প রেজোলিউশন ভেক্টর।
+                  Scalable vector graphics with frame and watermark for print & design software.
                 </span>
               </button>
 
@@ -2066,7 +2066,7 @@ export function FrameGeneratorTool() {
                   </span>
                 </div>
                 <span className="text-[11px] text-slate-500 dark:text-slate-400 text-left">
-                  স্বচ্ছ ব্যাকগ্রাউন্ড সহ ক্রিস্প ৩00 DPI প্রিন্ট-রেডি ইমেজ।
+                  Crisp 300 DPI high-definition image with transparent background.
                 </span>
               </button>
 
@@ -2083,7 +2083,7 @@ export function FrameGeneratorTool() {
                   </span>
                 </div>
                 <span className="text-[11px] text-slate-500 dark:text-slate-400 text-left">
-                  সরাসরি এসভিজি কোড কপি করুন।
+                  Copy raw SVG vector markup directly to clipboard.
                 </span>
               </button>
             </div>
