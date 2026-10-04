@@ -314,6 +314,9 @@ export function UpcomingTasksList({
   function renderTaskCard(task: TaskItem) {
     const isCompleted = task.status === "Completed";
     const isCancelled = task.status === "Canceled" || task.status === "Cancelled";
+    const isMonthly = Boolean(task.isMonthly);
+    const diffDays = task.dueDate ? getDhakaDayDiff(task.dueDate, new Date()) : 0;
+    const isLockedMonthly = isMonthly && diffDays > 0 && !isCompleted;
     const instName = task.institution?.instituteName || task.institutionName || "General Task";
     const due = new Date(task.dueDate);
     const isOverdue = !isCompleted && !isCancelled && due.getTime() < Date.now();
@@ -353,9 +356,12 @@ export function UpcomingTasksList({
             {/* Complete checkbox */}
             <button
               type="button"
+              disabled={isLockedMonthly}
               onClick={() => {
                 if (isCompleted) {
                   onToggleComplete(task);
+                } else if (isLockedMonthly) {
+                  alert(`মান্থলি টাস্কের নির্ধারিত তারিখ (${formatDhakaDate(task.dueDate)}) আসার পূর্বে এটি সম্পন্ন করা যাবে না।`);
                 } else {
                   setCompletingTask(task);
                 }
@@ -363,15 +369,25 @@ export function UpcomingTasksList({
               className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${
                 isCompleted
                   ? "border-emerald-500 bg-emerald-500 text-white"
+                  : isLockedMonthly
+                  ? "border-purple-300 dark:border-purple-800 bg-purple-500/10 cursor-not-allowed opacity-60 text-purple-600 dark:text-purple-400"
                   : "border-slate-300 dark:border-slate-600 hover:border-emerald-500"
               }`}
-              title={isCompleted ? "Mark as pending" : "Complete task (opens completion modal with email option)"}
+              title={
+                isCompleted
+                  ? "Mark as pending"
+                  : isLockedMonthly
+                  ? `Locked until ${formatDhakaDate(task.dueDate)}`
+                  : "Complete task (opens completion modal with email option)"
+              }
             >
-              {isCompleted && (
+              {isCompleted ? (
                 <svg className="h-3.5 w-3.5 stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-              )}
+              ) : isLockedMonthly ? (
+                <span className="text-[10px]">🔒</span>
+              ) : null}
             </button>
 
             <div className="min-w-0 flex-1">
@@ -559,13 +575,19 @@ export function UpcomingTasksList({
                               </svg>
                               <span>All subtasks completed!</span>
                             </span>
-                            <button
-                              type="button"
-                              onClick={() => setCompletingTask(task)}
-                              className="px-2 py-1 rounded bg-emerald-600 text-white font-bold text-[11px] hover:bg-emerald-700 transition-colors shadow-xs"
-                            >
-                              Mark Task Completed
-                            </button>
+                            {isMonthly && diffDays > 0 ? (
+                              <span className="px-2 py-1 rounded bg-purple-500/20 text-purple-800 dark:text-purple-300 font-bold text-[11px] border border-purple-500/30">
+                                Locked until {formatDhakaDate(task.dueDate, { month: "short", day: "numeric" })}
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setCompletingTask(task)}
+                                className="px-2 py-1 rounded bg-emerald-600 text-white font-bold text-[11px] hover:bg-emerald-700 transition-colors shadow-xs"
+                              >
+                                Mark Task Completed
+                              </button>
+                            )}
                           </div>
                         )}
 
@@ -726,17 +748,31 @@ export function UpcomingTasksList({
 
             {/* Complete Task Button with Email Notification */}
             {!isCompleted && (
-              <button
-                type="button"
-                onClick={() => setCompletingTask(task)}
-                className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 transition-colors whitespace-nowrap flex items-center gap-1"
-                title="Mark task as completed and notify via email"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span>Complete</span>
-              </button>
+              isMonthly && diffDays > 0 ? (
+                <button
+                  type="button"
+                  disabled
+                  className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/30 cursor-not-allowed whitespace-nowrap flex items-center gap-1 opacity-75"
+                  title={`Monthly tasks can only be completed on or after ${formatDhakaDate(task.dueDate)}`}
+                >
+                  <svg className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  <span>Locked until {formatDhakaDate(task.dueDate, { month: "short", day: "numeric" })}</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setCompletingTask(task)}
+                  className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 transition-colors whitespace-nowrap flex items-center gap-1"
+                  title="Mark task as completed and notify via email"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Complete</span>
+                </button>
+              )
             )}
 
             {/* Reschedule Button */}

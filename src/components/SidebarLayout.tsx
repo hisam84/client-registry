@@ -146,12 +146,17 @@ export function SidebarLayout({
 
   async function handleQuickComplete(taskId: string) {
     try {
-      handleDismissAlert(taskId);
-      await fetch(`/api/tasks/${taskId}`, {
+      const res = await fetch(`/api/tasks/${taskId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "Completed" }),
       });
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "Failed to complete task");
+        return;
+      }
+      handleDismissAlert(taskId);
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("task-changed"));
       }

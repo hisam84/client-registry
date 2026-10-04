@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendTaskAssignmentEmail, sendTaskCompletionEmail } from "@/lib/mailer";
-import { parseDhakaDateTimeInput, getNextMonthlyDate, getDhakaDayOfMonth } from "@/lib/dateUtils";
+import { parseDhakaDateTimeInput, getNextMonthlyDate, getDhakaDayOfMonth, getDhakaStartOfDay } from "@/lib/dateUtils";
 import { ensureSubtaskTable } from "@/lib/ensureSubtaskTable";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
@@ -125,6 +125,26 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       data.isMonthly = Boolean(isMonthly);
       if (data.isMonthly) {
         data.monthlyRecurringDay = getDhakaDayOfMonth(data.dueDate || existingTask?.dueDate);
+      }
+    }
+
+    // Enforce Rule: Monthly recurring tasks can ONLY be marked as 'Completed' on or after their due date (in Dhaka timezone)
+    const isTargetingCompleted = (status === "Completed" || data.status === "Completed");
+    const isMonthlyTask = Boolean(isMonthly !== undefined ? isMonthly : existingTask?.isMonthly);
+    if (isTargetingCompleted && isMonthlyTask) {
+      const taskDue = data.dueDate || existingTask?.dueDate;
+      if (taskDue) {
+        const nowStart = getDhakaStartOfDay();
+        const dueStart = getDhakaStartOfDay(taskDue);
+        if (dueStart.getTime() > nowStart.getTime()) {
+          return NextResponse.json(
+            {
+              error: "মান্থলি টাস্কের নির্ধারিত তারিখ আসার পূর্বে এটি সম্পন্ন (Complete) করা যাবে না।",
+              errorEnglish: "Monthly recurring tasks can only be completed on or after their scheduled due date."
+            },
+            { status: 400 }
+          );
+        }
       }
     }
 

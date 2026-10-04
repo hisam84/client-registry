@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { TaskItem } from "@/lib/types";
 import { Button, Modal } from "@/components/ui";
+import { getDhakaDayDiff, formatDhakaDate } from "@/lib/dateUtils";
 
 interface TaskCompletionModalProps {
   task: any;
@@ -22,10 +23,19 @@ export function TaskCompletionModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  const isMonthly = Boolean(task.isMonthly);
+  const diffDays = task.dueDate ? getDhakaDayDiff(task.dueDate, new Date()) : 0;
+  const isLocked = isMonthly && diffDays > 0;
+
   const instName = task.institution?.instituteName || task.institutionName || "General Task";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (isLocked) {
+      setError(`মান্থলি টাস্কের নির্ধারিত তারিখ (${formatDhakaDate(task.dueDate)}) আসার পূর্বে এটি সম্পন্ন করা যাবে না।`);
+      return;
+    }
+
     setSaving(true);
     setError("");
 
@@ -95,11 +105,25 @@ export function TaskCompletionModal({
               );
             })()}
           </div>
-          {Boolean(task.isMonthly) && (
-            <div className="mt-2 p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs text-purple-700 dark:text-purple-300 flex items-center gap-2">
-              <span className="text-base">🔁</span>
+
+          {isMonthly && (
+            <div className={`mt-2 p-2.5 rounded-xl border text-xs flex items-center gap-2 ${
+              isLocked
+                ? "bg-amber-500/10 border-amber-500/30 text-amber-800 dark:text-amber-300"
+                : "bg-purple-500/10 border-purple-500/20 text-purple-700 dark:text-purple-300"
+            }`}>
+              <span className="text-base">{isLocked ? "🔒" : "🔁"}</span>
               <div>
-                <span className="font-bold">Monthly Recurring Task:</span> Completing this task will automatically create and schedule next month&apos;s task instance.
+                <span className="font-bold">Monthly Recurring Task:</span>{" "}
+                {isLocked ? (
+                  <span>
+                    This task is scheduled for <strong>{formatDhakaDate(task.dueDate)}</strong>. It can only be marked as completed on or after its due date.
+                  </span>
+                ) : (
+                  <span>
+                    Completing this task will automatically schedule next month&apos;s task instance.
+                  </span>
+                )}
               </div>
             </div>
           )}
@@ -113,9 +137,10 @@ export function TaskCompletionModal({
           <textarea
             rows={2}
             value={note}
+            disabled={isLocked}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Add any remarks..."
-            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50"
           />
         </div>
 
@@ -124,16 +149,17 @@ export function TaskCompletionModal({
           <label className="flex items-center gap-2.5 cursor-pointer select-none">
             <input
               type="checkbox"
+              disabled={isLocked}
               checked={sendEmailNotification}
               onChange={(e) => setSendEmailNotification(e.target.checked)}
-              className="rounded border-slate-300 dark:border-slate-700 text-emerald-600 focus:ring-emerald-500 h-4 w-4"
+              className="rounded border-slate-300 dark:border-slate-700 text-emerald-600 focus:ring-emerald-500 h-4 w-4 disabled:opacity-50"
             />
             <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
               Send email notification (Optional)
             </span>
           </label>
 
-          {sendEmailNotification && (
+          {sendEmailNotification && !isLocked && (
             <div className="mt-2.5 pt-2.5 border-t border-slate-200 dark:border-slate-700/60">
               <input
                 type="email"
@@ -154,11 +180,13 @@ export function TaskCompletionModal({
           </Button>
           <button
             type="submit"
-            disabled={saving}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl transition-colors shadow-sm disabled:opacity-50"
+            disabled={saving || isLocked}
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving
               ? "Saving..."
+              : isLocked
+              ? `Locked until ${formatDhakaDate(task.dueDate, { month: "short", day: "numeric" })}`
               : sendEmailNotification
               ? "Complete & Send Email"
               : "Complete Task"}
