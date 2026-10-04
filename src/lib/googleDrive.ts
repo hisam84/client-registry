@@ -1,5 +1,7 @@
 import { google } from "googleapis";
 import { Readable } from "stream";
+import fs from "fs";
+import path from "path";
 
 export interface DriveUploadItem {
   name: string;
@@ -10,17 +12,36 @@ export interface DriveUploadItem {
 export interface GoogleDriveConfigStatus {
   isConfigured: boolean;
   message: string;
+  authType: "oauth2" | "service_account" | "none";
   folderId?: string;
   clientEmail?: string;
 }
 
-import fs from "fs";
-import path from "path";
+/**
+ * Checks if OAuth2 credentials with Refresh Token are configured.
+ */
+function getOAuth2Client() {
+  const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
+  const refreshToken = process.env.GOOGLE_REFRESH_TOKEN?.trim();
+
+  if (clientId && clientSecret && refreshToken) {
+    const oauth2Client = new google.auth.OAuth2(
+      clientId,
+      clientSecret,
+      process.env.GOOGLE_REDIRECT_URI || "http://localhost:3000/api/drive/auth/callback"
+    );
+    oauth2Client.setCredentials({ refresh_token: refreshToken });
+    return oauth2Client;
+  }
+
+  return null;
+}
 
 /**
  * Parses and returns Google Service Account credentials from environment variables or local JSON key file.
  */
-function getCredentials() {
+function getServiceAccountCredentials() {
   // Option 1: Direct full JSON string in ENV
   if (process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
     try {
@@ -74,22 +95,33 @@ function getCredentials() {
  * Checks whether Google Drive credentials and folder ID are configured.
  */
 export function checkGoogleDriveConfig(): GoogleDriveConfigStatus {
-  const creds = getCredentials();
+  const oauth2 = getOAuth2Client();
   const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
 
-  if (!creds || !creds.client_email || !creds.private_key) {
+  if (oauth2) {
     return {
-      isConfigured: false,
-      message:
-        "Google Drive Service Account credentials are not configured. Please set GOOGLE_SERVICE_ACCOUNT_EMAIL and GOOGLE_PRIVATE_KEY or place service account JSON in root.",
+      isConfigured: true,
+      authType: "oauth2",
+      message: "Google Drive is connected via OAuth 2.0 (Personal Account 15GB).",
+      folderId: folderId || undefined,
+    };
+  }
+
+  const creds = getServiceAccountCredentials();
+  if (creds && creds.client_email && creds.private_key) {
+    return {
+      isConfigured: true,
+      authType: "service_account",
+      message: "Google Drive is configured via Service Account.",
+      folderId: folderId || undefined,
+      clientEmail: creds.client_email,
     };
   }
 
   return {
-    isConfigured: true,
-    message: "Google Drive is successfully configured.",
-    folderId: folderId || undefined,
-    clientEmail: creds.client_email,
+    isConfigured: false,
+    authType: "none",
+    message: "Google Drive credentials are not configured.",
   };
 }
 
@@ -97,20 +129,24 @@ export function checkGoogleDriveConfig(): GoogleDriveConfigStatus {
  * Creates authenticated Google Drive client instance.
  */
 export function getGoogleDriveClient() {
-  const creds = getCredentials();
-  if (!creds || !creds.client_email || !creds.private_key) {
-    throw new Error(
-      "Google Drive Service Account credentials not found in environment variables."
-    );
+  // 1. Prefer OAuth2 (works on all personal @gmail.com accounts)
+  const oauth2 = getOAuth2Client();
+  if (oauth2) {
+    return google.drive({ version: "v3", auth: oauth2 });
   }
 
-  const auth = new google.auth.JWT({
-    email: creds.client_email,
-    key: creds.private_key,
-    scopes: ["https://www.googleapis.com/auth/drive"],
-  });
+  // 2. Service Account (for Google Workspace Shared Drives)
+  const creds = getServiceAccountCredentials();
+  if (creds && creds.client_email && creds.private_key) {
+    const auth = new google.auth.JWT({
+      email: creds.client_email,
+      key: creds.private_key,
+      scopes: ["https://www.googleapis.com/auth/drive"],
+    });
+    return google.drive({ version: "v3", auth });
+  }
 
-  return google.drive({ version: "v3", auth });
+  throw new Error("Google Drive credentials not found in environment variables.");
 }
 
 /**
@@ -165,7 +201,6 @@ export async function uploadImagesToGoogleDrive({
   const uploadedFiles: { id: string; name: string; webViewLink?: string }[] = [];
 
   for (const item of files) {
-    // Remove base64 data prefix if present (e.g. data:image/png;base64,...)
     const cleanBase64 = item.base64Data.replace(/^data:[^;]+;base64,/, "");
     const buffer = Buffer.from(cleanBase64, "base64");
 
