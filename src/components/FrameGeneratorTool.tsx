@@ -559,23 +559,37 @@ export function FrameGeneratorTool() {
     setPanPosition({ x: 0, y: 0 });
   };
 
-  // Mouse Wheel Zoom (Requires Ctrl + Scroll)
-  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    if (e.ctrlKey || e.metaKey) {
+  // Native Non-Passive Wheel Listener to prevent page scrolling/zooming while over the artboard
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+
+    const onNativeWheel = (e: WheelEvent) => {
+      // Completely prevent outer browser page from scrolling or zooming
       e.preventDefault();
-      const zoomFactor = e.deltaY < 0 ? 1.12 : 0.88;
-      setZoomLevel((prev) => {
-        const next = prev * zoomFactor;
-        return Math.min(Math.max(parseFloat(next.toFixed(2)), 0.25), 3.5);
-      });
-    } else {
-      // Natural Figma-style scroll to pan when Ctrl is not held
-      setPanPosition((prev) => ({
-        x: prev.x - (e.shiftKey ? e.deltaY : e.deltaX),
-        y: prev.y - (e.shiftKey ? 0 : e.deltaY),
-      }));
-    }
-  };
+      e.stopPropagation();
+
+      if (e.ctrlKey || e.metaKey) {
+        // Zoom with Ctrl + Scroll
+        const zoomFactor = e.deltaY < 0 ? 1.12 : 0.88;
+        setZoomLevel((prev) => {
+          const next = prev * zoomFactor;
+          return Math.min(Math.max(parseFloat(next.toFixed(2)), 0.25), 3.5);
+        });
+      } else {
+        // Natural Pan inside artboard workspace
+        setPanPosition((prev) => ({
+          x: prev.x - (e.shiftKey ? e.deltaY : e.deltaX),
+          y: prev.y - (e.shiftKey ? 0 : e.deltaY),
+        }));
+      }
+    };
+
+    el.addEventListener("wheel", onNativeWheel, { passive: false });
+    return () => {
+      el.removeEventListener("wheel", onNativeWheel);
+    };
+  }, []);
 
   // Mouse Down to start Pan / Move Artboard
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -1522,7 +1536,6 @@ export function FrameGeneratorTool() {
             {/* Interactive Infinite Viewport Area */}
             <div
               ref={viewportRef}
-              onWheel={handleWheel}
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
@@ -1534,6 +1547,8 @@ export function FrameGeneratorTool() {
                 backgroundColor: "#070E1A",
                 backgroundImage: "radial-gradient(#334155 1.5px, transparent 1.5px)",
                 backgroundSize: "24px 24px",
+                overscrollBehavior: "contain",
+                touchAction: "none",
               }}
             >
               {/* Pan Hint Overlay */}
