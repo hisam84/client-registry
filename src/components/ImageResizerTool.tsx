@@ -53,24 +53,24 @@ const CANVAS_SPECS: CanvasSpec[] = [
     height: 50,
     format: "image/jpeg",
     ext: ".jpg",
-    description: "Banner with Logo + Name & Address (230×50 JPG)",
+    description: "Header Banner with Logo + Name & Address (230×50 JPG)",
     isBanner: true,
   },
 ];
 
-const BANGLA_FONTS = [
-  { label: "Hind Siliguri (হিন্দ শিলিগুড়ি - মডার্ন)", value: "'Hind Siliguri', sans-serif" },
-  { label: "Noto Sans Bengali (নোতো সান্স)", value: "'Noto Sans Bengali', sans-serif" },
-  { label: "Tiro Bangla (তিরো বাংলা - ক্লাসিক)", value: "'Tiro Bangla', serif" },
-  { label: "Anek Bangla (অনেকা বাংলা - বোল্ড)", value: "'Anek Bangla', sans-serif" },
-  { label: "Mina (মীনা - স্লিম)", value: "'Mina', sans-serif" },
-  { label: "Galada (গালাদা - ক্যালিগ্রাফিক)", value: "'Galada', cursive" },
-  { label: "Kalpurush (কালপুরুষ)", value: "'Kalpurush', 'Hind Siliguri', sans-serif" },
-  { label: "SolaimanLipi (সোলাইমানলিপি)", value: "'SolaimanLipi', 'Hind Siliguri', sans-serif" },
-  { label: "Poppins (পপিন্স - ইংলিশ)", value: "'Poppins', sans-serif" },
-  { label: "Inter (ইন্টার - ইংলিশ)", value: "'Inter', sans-serif" },
-  { label: "Montserrat (মন্টসেরাট)", value: "'Montserrat', sans-serif" },
-  { label: "Playfair Display (প্লেফেয়ার)", value: "'Playfair Display', serif" },
+const AVAILABLE_FONTS = [
+  { label: "Hind Siliguri (Bangla - Modern)", value: "'Hind Siliguri', sans-serif" },
+  { label: "Noto Sans Bengali (Bangla - Clean)", value: "'Noto Sans Bengali', sans-serif" },
+  { label: "Tiro Bangla (Bangla - Classic)", value: "'Tiro Bangla', serif" },
+  { label: "Anek Bangla (Bangla - Bold)", value: "'Anek Bangla', sans-serif" },
+  { label: "Mina (Bangla - Slim)", value: "'Mina', sans-serif" },
+  { label: "Galada (Bangla - Cursive)", value: "'Galada', cursive" },
+  { label: "Kalpurush (Bangla - Traditional)", value: "'Kalpurush', 'Hind Siliguri', sans-serif" },
+  { label: "SolaimanLipi (Bangla - Official)", value: "'SolaimanLipi', 'Hind Siliguri', sans-serif" },
+  { label: "Inter (English - Clean)", value: "'Inter', sans-serif" },
+  { label: "Poppins (English - Modern)", value: "'Poppins', sans-serif" },
+  { label: "Montserrat (English - Elegant)", value: "'Montserrat', sans-serif" },
+  { label: "Playfair Display (English - Luxury Serif)", value: "'Playfair Display', serif" },
 ];
 
 export function ImageResizerTool() {
@@ -79,8 +79,8 @@ export function ImageResizerTool() {
   const [isDragging, setIsDragging] = useState(false);
 
   // 230x50 Banner Settings
-  const [orgName, setOrgName] = useState("ইম্পেরিয়াল আইটি সলিউশন");
-  const [orgAddress, setOrgAddress] = useState("ধানমন্ডি, ঢাকা-১২০৫");
+  const [orgName, setOrgName] = useState("Imperial IT Solution");
+  const [orgAddress, setOrgAddress] = useState("Dhanmondi, Dhaka-1205");
   const [nameFont, setNameFont] = useState("'Hind Siliguri', sans-serif");
   const [addressFont, setAddressFont] = useState("'Hind Siliguri', sans-serif");
   const [nameSize, setNameSize] = useState(13);
@@ -116,7 +116,7 @@ export function ImageResizerTool() {
   // Handle uploaded image file
   const processImageFile = (file: File) => {
     if (!file.type.startsWith("image/")) {
-      alert("অনুগ্রহ করে একটি সঠিক ইমেজ ফাইল (PNG, JPG, SVG, WebP) সিলেক্ট করুন।");
+      alert("Please select a valid image file (PNG, JPG, SVG, WebP).");
       return;
     }
 
@@ -172,7 +172,7 @@ export function ImageResizerTool() {
 
       if (spec.isBanner) {
         // --- 230x50 JPG BANNER RENDERING ---
-        // 1. Fill solid background (JPG does not support alpha)
+        // 1. Fill solid background (JPG format requires solid background)
         ctx.fillStyle = bannerBgColor || "#ffffff";
         ctx.fillRect(0, 0, spec.width, spec.height);
 
@@ -216,7 +216,7 @@ export function ImageResizerTool() {
           ctx.font = "10px sans-serif";
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          ctx.fillText("লোগো", logoPadding + placeholderW / 2, drawY + placeholderH / 2);
+          ctx.fillText("LOGO", logoPadding + placeholderW / 2, drawY + placeholderH / 2);
 
           currentX = logoPadding + placeholderW + textLeftGap;
         }
@@ -231,14 +231,14 @@ export function ImageResizerTool() {
         ctx.font = `${isNameBold ? "bold" : "normal"} ${nameSize}px ${nameFont}`;
 
         const nameY = 22; // baseline for top line
-        ctx.fillText(orgName || "প্রতিষ্ঠানের নাম", currentX, nameY, textMaxW);
+        ctx.fillText(orgName || "Organization Name", currentX, nameY, textMaxW);
 
         // Address / Subtitle
         ctx.fillStyle = addressColor || "#475569";
         ctx.font = `normal ${addressSize}px ${addressFont}`;
 
         const addressY = 39; // baseline for second line
-        ctx.fillText(orgAddress || "ঠিকানা ও বিবরণ", currentX, addressY, textMaxW);
+        ctx.fillText(orgAddress || "Address & Details", currentX, addressY, textMaxW);
 
         // Also update the zoom canvas mirror if present
         if (bannerZoomCanvasRef.current) {
@@ -355,7 +355,7 @@ export function ImageResizerTool() {
       saveAs(zipContent, "Images.zip");
     } catch (err) {
       console.error("Failed to generate ZIP:", err);
-      alert("ZIP ফাইল তৈরিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+      alert("An error occurred while creating ZIP file. Please try again.");
     } finally {
       setIsZipGenerating(false);
     }
@@ -383,11 +383,12 @@ export function ImageResizerTool() {
               Aspect Ratio Preserved Engine
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50 tracking-tight font-display">
-              স্মার্ট ইমেজ ও লোগো রিসাইজার
+              Smart Logo & Asset Resizer
             </h1>
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-2xl">
-              একটি লোগো আপলোড করলেই অটোমেটিক ৫টি প্রিসেট ক্যানভাস সাইজে প্রস্তুত হবে। লোগোর আসল অনুপাত অক্ষুণ্ণ থাকবে,
-              এবং ২৩০×৫০ ক্যানভাসে বাংলা/ইংরেজি স্টাইলিশ ফন্টে নাম ও ঠিকানা যুক্ত করে এক ক্লিকে ডাউনলোড করতে পারবেন।
+              Upload a single logo to instantly render all 5 standard image sizes. The logo aspect ratio is
+              strictly preserved without distortion. Customize the 230×50 banner with English or Bangla typography
+              and download all as a ZIP package.
             </p>
           </div>
 
@@ -395,12 +396,12 @@ export function ImageResizerTool() {
             <button
               onClick={loadDefaultPadLogo}
               className="px-3.5 py-2 text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors flex items-center gap-1.5"
-              title="প্রজেক্টের মূল Pad.png দিয়ে টেস্ট করুন"
+              title="Test with the project's default Pad.png logo"
             >
               <svg className="w-4 h-4 text-brass-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <span>ডেমো লোগো লোড করুন</span>
+              <span>Load Demo Logo</span>
             </button>
 
             <button
@@ -414,14 +415,14 @@ export function ImageResizerTool() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                   </svg>
-                  <span>ZIP তৈরি হচ্ছে...</span>
+                  <span>Generating ZIP...</span>
                 </>
               ) : (
                 <>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
-                  <span>সবগুলো ডাউনলোড (Images.zip)</span>
+                  <span>Download All (Images.zip)</span>
                 </>
               )}
             </button>
@@ -437,9 +438,9 @@ export function ImageResizerTool() {
           <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
             <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-3 flex items-center gap-2">
               <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-brass-500/15 text-brass-600 dark:text-brass-400 text-xs font-bold">
-                ১
+                1
               </span>
-              <span>মূল লোগো আপলোড করুন</span>
+              <span>Upload Master Logo</span>
             </h2>
 
             <div
@@ -481,10 +482,10 @@ export function ImageResizerTool() {
                   </div>
                   <div>
                     <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                      ✓ লোগো সফলভাবে লোড হয়েছে
+                      ✓ Logo loaded successfully
                     </p>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                      অন্য লোগো দিতে ক্লিক বা ড্রপ করুন
+                      Click or drag a new file to replace
                     </p>
                   </div>
                 </div>
@@ -496,10 +497,10 @@ export function ImageResizerTool() {
                     </svg>
                   </div>
                   <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">
-                    লোগো ড্র্যাগ করুন অথবা <span className="text-brass-600 dark:text-brass-400 underline">ব্রাউজ করুন</span>
+                    Drag and drop logo here or <span className="text-brass-600 dark:text-brass-400 underline">Browse</span>
                   </p>
                   <p className="text-[11px] text-slate-400 dark:text-slate-500">
-                    PNG (স্বচ্ছ ব্যাকগ্রাউন্ড বাঞ্ছনীয়), JPG, SVG, WebP
+                    PNG (transparent recommended), JPG, SVG, WebP
                   </p>
                 </div>
               )}
@@ -508,7 +509,7 @@ export function ImageResizerTool() {
             {/* Optional Logo Padding for Square & Badge Canvases */}
             <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
               <div className="flex justify-between items-center text-xs mb-1.5">
-                <span className="text-slate-600 dark:text-slate-400">আইকন মার্জিন / প্যাডিং (Padding)</span>
+                <span className="text-slate-600 dark:text-slate-400">Inner Icon Padding / Margin</span>
                 <span className="font-semibold text-brass-600 dark:text-brass-400">{iconPaddingPercent}%</span>
               </div>
               <input
@@ -528,9 +529,9 @@ export function ImageResizerTool() {
             <div className="flex items-center justify-between">
               <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                 <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-brass-500/15 text-brass-600 dark:text-brass-400 text-xs font-bold">
-                  ২
+                  2
                 </span>
-                <span>২৩০×৫০ ব্যানার সেটিংস (JPG)</span>
+                <span>230×50 Banner Customizer (JPG)</span>
               </h2>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                 230.jpg
@@ -540,13 +541,13 @@ export function ImageResizerTool() {
             {/* Organization Name Field */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                প্রতিষ্ঠানের নাম (Organization Name)
+                Organization / Institution Name
               </label>
               <input
                 type="text"
                 value={orgName}
                 onChange={(e) => setOrgName(e.target.value)}
-                placeholder="যেমন: ইম্পেরিয়াল আইটি"
+                placeholder="e.g. Imperial IT Solution"
                 className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brass-500/40"
               />
             </div>
@@ -554,13 +555,13 @@ export function ImageResizerTool() {
             {/* Organization Name Font & Size */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-[11px] text-slate-500 dark:text-slate-400">নামের ফন্ট (Font)</label>
+                <label className="text-[11px] text-slate-500 dark:text-slate-400">Name Font</label>
                 <select
                   value={nameFont}
                   onChange={(e) => setNameFont(e.target.value)}
                   className="w-full px-2.5 py-1.5 text-xs rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
                 >
-                  {BANGLA_FONTS.map((f) => (
+                  {AVAILABLE_FONTS.map((f) => (
                     <option key={f.label} value={f.value}>
                       {f.label}
                     </option>
@@ -570,7 +571,7 @@ export function ImageResizerTool() {
 
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                  <span>সাইজ (Size)</span>
+                  <span>Font Size</span>
                   <span className="font-semibold text-brass-600">{nameSize}px</span>
                 </div>
                 <input
@@ -594,11 +595,11 @@ export function ImageResizerTool() {
                   onChange={(e) => setIsNameBold(e.target.checked)}
                   className="rounded text-brass-600 focus:ring-brass-500 w-4 h-4"
                 />
-                <span className="font-semibold">বোল্ড টেক্সট (Bold)</span>
+                <span className="font-semibold">Bold Text</span>
               </label>
 
               <div className="flex items-center gap-2 ml-auto">
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">কালার:</span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">Color:</span>
                 <input
                   type="color"
                   value={nameColor}
@@ -613,13 +614,13 @@ export function ImageResizerTool() {
             {/* Address Field */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                ঠিকানা / সাবটাইটেল (Address / Subtitle)
+                Address / Subtitle
               </label>
               <input
                 type="text"
                 value={orgAddress}
                 onChange={(e) => setOrgAddress(e.target.value)}
-                placeholder="যেমন: ধানমন্ডি, ঢাকা-১২০৫"
+                placeholder="e.g. Dhanmondi, Dhaka-1205"
                 className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brass-500/40"
               />
             </div>
@@ -627,13 +628,13 @@ export function ImageResizerTool() {
             {/* Address Font & Size */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-[11px] text-slate-500 dark:text-slate-400">ঠিকানার ফন্ট (Font)</label>
+                <label className="text-[11px] text-slate-500 dark:text-slate-400">Address Font</label>
                 <select
                   value={addressFont}
                   onChange={(e) => setAddressFont(e.target.value)}
                   className="w-full px-2.5 py-1.5 text-xs rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
                 >
-                  {BANGLA_FONTS.map((f) => (
+                  {AVAILABLE_FONTS.map((f) => (
                     <option key={f.label} value={f.value}>
                       {f.label}
                     </option>
@@ -643,7 +644,7 @@ export function ImageResizerTool() {
 
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                  <span>সাইজ (Size)</span>
+                  <span>Font Size</span>
                   <span className="font-semibold text-brass-600">{addressSize}px</span>
                 </div>
                 <input
@@ -661,7 +662,7 @@ export function ImageResizerTool() {
             {/* Address Color & Background Color */}
             <div className="grid grid-cols-2 gap-3 pt-1">
               <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-950 p-2 rounded-lg border border-slate-200 dark:border-slate-800">
-                <span className="text-[11px] text-slate-600 dark:text-slate-400">ঠিকানার কালার</span>
+                <span className="text-[11px] text-slate-600 dark:text-slate-400">Text Color</span>
                 <input
                   type="color"
                   value={addressColor}
@@ -671,7 +672,7 @@ export function ImageResizerTool() {
               </div>
 
               <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-950 p-2 rounded-lg border border-slate-200 dark:border-slate-800">
-                <span className="text-[11px] text-slate-600 dark:text-slate-400">ব্যানার ব্যাকগ্রাউন্ড</span>
+                <span className="text-[11px] text-slate-600 dark:text-slate-400">Background</span>
                 <input
                   type="color"
                   value={bannerBgColor}
@@ -685,7 +686,7 @@ export function ImageResizerTool() {
             <div className="grid grid-cols-2 gap-3 pt-2 text-[11px] text-slate-500 dark:text-slate-400">
               <div>
                 <div className="flex justify-between mb-1">
-                  <span>লোগো সাইজ</span>
+                  <span>Logo Max Width</span>
                   <span className="font-semibold text-slate-700 dark:text-slate-300">{bannerLogoWidth}px</span>
                 </div>
                 <input
@@ -701,7 +702,7 @@ export function ImageResizerTool() {
 
               <div>
                 <div className="flex justify-between mb-1">
-                  <span>লোগো ও টেক্সট গ্যাপ</span>
+                  <span>Logo & Text Spacing</span>
                   <span className="font-semibold text-slate-700 dark:text-slate-300">{textLeftGap}px</span>
                 </div>
                 <input
@@ -725,17 +726,17 @@ export function ImageResizerTool() {
               <div>
                 <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                   <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-brass-500/15 text-brass-600 dark:text-brass-400 text-xs font-bold">
-                    ৩
+                    3
                   </span>
-                  <span>লাইভ ক্যানভাস প্রিভিউ ও ডাউনলোড</span>
+                  <span>Live Canvas Previews & Export</span>
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  প্রতিটি সাইজ নিখুঁত পিক্সেলে রেন্ডার হয়েছে। সরাসরি ডাউনলোড করতে পারেন।
+                  Each canvas is rendered to exact target pixel specifications.
                 </p>
               </div>
 
               <span className="text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
-                মোট ৫টি ফাইল
+                5 Output Assets
               </span>
             </div>
 
@@ -799,12 +800,12 @@ export function ImageResizerTool() {
                       <button
                         onClick={() => downloadSingle(spec)}
                         className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-200 hover:bg-brass-500 hover:text-white dark:bg-slate-800 dark:hover:bg-brass-600 text-slate-800 dark:text-slate-200 transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
-                        title={`${spec.name}${spec.ext} ডাউনলোড করুন`}
+                        title={`Download ${spec.name}${spec.ext}`}
                       >
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
-                        <span>ডাউনলোড</span>
+                        <span>Download</span>
                       </button>
                     </div>
                   </div>
@@ -813,8 +814,8 @@ export function ImageResizerTool() {
                   {spec.isBanner && (
                     <div className="mt-3 pt-3 border-t border-slate-200/80 dark:border-slate-800/80">
                       <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 mb-1.5">
-                        <span>বড় প্রিভিউ (2x Zoomed Live View):</span>
-                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400">ক্রিস্প জেপিজি কোয়ালিটি</span>
+                        <span>2x Zoomed Live View:</span>
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400">Crisp JPG Output</span>
                       </div>
                       <div className="overflow-x-auto p-3 rounded-lg bg-slate-200/60 dark:bg-slate-900/80 flex justify-center">
                         <canvas
