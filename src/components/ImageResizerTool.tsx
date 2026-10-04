@@ -59,18 +59,18 @@ const CANVAS_SPECS: CanvasSpec[] = [
 ];
 
 const AVAILABLE_FONTS = [
-  { label: "Hind Siliguri (Bangla - Modern)", value: "'Hind Siliguri', sans-serif" },
-  { label: "Noto Sans Bengali (Bangla - Clean)", value: "'Noto Sans Bengali', sans-serif" },
-  { label: "Tiro Bangla (Bangla - Classic)", value: "'Tiro Bangla', serif" },
-  { label: "Anek Bangla (Bangla - Bold)", value: "'Anek Bangla', sans-serif" },
-  { label: "Mina (Bangla - Slim)", value: "'Mina', sans-serif" },
-  { label: "Galada (Bangla - Cursive)", value: "'Galada', cursive" },
-  { label: "Kalpurush (Bangla - Traditional)", value: "'Kalpurush', 'Hind Siliguri', sans-serif" },
-  { label: "SolaimanLipi (Bangla - Official)", value: "'SolaimanLipi', 'Hind Siliguri', sans-serif" },
-  { label: "Inter (English - Clean)", value: "'Inter', sans-serif" },
-  { label: "Poppins (English - Modern)", value: "'Poppins', sans-serif" },
-  { label: "Montserrat (English - Elegant)", value: "'Montserrat', sans-serif" },
-  { label: "Playfair Display (English - Luxury Serif)", value: "'Playfair Display', serif" },
+  { label: "Hind Siliguri (Modern Sans)", value: "'Hind Siliguri', sans-serif" },
+  { label: "Noto Sans Bengali (Clean)", value: "'Noto Sans Bengali', sans-serif" },
+  { label: "Tiro Bangla (Classic Serif)", value: "'Tiro Bangla', serif" },
+  { label: "Anek Bangla (Bold)", value: "'Anek Bangla', sans-serif" },
+  { label: "Mina (Slim)", value: "'Mina', sans-serif" },
+  { label: "Galada (Cursive)", value: "'Galada', cursive" },
+  { label: "Kalpurush (Traditional)", value: "'Kalpurush', 'Hind Siliguri', sans-serif" },
+  { label: "SolaimanLipi (Official)", value: "'SolaimanLipi', 'Hind Siliguri', sans-serif" },
+  { label: "Inter (Clean Sans)", value: "'Inter', sans-serif" },
+  { label: "Poppins (Modern)", value: "'Poppins', sans-serif" },
+  { label: "Montserrat (Elegant)", value: "'Montserrat', sans-serif" },
+  { label: "Playfair Display (Luxury Serif)", value: "'Playfair Display', serif" },
 ];
 
 export function ImageResizerTool() {
@@ -140,7 +140,7 @@ export function ImageResizerTool() {
       .catch(() =>
         setDriveConfigStatus({
           isConfigured: false,
-          message: "Google Drive স্ট্যাটাস লোড করা সম্ভব হয়নি।",
+          message: "Failed to load Google Drive configuration status.",
         })
       );
   }, []);
@@ -441,7 +441,7 @@ export function ImageResizerTool() {
         if (data.needConfig) {
           setShowDriveSetupModal(true);
         }
-        throw new Error(data.error || "Google Drive এ আপলোড সম্পন্ন করা যায়নি।");
+        throw new Error(data.error || "Failed to upload to Google Drive.");
       }
 
       setDriveUploadResult({
@@ -451,7 +451,7 @@ export function ImageResizerTool() {
       });
     } catch (err: any) {
       console.error("Google Drive Upload Error:", err);
-      setDriveError(err?.message || "Google Drive এ আপলোড করতে সমস্যা হয়েছে।");
+      setDriveError(err?.message || "Failed to upload to Google Drive.");
     } finally {
       setIsUploadingDrive(false);
     }
@@ -493,7 +493,7 @@ export function ImageResizerTool() {
                   className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 transition-colors"
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                  Google Drive সেটআপ প্রয়োজন
+                  Google Drive Setup Required
                 </button>
               )}
             </div>
@@ -503,8 +503,8 @@ export function ImageResizerTool() {
             </h1>
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-2xl">
               Upload a single logo to instantly render all 5 standard image sizes. The logo aspect ratio is
-              strictly preserved without distortion. Customize the 230×50 banner with English or Bangla typography
-              and export or upload directly to Google Drive.
+              strictly preserved without distortion. Customize the 230×50 banner with typography and export or upload
+              directly to Google Drive.
             </p>
           </div>
 
@@ -547,7 +547,7 @@ export function ImageResizerTool() {
               onClick={uploadAllToGoogleDrive}
               disabled={isUploadingDrive}
               className="px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30 transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50"
-              title="১ ক্লিকে সব ছবি গুগল ড্রাইভে ফোল্ডার তৈরি করে আপলোড করুন"
+              title="Upload all 5 images to Google Drive in 1 click"
             >
               {isUploadingDrive ? (
                 <>
@@ -555,7 +555,7 @@ export function ImageResizerTool() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                   </svg>
-                  <span>ড্রাইভে আপলোড হচ্ছে...</span>
+                  <span>Uploading to Drive...</span>
                 </>
               ) : (
                 <>
@@ -567,7 +567,7 @@ export function ImageResizerTool() {
                     <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
                     <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
                   </svg>
-                  <span>Google Drive এ আপলোড</span>
+                  <span>Upload to Google Drive</span>
                 </>
               )}
             </button>
@@ -591,7 +591,7 @@ export function ImageResizerTool() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
-                  <span>ZIP ডাউনলোড</span>
+                  <span>Download ZIP</span>
                 </>
               )}
             </button>
@@ -613,7 +613,7 @@ export function ImageResizerTool() {
               onClick={() => setShowDriveSetupModal(true)}
               className="px-3 py-1 text-xs font-semibold rounded-lg bg-red-600 text-white hover:bg-red-500"
             >
-              সেটআপ গাইড দেখুন
+              View Setup Guide
             </button>
             <button onClick={() => setDriveError(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
               ✕
@@ -723,7 +723,7 @@ export function ImageResizerTool() {
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Organization / Institute Name (English or Bangla)
+                  Organization / Institute Name
                 </label>
                 <input
                   type="text"
@@ -797,7 +797,7 @@ export function ImageResizerTool() {
             <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Address / Subtitle (English or Bangla)
+                  Address / Subtitle
                 </label>
                 <input
                   type="text"
@@ -924,7 +924,7 @@ export function ImageResizerTool() {
                   onClick={() => setShowDriveSetupModal(true)}
                   className="text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 underline decoration-dotted"
                 >
-                  গুগল ড্রাইভ সেটআপ গাইড
+                  Google Drive Setup Guide
                 </button>
                 <span className="text-xs font-semibold text-blue-700 dark:text-blue-300 bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 rounded-lg">
                   {dpiScale}x DPI Active ({dpiScale === 1 ? "Standard" : dpiScale === 2 ? "Retina HD" : "Ultra HD"})
@@ -1049,10 +1049,10 @@ export function ImageResizerTool() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                    গুগল ড্রাইভে আপলোড সফল হয়েছে!
+                    Google Drive Upload Completed!
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    সবগুলো সাইজের ইমেজ ড্রাইভে নতুন ফোল্ডারে সেভ করা হয়েছে।
+                    All resized images have been saved to a new folder in Google Drive.
                   </p>
                 </div>
               </div>
@@ -1065,12 +1065,12 @@ export function ImageResizerTool() {
             </div>
 
             <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
-              <div className="text-xs font-semibold text-slate-600 dark:text-slate-400">ফোল্ডার নাম:</div>
+              <div className="text-xs font-semibold text-slate-600 dark:text-slate-400">Folder Name:</div>
               <div className="text-sm font-medium text-slate-900 dark:text-slate-100 flex items-center gap-2">
                 📁 {driveUploadResult.folderName}
               </div>
               <div className="text-xs text-slate-500 dark:text-slate-400 pt-1">
-                আপলোডকৃত ফাইল: {driveUploadResult.uploadedFiles.length} টি (32.png, 82.png, 150.png, 162.png, 230.jpg)
+                Uploaded Files: {driveUploadResult.uploadedFiles.length} (32.png, 82.png, 150.png, 162.png, 230.jpg)
               </div>
             </div>
 
@@ -1081,7 +1081,7 @@ export function ImageResizerTool() {
                 rel="noreferrer"
                 className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-sm font-semibold text-center flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20"
               >
-                <span>গুগল ড্রাইভে ফোল্ডারটি খুলুন</span>
+                <span>Open Folder in Google Drive</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
@@ -1091,14 +1091,14 @@ export function ImageResizerTool() {
                 onClick={() => setDriveUploadResult(null)}
                 className="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
               >
-                বন্ধ করুন
+                Close
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Google Drive Setup Guide Modal (Bangla Step-by-Step) */}
+      {/* Google Drive Setup Guide Modal */}
       {showDriveSetupModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in overflow-y-auto">
           <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-5 my-8 max-h-[90vh] overflow-y-auto">
@@ -1116,10 +1116,10 @@ export function ImageResizerTool() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                    Google Drive কানেক্ট করার স্টেপ-বাই-স্টেপ গাইড
+                    Google Drive Connection Guide
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    মাত্র ৪টি সহজ ধাপে Google Drive Service Account যুক্ত করে ১-ক্লিকে আপলোড চালু করুন।
+                    Connect a Google Service Account in 4 simple steps to enable 1-click cloud uploads.
                   </p>
                 </div>
               </div>
@@ -1138,11 +1138,11 @@ export function ImageResizerTool() {
                 : "bg-amber-50 dark:bg-amber-950/30 border-amber-300 text-amber-800 dark:text-amber-200"
             }`}>
               <div className="font-bold mb-1 flex items-center gap-1.5">
-                <span>{driveConfigStatus?.isConfigured ? "✓ বর্তমানে সক্রিয়" : "⚠ কনফিগারেশন অসম্পূর্ণ"}</span>
+                <span>{driveConfigStatus?.isConfigured ? "✓ Currently Active" : "⚠ Configuration Required"}</span>
               </div>
               <p>{driveConfigStatus?.message}</p>
               {driveConfigStatus?.clientEmail && (
-                <p className="mt-1 font-mono text-[11px]">ইমেইল: {driveConfigStatus.clientEmail}</p>
+                <p className="mt-1 font-mono text-[11px]">Service Email: {driveConfigStatus.clientEmail}</p>
               )}
             </div>
 
@@ -1151,47 +1151,47 @@ export function ImageResizerTool() {
               <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1.5">
                 <div className="font-bold text-slate-900 dark:text-slate-100 text-sm flex items-center gap-2">
                   <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs">1</span>
-                  Google Cloud Console এ Google Drive API Enable করুন
+                  Enable Google Drive API in Google Cloud Console
                 </div>
                 <p>
-                  ১. <a href="https://console.cloud.google.com/" target="_blank" rel="noreferrer" className="text-blue-600 underline">Google Cloud Console</a> এ যান এবং একটি Project সিলেক্ট/তৈরি করুন।
+                  1. Visit <a href="https://console.cloud.google.com/" target="_blank" rel="noreferrer" className="text-blue-600 underline">Google Cloud Console</a> and select or create a project.
                   <br />
-                  ২. <b>APIs & Services</b> &gt; <b>Library</b> তে গিয়ে <b>&quot;Google Drive API&quot;</b> লিখে সার্চ করে <b>Enable</b> বাটনে ক্লিক করুন।
+                  2. Navigate to <b>APIs & Services</b> &gt; <b>Library</b>, search for <b>&quot;Google Drive API&quot;</b> and click <b>Enable</b>.
                 </p>
               </div>
 
               <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1.5">
                 <div className="font-bold text-slate-900 dark:text-slate-100 text-sm flex items-center gap-2">
                   <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs">2</span>
-                  Service Account তৈরি করুন এবং JSON Key ডাউনলোড করুন
+                  Create a Service Account and Download JSON Key
                 </div>
                 <p>
-                  ১. <b>APIs & Services</b> &gt; <b>Credentials</b> &gt; <b>Create Credentials</b> &gt; <b>Service Account</b> এ ক্লিক করুন।
+                  1. Go to <b>APIs & Services</b> &gt; <b>Credentials</b> &gt; <b>Create Credentials</b> &gt; <b>Service Account</b>.
                   <br />
-                  ২. নাম দিন (যেমন: <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded">client-registry-drive</code>) এবং <b>Done</b> করুন।
+                  2. Provide a name (e.g. <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded">client-registry-drive</code>) and click <b>Done</b>.
                   <br />
-                  ৩. তৈরিকৃত Service Account এ ক্লিক করে <b>Keys</b> ট্যাবে যান &gt; <b>Add Key</b> &gt; <b>Create new key</b> &gt; <b>JSON</b> সিলেক্ট করে ডাউনলোড করুন।
+                  3. Click on the created service account &gt; <b>Keys</b> tab &gt; <b>Add Key</b> &gt; <b>Create new key</b> &gt; choose <b>JSON</b> and download.
                 </p>
               </div>
 
               <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1.5">
                 <div className="font-bold text-slate-900 dark:text-slate-100 text-sm flex items-center gap-2">
                   <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs">3</span>
-                  Google Drive এ ফোল্ডার তৈরি করে Service Account কে এক্সেস দিন
+                  Share a Google Drive Folder with the Service Account
                 </div>
                 <p>
-                  ১. আপনার ব্যক্তিগত বা প্রাতিষ্ঠানিক <a href="https://drive.google.com/" target="_blank" rel="noreferrer" className="text-blue-600 underline">Google Drive</a> এ একটি ফোল্ডার তৈরি করুন (যেমন: <b>Client Assets</b>)।
+                  1. Open <a href="https://drive.google.com/" target="_blank" rel="noreferrer" className="text-blue-600 underline">Google Drive</a> and create a target folder (e.g. <b>Client Assets</b>).
                   <br />
-                  ২. ফোল্ডারের <b>Share</b> অপশনে গিয়ে ডাউনলোড করা JSON ফাইলের <b>client_email</b> টি দিয়ে <b>Editor</b> হিসেবে পারমিশন দিন।
+                  2. Right-click the folder &gt; <b>Share</b> &gt; paste the service account <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded">client_email</code> and grant <b>Editor</b> access.
                   <br />
-                  ৩. ফোল্ডারের URL থেকে Folder ID টি কপি করুন (URL এর <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded">folders/XXXXX</code> অংশটি)।
+                  3. Copy the <b>Folder ID</b> from the browser URL (<code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded">drive.google.com/drive/folders/XXXXX</code>).
                 </p>
               </div>
 
               <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
                 <div className="font-bold text-slate-900 dark:text-slate-100 text-sm flex items-center gap-2">
                   <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs">4</span>
-                  প্রজেক্টের <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded">.env</code> ফাইলে ভ্যালুগুলো যোগ করুন
+                  Configure in <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded">.env</code> or place JSON in root
                 </div>
                 <div className="p-3 bg-slate-900 text-slate-100 rounded-lg font-mono text-[11px] overflow-x-auto space-y-1">
                   <p className="text-emerald-400"># Google Drive Integration</p>
@@ -1199,9 +1199,6 @@ export function ImageResizerTool() {
                   <p>GOOGLE_PRIVATE_KEY=&quot;-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n&quot;</p>
                   <p>GOOGLE_DRIVE_FOLDER_ID=&quot;your_folder_id_here&quot;</p>
                 </div>
-                <p className="text-[11px] text-slate-500">
-                  নোট: JSON ফাইলের পুরো টেক্সট সরাসরি <code className="font-mono">GOOGLE_SERVICE_ACCOUNT_KEY</code> হিসেবেও দেওয়া যাবে।
-                </p>
               </div>
             </div>
 
@@ -1215,7 +1212,7 @@ export function ImageResizerTool() {
                 }}
                 className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold"
               >
-                ঠিক আছে / রিফ্রেশ স্ট্যাটাস
+                Done / Refresh Status
               </button>
             </div>
           </div>

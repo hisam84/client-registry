@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
 
     if (!files || !Array.isArray(files) || files.length === 0) {
       return NextResponse.json(
-        { success: false, error: "কোনো ইমেজ ফাইল পাওয়া যায়নি।" },
+        { success: false, error: "No image files found in request." },
         { status: 400 }
       );
     }
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
         success: false,
         error:
           error?.message ||
-          "Google Drive এ আপলোড করার সময় একটি সমস্যা দেখা দিয়েছে।",
+          "An error occurred while uploading to Google Drive.",
       },
       { status: 500 }
     );

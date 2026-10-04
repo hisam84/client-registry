@@ -81,13 +81,13 @@ export function checkGoogleDriveConfig(): GoogleDriveConfigStatus {
     return {
       isConfigured: false,
       message:
-        "Google Drive Service Account ক্রেডেনশিয়াল কনফিগার করা নেই। অনুগ্রহ করে .env ফাইলে GOOGLE_SERVICE_ACCOUNT_EMAIL এবং GOOGLE_PRIVATE_KEY যুক্ত করুন।",
+        "Google Drive Service Account credentials are not configured. Please set GOOGLE_SERVICE_ACCOUNT_EMAIL and GOOGLE_PRIVATE_KEY or place service account JSON in root.",
     };
   }
 
   return {
     isConfigured: true,
-    message: "Google Drive সফলভাবে কনফিগার করা আছে।",
+    message: "Google Drive is successfully configured.",
     folderId: folderId || undefined,
     clientEmail: creds.client_email,
   };
@@ -158,7 +158,7 @@ export async function uploadImagesToGoogleDrive({
 
   const targetFolderId = folderRes.data.id;
   if (!targetFolderId) {
-    throw new Error("Google Drive ফোল্ডার তৈরি করতে ব্যর্থ হয়েছে।");
+    throw new Error("Failed to create Google Drive folder.");
   }
 
   // 2. Upload all images into the created folder
