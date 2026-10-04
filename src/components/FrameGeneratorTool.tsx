@@ -19,83 +19,63 @@ interface PresetSize {
 
 const CANVAS_PRESETS: PresetSize[] = [
   {
-    id: "a4-cert",
-    name: "A4 Certificate (Landscape)",
+    id: "a4-cert-px",
+    name: "A4 Certificate Landscape (3508 × 2480 px)",
     category: "Certificate",
-    width: 297,
-    height: 210,
-    unit: "mm",
-    description: "Standard Certificate Paper (297 × 210 mm)",
+    width: 3508,
+    height: 2480,
+    unit: "px",
+    description: "Standard A4 Landscape Print (3508 × 2480 px @ 300 DPI)",
     orientation: "landscape",
   },
   {
-    id: "a4-sheet",
-    name: "A4 Marksheet / Transcript (Portrait)",
+    id: "a4-sheet-px",
+    name: "A4 Marksheet Portrait (2480 × 3508 px)",
     category: "Marksheet",
-    width: 210,
-    height: 297,
-    unit: "mm",
-    description: "Standard Marksheet / Result Sheet (210 × 297 mm)",
+    width: 2480,
+    height: 3508,
+    unit: "px",
+    description: "Standard A4 Marksheet Print (2480 × 3508 px @ 300 DPI)",
     orientation: "portrait",
   },
   {
-    id: "letter-cert",
-    name: "US Letter Certificate (Landscape)",
+    id: "fhd-cert-px",
+    name: "Full HD Certificate (1920 × 1080 px)",
     category: "Certificate",
-    width: 11,
-    height: 8.5,
-    unit: "in",
-    description: "US Letter Landscape (11.0 × 8.5 in)",
+    width: 1920,
+    height: 1080,
+    unit: "px",
+    description: "High-Definition 1080p Landscape (1920 × 1080 px)",
     orientation: "landscape",
   },
   {
-    id: "letter-sheet",
-    name: "US Letter Marksheet (Portrait)",
+    id: "fhd-sheet-px",
+    name: "Full HD Marksheet (1080 × 1920 px)",
     category: "Marksheet",
-    width: 8.5,
-    height: 11,
-    unit: "in",
-    description: "US Letter Portrait (8.5 × 11.0 in)",
+    width: 1080,
+    height: 1920,
+    unit: "px",
+    description: "High-Definition 1080p Portrait (1080 × 1920 px)",
     orientation: "portrait",
   },
   {
-    id: "legal-cert",
-    name: "US Legal Certificate (Landscape)",
+    id: "letter-cert-px",
+    name: "US Letter Certificate (3300 × 2550 px)",
     category: "Certificate",
-    width: 14,
-    height: 8.5,
-    unit: "in",
-    description: "US Legal Landscape (14.0 × 8.5 in)",
+    width: 3300,
+    height: 2550,
+    unit: "px",
+    description: "US Letter Landscape Print (3300 × 2550 px @ 300 DPI)",
     orientation: "landscape",
   },
   {
-    id: "legal-sheet",
-    name: "US Legal Marksheet (Portrait)",
+    id: "letter-sheet-px",
+    name: "US Letter Marksheet (2550 × 3300 px)",
     category: "Marksheet",
-    width: 8.5,
-    height: 14,
-    unit: "in",
-    description: "US Legal Portrait (8.5 × 14.0 in)",
-    orientation: "portrait",
-  },
-  {
-    id: "a3-cert",
-    name: "A3 Large Diploma (Landscape)",
-    category: "Certificate",
-    width: 420,
-    height: 297,
-    unit: "mm",
-    description: "Large Display Diploma (420 × 297 mm)",
-    orientation: "landscape",
-  },
-  {
-    id: "a3-sheet",
-    name: "A3 Marksheet / Ledger (Portrait)",
-    category: "Marksheet",
-    width: 297,
-    height: 420,
-    unit: "mm",
-    description: "Comprehensive Ledger / Transcript (297 × 420 mm)",
+    width: 2550,
+    height: 3300,
+    unit: "px",
+    description: "US Letter Portrait Print (2550 × 3300 px @ 300 DPI)",
     orientation: "portrait",
   },
   {
@@ -105,8 +85,28 @@ const CANVAS_PRESETS: PresetSize[] = [
     width: 1080,
     height: 1080,
     unit: "px",
-    description: "Digital Badge / Square (1080 × 1080 px)",
+    description: "Digital Badge / Square Award (1080 × 1080 px)",
     orientation: "square",
+  },
+  {
+    id: "4k-cert-px",
+    name: "4K UHD Certificate (3840 × 2160 px)",
+    category: "Certificate",
+    width: 3840,
+    height: 2160,
+    unit: "px",
+    description: "4K Ultra High Definition (3840 × 2160 px)",
+    orientation: "landscape",
+  },
+  {
+    id: "a3-cert-px",
+    name: "A3 Large Diploma (4960 × 3508 px)",
+    category: "Certificate",
+    width: 4960,
+    height: 3508,
+    unit: "px",
+    description: "Large Display Diploma Print (4960 × 3508 px @ 300 DPI)",
+    orientation: "landscape",
   },
 ];
 
@@ -277,34 +277,34 @@ export function FrameGeneratorTool() {
   // DPI Selection
   const [targetDpi, setTargetDpi] = useState<number>(300);
 
-  // 1. CANVAS / PAGE SIZE STATE
-  const [selectedCanvasPreset, setSelectedCanvasPreset] = useState<string>("a4-cert");
-  const [canvasWidth, setCanvasWidth] = useState<number>(297);
-  const [canvasHeight, setCanvasHeight] = useState<number>(210);
-  const [canvasUnit, setCanvasUnit] = useState<UnitType>("mm");
+  // 1. CANVAS / PAGE SIZE STATE (Default: Pixel)
+  const [selectedCanvasPreset, setSelectedCanvasPreset] = useState<string>("a4-cert-px");
+  const [canvasWidth, setCanvasWidth] = useState<number>(3508);
+  const [canvasHeight, setCanvasHeight] = useState<number>(2480);
+  const [canvasUnit, setCanvasUnit] = useState<UnitType>("px");
   const [canvasRatioLocked, setCanvasRatioLocked] = useState<boolean>(false);
 
-  // 2. FRAME / BORDER SIZE STATE
+  // 2. FRAME / BORDER SIZE STATE (Default: Pixel)
   const [frameSizingMode, setFrameSizingMode] = useState<"exact" | "margin">("exact");
-  const [frameWidth, setFrameWidth] = useState<number>(275);
-  const [frameHeight, setFrameHeight] = useState<number>(190);
-  const [frameUnit, setFrameUnit] = useState<UnitType>("mm");
+  const [frameWidth, setFrameWidth] = useState<number>(3200);
+  const [frameHeight, setFrameHeight] = useState<number>(2180);
+  const [frameUnit, setFrameUnit] = useState<UnitType>("px");
   const [frameRatioLocked, setFrameRatioLocked] = useState<boolean>(false);
 
   // Frame Alignment & Positioning
   const [isCentered, setIsCentered] = useState<boolean>(true);
-  const [frameMarginLeft, setFrameMarginLeft] = useState<number>(11);
-  const [frameMarginTop, setFrameMarginTop] = useState<number>(10);
+  const [frameMarginLeft, setFrameMarginLeft] = useState<number>(154);
+  const [frameMarginTop, setFrameMarginTop] = useState<number>(150);
 
   // Margin Mode State
-  const [uniformMargin, setUniformMargin] = useState<number>(12);
+  const [uniformMargin, setUniformMargin] = useState<number>(150);
 
   // 3. WATERMARK ENGINE STATE
   const [showWatermark, setShowWatermark] = useState<boolean>(true);
   const [watermarkType, setWatermarkType] = useState<"crest" | "seal" | "star" | "text" | "custom_logo">("crest");
   const [watermarkText, setWatermarkText] = useState<string>("OFFICIAL");
   const [watermarkImage, setWatermarkImage] = useState<string | null>(null);
-  const [watermarkSizeMm, setWatermarkSizeMm] = useState<number>(75);
+  const [watermarkSizeMm, setWatermarkSizeMm] = useState<number>(850);
   const [watermarkOpacityPct, setWatermarkOpacityPct] = useState<number>(8);
   const [watermarkOffsetYMm, setWatermarkOffsetYMm] = useState<number>(0);
   const [watermarkOffsetXMm, setWatermarkOffsetXMm] = useState<number>(0);
@@ -891,10 +891,10 @@ export function FrameGeneratorTool() {
                   }}
                   className="w-full text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-2 py-2 focus:ring-2 focus:ring-brass-500 focus:outline-none"
                 >
-                  <option value="mm">mm</option>
-                  <option value="in">in</option>
-                  <option value="cm">cm</option>
-                  <option value="px">px</option>
+                  <option value="px">px (Pixels)</option>
+                  <option value="mm">mm (Millimeters)</option>
+                  <option value="in">in (Inches)</option>
+                  <option value="cm">cm (Centimeters)</option>
                 </select>
               </div>
 
@@ -1037,10 +1037,10 @@ export function FrameGeneratorTool() {
                       onChange={(e) => setFrameUnit(e.target.value as UnitType)}
                       className="w-full text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-2 py-2 focus:ring-2 focus:ring-brass-500 focus:outline-none"
                     >
-                      <option value="mm">mm</option>
-                      <option value="in">in</option>
-                      <option value="cm">cm</option>
-                      <option value="px">px</option>
+                      <option value="px">px (Pixels)</option>
+                      <option value="mm">mm (Millimeters)</option>
+                      <option value="in">in (Inches)</option>
+                      <option value="cm">cm (Centimeters)</option>
                     </select>
                   </div>
                 </div>
