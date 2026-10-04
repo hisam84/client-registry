@@ -316,7 +316,7 @@ export function FrameGeneratorTool() {
   const [primaryColor, setPrimaryColor] = useState<string>("#B48222");
   const [secondaryColor, setSecondaryColor] = useState<string>("#8C5E13");
   const [accentColor, setAccentColor] = useState<string>("#D4AF37");
-  const [backgroundType, setBackgroundType] = useState<"transparent" | "white" | "parchment">("transparent");
+  const [backgroundType, setBackgroundType] = useState<"transparent" | "white" | "parchment">("white");
 
   // 5. INNER ACCENTS & SLIDERS
   const [strokeThickness, setStrokeThickness] = useState<number>(3);
@@ -559,14 +559,22 @@ export function FrameGeneratorTool() {
     setPanPosition({ x: 0, y: 0 });
   };
 
-  // Mouse Wheel Zoom
+  // Mouse Wheel Zoom (Requires Ctrl + Scroll)
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
-    setZoomLevel((prev) => {
-      const next = prev * zoomFactor;
-      return Math.min(Math.max(parseFloat(next.toFixed(2)), 0.25), 3.5);
-    });
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.12 : 0.88;
+      setZoomLevel((prev) => {
+        const next = prev * zoomFactor;
+        return Math.min(Math.max(parseFloat(next.toFixed(2)), 0.25), 3.5);
+      });
+    } else {
+      // Natural Figma-style scroll to pan when Ctrl is not held
+      setPanPosition((prev) => ({
+        x: prev.x - (e.shiftKey ? e.deltaY : e.deltaX),
+        y: prev.y - (e.shiftKey ? 0 : e.deltaY),
+      }));
+    }
   };
 
   // Mouse Down to start Pan / Move Artboard
@@ -1529,8 +1537,9 @@ export function FrameGeneratorTool() {
               }}
             >
               {/* Pan Hint Overlay */}
-              <div className="absolute bottom-3 left-3 z-10 pointer-events-none text-[10px] text-slate-500 bg-slate-900/80 backdrop-blur-md px-2.5 py-1 rounded-md border border-slate-800">
-                💡 Scroll to Zoom • Drag or use Hand Tool to Pan
+              <div className="absolute bottom-3 left-3 z-10 pointer-events-none text-[10px] text-slate-400 bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-800 flex items-center gap-2 shadow-lg">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>💡 Hold <kbd className="px-1 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[9px] text-slate-200">Ctrl</kbd> + Scroll to Zoom • Drag or Scroll to Pan</span>
               </div>
 
               {/* Transform Container (Handles Zoom & Pan Translation) */}
