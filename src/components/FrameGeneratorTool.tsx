@@ -522,6 +522,7 @@ export function FrameGeneratorTool() {
       fH_mm: parseFloat(fH_mm.toFixed(2)),
       fX_mm: parseFloat(fX_mm.toFixed(2)),
       fY_mm: parseFloat(fY_mm.toFixed(2)),
+      innerOff_mm,
       innerX_mm,
       innerY_mm,
       innerW_mm,
@@ -1518,6 +1519,115 @@ export function FrameGeneratorTool() {
               />
             </div>
           </div>
+
+          {/* 5. LINE SPACING & DUAL-LINE GAP */}
+          <div className="bg-white dark:bg-slate-900 border-2 border-brass-500/30 dark:border-brass-500/30 rounded-2xl p-5 shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                <span className="w-5 h-5 rounded-lg bg-brass-500/20 text-brass-600 dark:text-brass-400 flex items-center justify-center font-bold text-xs">
+                  5
+                </span>
+                <span>Line Spacing & Dual-Line Gap</span>
+              </h2>
+
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showInnerBorder}
+                  onChange={(e) => setShowInnerBorder(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brass-500"></div>
+                <span className="ml-2 text-xs font-medium text-slate-700 dark:text-slate-300">
+                  {showInnerBorder ? "2nd Line On" : "2nd Line Off"}
+                </span>
+              </label>
+            </div>
+
+            {/* Gap / Distance Slider */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-600 dark:text-slate-400 font-medium">Distance Between Lines:</span>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number"
+                    min="0.5"
+                    max="50"
+                    step="0.5"
+                    value={innerOffsetMm}
+                    onChange={(e) => setInnerOffsetMm(Math.max(0.2, parseFloat(e.target.value) || 0))}
+                    className="w-16 text-right font-mono text-xs font-semibold px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-brass-500 focus:outline-none"
+                  />
+                  <span className="text-[11px] font-mono text-slate-500">mm ({unitToPixels(innerOffsetMm, "mm", targetDpi)} px)</span>
+                </div>
+              </div>
+
+              <input
+                type="range"
+                min="0.5"
+                max="30"
+                step="0.5"
+                value={innerOffsetMm}
+                onChange={(e) => setInnerOffsetMm(parseFloat(e.target.value))}
+                className="w-full accent-brass-500"
+              />
+
+              {/* Quick Gap Preset Buttons */}
+              <div className="flex items-center gap-1.5 pt-1 overflow-x-auto pb-1">
+                <span className="text-[10px] text-slate-400 font-medium mr-0.5 shrink-0">Quick Gap:</span>
+                {[
+                  { label: "Tight (1.5mm)", val: 1.5 },
+                  { label: "Standard (3mm)", val: 3.0 },
+                  { label: "Medium (6mm)", val: 6.0 },
+                  { label: "Wide (10mm)", val: 10.0 },
+                  { label: "Extra (16mm)", val: 16.0 },
+                ].map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => setInnerOffsetMm(preset.val)}
+                    className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-all shrink-0 ${
+                      innerOffsetMm === preset.val
+                        ? "bg-brass-500 text-white border-brass-500 font-semibold shadow-xs"
+                        : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
+                    }`}
+                  >
+                    {preset.label.split(" ")[0]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Corner Accents Control */}
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showCornerAccents}
+                    onChange={(e) => setShowCornerAccents(e.target.checked)}
+                    className="rounded border-slate-300 text-brass-500 focus:ring-brass-500"
+                  />
+                  <span>Corner Accents & Ornaments</span>
+                </label>
+                {showCornerAccents && (
+                  <span className="font-mono text-xs text-slate-600 dark:text-slate-400 font-semibold">{cornerScale.toFixed(1)}x Scale</span>
+                )}
+              </div>
+
+              {showCornerAccents && (
+                <input
+                  type="range"
+                  min="0.4"
+                  max="2.5"
+                  step="0.1"
+                  value={cornerScale}
+                  onChange={(e) => setCornerScale(parseFloat(e.target.value))}
+                  className="w-full accent-brass-500"
+                />
+              )}
+            </div>
+          </div>
         </div>
 
         {/* ===================== RIGHT FIGMA-STYLE ARTBOARD VIEWPORT (7 Cols) ===================== */}
@@ -1939,6 +2049,7 @@ export function FrameGeneratorTool() {
                     {/* 2. MINIMAL: Double Line */}
                     {styleType === "minimal-double-hairline" && (
                       <g id="minimal-double-hairline-border">
+                        {/* 1st Line (Outer) */}
                         <rect
                           x={layout.fX_mm}
                           y={layout.fY_mm}
@@ -1948,15 +2059,7 @@ export function FrameGeneratorTool() {
                           stroke={primaryColor}
                           strokeWidth={layout.strokeMm * 0.9}
                         />
-                        <rect
-                          x={layout.fX_mm + 1.2}
-                          y={layout.fY_mm + 1.2}
-                          width={layout.fW_mm - 2.4}
-                          height={layout.fH_mm - 2.4}
-                          fill="none"
-                          stroke={secondaryColor}
-                          strokeWidth={layout.strokeMm * 0.35}
-                        />
+                        {/* 2nd Line (Inner with dynamic spacing) */}
                         {showInnerBorder && (
                           <rect
                             x={layout.innerX_mm}
@@ -1964,7 +2067,7 @@ export function FrameGeneratorTool() {
                             width={layout.innerW_mm}
                             height={layout.innerH_mm}
                             fill="none"
-                            stroke={primaryColor}
+                            stroke={secondaryColor}
                             strokeWidth={layout.strokeMm * 0.45}
                           />
                         )}
@@ -2073,6 +2176,7 @@ export function FrameGeneratorTool() {
                     {/* 4. MINIMAL: Editorial Thick-Thin */}
                     {styleType === "minimal-editorial" && (
                       <g id="minimal-editorial-border">
+                        {/* Heavy Outer Line */}
                         <rect
                           x={layout.fX_mm}
                           y={layout.fY_mm}
@@ -2082,15 +2186,7 @@ export function FrameGeneratorTool() {
                           stroke={primaryColor}
                           strokeWidth={layout.strokeMm * 1.5}
                         />
-                        <rect
-                          x={layout.fX_mm + 1.8}
-                          y={layout.fY_mm + 1.8}
-                          width={layout.fW_mm - 3.6}
-                          height={layout.fH_mm - 3.6}
-                          fill="none"
-                          stroke={secondaryColor}
-                          strokeWidth={layout.strokeMm * 0.35}
-                        />
+                        {/* 2nd Fine Hairline (Dynamic Gap) */}
                         {showInnerBorder && (
                           <rect
                             x={layout.innerX_mm}
@@ -2098,7 +2194,7 @@ export function FrameGeneratorTool() {
                             width={layout.innerW_mm}
                             height={layout.innerH_mm}
                             fill="none"
-                            stroke={primaryColor}
+                            stroke={secondaryColor}
                             strokeWidth={layout.strokeMm * 0.4}
                           />
                         )}
@@ -2156,6 +2252,7 @@ export function FrameGeneratorTool() {
                     {/* 6. MINIMAL: Dashed Precision */}
                     {styleType === "minimal-dashed-precision" && (
                       <g id="minimal-dashed-precision-border">
+                        {/* Outer Solid */}
                         <rect
                           x={layout.fX_mm}
                           y={layout.fY_mm}
@@ -2165,16 +2262,7 @@ export function FrameGeneratorTool() {
                           stroke={primaryColor}
                           strokeWidth={layout.strokeMm * 0.9}
                         />
-                        <rect
-                          x={layout.fX_mm + 1.5}
-                          y={layout.fY_mm + 1.5}
-                          width={layout.fW_mm - 3}
-                          height={layout.fH_mm - 3}
-                          fill="none"
-                          stroke={secondaryColor}
-                          strokeWidth={layout.strokeMm * 0.5}
-                          strokeDasharray="3 1.5"
-                        />
+                        {/* 2nd Dashed Line (Dynamic Gap) */}
                         {showInnerBorder && (
                           <rect
                             x={layout.innerX_mm}
@@ -2182,8 +2270,9 @@ export function FrameGeneratorTool() {
                             width={layout.innerW_mm}
                             height={layout.innerH_mm}
                             fill="none"
-                            stroke={primaryColor}
-                            strokeWidth={layout.strokeMm * 0.35}
+                            stroke={secondaryColor}
+                            strokeWidth={layout.strokeMm * 0.5}
+                            strokeDasharray="3 1.5"
                           />
                         )}
                       </g>
@@ -2191,15 +2280,16 @@ export function FrameGeneratorTool() {
 
                     {/* 7. MINIMAL: Floating Corners */}
                     {styleType === "minimal-floating-corners" && (() => {
-                      const cOff = 3;
-                      const cLen = 7;
+                      const cOff = layout.innerOff_mm;
+                      const cLen = Math.min(layout.fW_mm, layout.fH_mm) * 0.07 * cornerScale + 4;
                       return (
                         <g id="minimal-floating-corners-border">
+                          {/* Inner Perimeter with Dynamic Gap */}
                           <rect
-                            x={layout.fX_mm + cOff}
-                            y={layout.fY_mm + cOff}
-                            width={layout.fW_mm - cOff * 2}
-                            height={layout.fH_mm - cOff * 2}
+                            x={layout.innerX_mm}
+                            y={layout.innerY_mm}
+                            width={layout.innerW_mm}
+                            height={layout.innerH_mm}
                             fill="none"
                             stroke={primaryColor}
                             strokeWidth={layout.strokeMm * 0.8}
