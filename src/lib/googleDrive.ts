@@ -26,10 +26,14 @@ function getOAuth2Client() {
   const refreshToken = process.env.GOOGLE_REFRESH_TOKEN?.trim();
 
   if (clientId && clientSecret && refreshToken) {
+    const redirectUri =
+      process.env.GOOGLE_REDIRECT_URI ||
+      "https://impdatabase.vercel.app/api/drive/auth/callback";
+
     const oauth2Client = new google.auth.OAuth2(
       clientId,
       clientSecret,
-      process.env.GOOGLE_REDIRECT_URI || "http://localhost:3000/api/drive/auth/callback"
+      redirectUri
     );
     oauth2Client.setCredentials({ refresh_token: refreshToken });
     return oauth2Client;
