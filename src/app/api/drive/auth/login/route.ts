@@ -9,15 +9,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(
       {
         error:
-          "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set in .env to initiate OAuth login.",
+          "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set in Vercel / .env to initiate OAuth login.",
       },
       { status: 400 }
     );
   }
 
-  const host = req.headers.get("host") || "localhost:3000";
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || "impdatabase.vercel.app";
   const protocol = host.includes("localhost") ? "http" : "https";
-  const redirectUri = `${protocol}://${host}/api/drive/auth/callback`;
+  const redirectUri =
+    process.env.GOOGLE_REDIRECT_URI ||
+    `${protocol}://${host}/api/drive/auth/callback`;
 
   const oauth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUri);
 

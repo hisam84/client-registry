@@ -22,9 +22,11 @@ export async function GET(req: NextRequest) {
 
   const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
-  const host = req.headers.get("host") || "localhost:3000";
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || "impdatabase.vercel.app";
   const protocol = host.includes("localhost") ? "http" : "https";
-  const redirectUri = `${protocol}://${host}/api/drive/auth/callback`;
+  const redirectUri =
+    process.env.GOOGLE_REDIRECT_URI ||
+    `${protocol}://${host}/api/drive/auth/callback`;
 
   const oauth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUri);
 
@@ -42,16 +44,18 @@ export async function GET(req: NextRequest) {
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 40px; display: flex; justify-content: center; }
     .card { background: #1e293b; border: 1px solid #334155; padding: 32px; border-radius: 16px; max-width: 600px; width: 100%; }
     h2 { color: #10b981; margin-top: 0; }
-    code { background: #0f172a; border: 1px solid #475569; padding: 12px; border-radius: 8px; display: block; word-break: break-all; font-family: monospace; color: #38bdf8; margin: 16px 0; }
+    code { background: #0f172a; border: 1px solid #475569; padding: 12px; border-radius: 8px; display: block; word-break: break-all; font-family: monospace; color: #38bdf8; margin: 16px 0; font-size: 13px; }
     .btn { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; cursor: pointer; display: inline-block; }
   </style>
 </head>
 <body>
   <div class="card">
     <h2>✓ Google Drive Account Authorized!</h2>
-    <p>Your Google Drive Refresh Token is generated successfully. Add this line to your <code>.env</code> file:</p>
-    <code>GOOGLE_REFRESH_TOKEN="${refreshToken || "Token Received (Check Server Logs)"}"</code>
-    <p style="color:#94a3b8;font-size:13px;">After adding it to your <code>.env</code> file and restarting your server, your 1-click Google Drive upload will use your personal 15GB Google Drive quota.</p>
+    <p>Your Google Drive Refresh Token has been generated. Please copy this value and add it to your <b>Vercel Environment Variables</b>:</p>
+    <p><b>Key:</b> <code>GOOGLE_REFRESH_TOKEN</code></p>
+    <p><b>Value:</b></p>
+    <code>${refreshToken || "Token Generated (Re-authenticate with consent prompt if empty)"}</code>
+    <p style="color:#94a3b8;font-size:13px;">Once added to Vercel Environment Variables and redeployed, 1-click uploads to Google Drive will be fully operational.</p>
     <a href="/image-tools" class="btn">Return to Image Resizer Tool</a>
   </div>
 </body>
