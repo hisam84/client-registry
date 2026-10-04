@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
     orderBy: { instituteName: "asc" },
   });
 
-  let mapped = institutions.map((inst) => {
+  let mapped = institutions.map((inst: any) => {
     const cf = (inst.customFields as any) || {};
     return {
       ...inst,
@@ -74,11 +74,11 @@ export async function GET(req: NextRequest) {
 
   if (status === "deactivated") {
     mapped = mapped.filter(
-      (inst) => (inst.customFields as any)?.isDeactivated === true || (inst.customFields as any)?.isDeactivated === "true"
+      (inst: any) => (inst.customFields as any)?.isDeactivated === true || (inst.customFields as any)?.isDeactivated === "true"
     );
   } else if (status === "active") {
     mapped = mapped.filter(
-      (inst) => (inst.customFields as any)?.isDeactivated !== true && (inst.customFields as any)?.isDeactivated !== "true"
+      (inst: any) => (inst.customFields as any)?.isDeactivated !== true && (inst.customFields as any)?.isDeactivated !== "true"
     );
   }
 
@@ -92,7 +92,7 @@ export async function GET(req: NextRequest) {
     "Other": 7
   };
 
-  mapped.sort((a, b) => {
+  mapped.sort((a: any, b: any) => {
     const pA = TYPE_PRIORITY[a.instituteType] || 99;
     const pB = TYPE_PRIORITY[b.instituteType] || 99;
     if (pA !== pB) return pA - pB;
