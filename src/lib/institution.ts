@@ -22,7 +22,7 @@ export function buildInstitutionData(body: any) {
   const cleanedCustomFields: Record<string, any> = {};
   if (body.customFields && typeof body.customFields === "object") {
     for (const [k, val] of Object.entries(body.customFields)) {
-      if (k === "isDeactivated") {
+      if (k === "isDeactivated" || k === "callUpdates") {
         cleanedCustomFields[k] = val;
         continue;
       }

@@ -40,6 +40,7 @@ const empty = {
 function isInternalOrMigrated(key: string) {
   return (
     key === "isDeactivated" ||
+    key === "callUpdates" ||
     key === "inChargeTeacher2" ||
     key === "inChargeTeacher2Contact" ||
     key === "cf_in_charge_2" ||
@@ -195,6 +196,9 @@ export function InstitutionForm({
     const cleanedCustom: Record<string, any> = {};
     if (customValues.isDeactivated) {
       cleanedCustom.isDeactivated = customValues.isDeactivated;
+    }
+    if (customValues.callUpdates || (initial?.customFields as any)?.callUpdates) {
+      cleanedCustom.callUpdates = customValues.callUpdates || (initial?.customFields as any)?.callUpdates;
     }
     activeKeys.forEach((key) => {
       const v = customValues[key];

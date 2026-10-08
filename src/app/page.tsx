@@ -4,7 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { TaskFormModal } from "@/components/tasks/TaskFormModal";
-import { CustomFieldDef, Institution } from "@/lib/types";
+import { CustomFieldDef, Institution, CallUpdate } from "@/lib/types";
 import { FilterBar, Filters } from "@/components/FilterBar";
 import { InstitutionTable } from "@/components/InstitutionTable";
 import { InstitutionForm } from "@/components/InstitutionForm";
@@ -143,6 +143,37 @@ function InstitutionsLedgerContent() {
     refreshAfterChange();
   }
 
+  function handleCallUpdateAdded(instId: string, updatedCalls: CallUpdate[]) {
+    setInstitutions((prev) =>
+      prev.map((inst) =>
+        inst.id === instId
+          ? {
+              ...inst,
+              callUpdates: updatedCalls,
+              customFields: {
+                ...(inst.customFields || {}),
+                callUpdates: updatedCalls,
+              },
+            }
+          : inst
+      )
+    );
+    setAllInstitutions((prev) =>
+      prev.map((inst) =>
+        inst.id === instId
+          ? {
+              ...inst,
+              callUpdates: updatedCalls,
+              customFields: {
+                ...(inst.customFields || {}),
+                callUpdates: updatedCalls,
+              },
+            }
+          : inst
+      )
+    );
+  }
+
   const total = allInstitutions.length;
 
   const pageActions = (
@@ -217,6 +248,7 @@ function InstitutionsLedgerContent() {
             setTaskInstName(inst.instituteName);
             setShowTaskModal(true);
           }}
+          onCallUpdateAdded={handleCallUpdateAdded}
         />
       )}
 

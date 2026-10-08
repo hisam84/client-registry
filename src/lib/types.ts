@@ -131,6 +131,7 @@ export const DETAIL_FIELD_ORDER = [
 export function isInternalOrMigratedCustomField(key: string) {
   return (
     key === "isDeactivated" ||
+    key === "callUpdates" ||
     key === "inChargeTeacher2" ||
     key === "inChargeTeacher2Contact" ||
     key === "cf_in_charge_2" ||
@@ -140,6 +141,15 @@ export function isInternalOrMigratedCustomField(key: string) {
     key === "IN CHARGE 2" ||
     key === "IN CHARGE 2 CONTACT"
   );
+}
+
+export interface CallUpdate {
+  id: string;
+  employeeId?: string | null;
+  employeeName: string;
+  subject: string;
+  details: string;
+  createdAt: string;
 }
 
 export interface CustomFieldDef {
@@ -177,7 +187,8 @@ export interface Institution {
   subDistrict: string | null;
   district: string | null;
   address: string | null;
-  customFields: Record<string, string>;
+  customFields: Record<string, any>;
+  callUpdates?: CallUpdate[];
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;

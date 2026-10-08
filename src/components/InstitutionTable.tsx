@@ -9,10 +9,12 @@ import {
   isInternalOrMigratedCustomField,
   STATUS_COLOR,
   STATUS_LABEL,
+  CallUpdate,
 } from "@/lib/types";
 import { Badge, Button } from "./ui";
 import { CustomFieldDef } from "@/lib/types";
 import { formatDhakaDate } from "@/lib/dateUtils";
+import { CallUpdateDropdown } from "./CallUpdateDropdown";
 
 function fmtDate(v: string | null) {
   return formatDhakaDate(v, { day: "2-digit", month: "short", year: "numeric" });
@@ -321,6 +323,7 @@ export function InstitutionTable({
   onDelete,
   onAddTask,
   onToggleDeactivate,
+  onCallUpdateAdded,
 }: {
   institutions: Institution[];
   customFieldDefs: CustomFieldDef[];
@@ -328,10 +331,24 @@ export function InstitutionTable({
   onDelete: (i: Institution) => void;
   onAddTask?: (i: Institution) => void;
   onToggleDeactivate?: (i: Institution) => void;
+  onCallUpdateAdded?: (instId: string, updatedList: CallUpdate[]) => void;
 }) {
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [pageSize, setPageSize] = useState<number | "all">(25);
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
-  if (institutions.length === 0) {
+  const totalCount = institutions.length;
+  const effectivePageSize = pageSize === "all" ? (totalCount || 1) : pageSize;
+  const totalPages = pageSize === "all" ? 1 : Math.max(1, Math.ceil(totalCount / effectivePageSize));
+
+  // Auto-clamp current page if total pages decreases
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
+
+  if (totalCount === 0) {
     return (
       <div className="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900/40 py-16 text-center text-slate-500 dark:text-slate-400 shadow-sm">
         <p className="font-display text-lg text-slate-800 dark:text-slate-300">No institutions match these filters</p>
@@ -339,17 +356,52 @@ export function InstitutionTable({
       </div>
     );
   }
+
+  const validPage = Math.min(currentPage, totalPages);
+  const startIndex = pageSize === "all" ? 0 : (validPage - 1) * (typeof pageSize === "number" ? pageSize : 25);
+  const endIndex = pageSize === "all" ? totalCount : Math.min(totalCount, startIndex + (typeof pageSize === "number" ? pageSize : 25));
+  const paginatedInstitutions = pageSize === "all" ? institutions : institutions.slice(startIndex, endIndex);
+
   return (
-    <>
+    <div className="space-y-3">
+      {/* Top Pagination & Summary Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+        <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+          Showing <span className="font-bold text-slate-900 dark:text-slate-100">{totalCount > 0 ? startIndex + 1 : 0}</span> to{" "}
+          <span className="font-bold text-slate-900 dark:text-slate-100">{endIndex}</span> of{" "}
+          <span className="font-bold text-slate-900 dark:text-slate-100">{totalCount}</span> institutions
+        </div>
+
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-slate-500 dark:text-slate-400 font-medium">Show per page:</span>
+          <select
+            value={pageSize}
+            onChange={(e) => {
+              const val = e.target.value === "all" ? "all" : Number(e.target.value);
+              setPageSize(val);
+              setCurrentPage(1);
+            }}
+            className="px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-slate-100 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-xs cursor-pointer"
+          >
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+            <option value={200}>200</option>
+            <option value="all">All ({totalCount})</option>
+          </select>
+        </div>
+      </div>
+
       {/* ========================================================================= */}
       {/* MOBILE VIEW (< md) - Clean, 100% Full-Width Responsive Cards with Zero Empty Space */}
       {/* ========================================================================= */}
       <div className="md:hidden space-y-2.5 max-w-full overflow-hidden">
-        {institutions.map((inst, index) => {
+        {paginatedInstitutions.map((inst, index) => {
           const isDeactivated = Boolean(inst.customFields?.isDeactivated);
           const status = computeStatus(inst.expireDate, inst.actualExpireDate, 60, isDeactivated);
           const isOpen = expanded === inst.id;
           const domainUrl = getDomainUrl(inst.domain);
+          const serialNumber = startIndex + index + 1;
 
           return (
             <div
@@ -368,7 +420,7 @@ export function InstitutionTable({
                 {/* Serial Number & Chevron */}
                 <div className="flex items-center gap-1.5 shrink-0 pt-0.5">
                   <span className="text-xs font-mono font-bold text-slate-400 dark:text-slate-500 min-w-[18px] text-center">
-                    {index + 1}
+                    {serialNumber}
                   </span>
                   <span
                     className={`inline-block transition-transform text-sm font-bold ${
@@ -398,11 +450,14 @@ export function InstitutionTable({
                           {inst.instituteNameBangla}
                         </p>
                       )}
-                      <div className="mt-1 flex items-center justify-between gap-2 flex-wrap text-xs text-slate-500">
+                      <div className="mt-1.5 flex items-center justify-between gap-2 flex-wrap text-xs text-slate-500">
                         <span className="truncate flex-1 min-w-0">{inst.instituteType} · {inst.category}</span>
-                        <Badge className={`text-[10px] px-2 py-0.5 shrink-0 ${STATUS_COLOR[status]}`}>
-                          {STATUS_LABEL[status]}
-                        </Badge>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <Badge className={`text-[10px] px-2 py-0.5 ${STATUS_COLOR[status]}`}>
+                            {STATUS_LABEL[status]}
+                          </Badge>
+                          <CallUpdateDropdown inst={inst} onCallUpdateAdded={onCallUpdateAdded} />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -585,25 +640,27 @@ export function InstitutionTable({
       {/* DESKTOP VIEW (md:block) - Complete Full-Featured Desktop Table */}
       {/* ========================================================================= */}
       <div className="hidden md:block overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-        <table className="w-full border-collapse text-sm table-fixed min-w-[980px]">
+        <table className="w-full border-collapse text-sm table-fixed min-w-[1040px]">
           <thead>
             <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900/80 text-xs uppercase tracking-wide text-slate-600 dark:text-slate-400">
               <th className="w-12 px-3 py-3 text-center">SL #</th>
               <th className="w-8 px-2 py-3 text-center"></th>
-              <th className="w-[380px] lg:w-[400px] px-3 py-3 text-left">Institute Name</th>
+              <th className="w-[220px] lg:w-[250px] px-3 py-3 text-left">Institute Name</th>
               <th className="px-3 py-3 text-left">Website / Domain</th>
               <th className="w-28 px-3 py-3 text-center">Issue Date</th>
               <th className="w-28 px-3 py-3 text-center">Expire Date</th>
               <th className="w-32 px-3 py-3 text-center">Status</th>
+              <th className="w-36 px-3 py-3 text-center">Call Update</th>
               <th className="w-28 px-3 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 dark:divide-slate-800/70">
-            {institutions.map((inst, index) => {
+            {paginatedInstitutions.map((inst, index) => {
               const isDeactivated = Boolean(inst.customFields?.isDeactivated);
               const status = computeStatus(inst.expireDate, inst.actualExpireDate, 60, isDeactivated);
               const isOpen = expanded === inst.id;
               const domainUrl = getDomainUrl(inst.domain);
+              const serialNumber = startIndex + index + 1;
 
               return (
                 <Fragment key={inst.id}>
@@ -616,12 +673,12 @@ export function InstitutionTable({
                     onClick={() => setExpanded(isOpen ? null : inst.id)}
                   >
                     <td className="w-12 px-3 py-3 text-center text-xs font-mono text-slate-500 dark:text-slate-400 font-medium">
-                      {index + 1}
+                      {serialNumber}
                     </td>
                     <td className="w-8 px-2 py-3 text-center text-slate-400 dark:text-slate-500">
                       <span className={`inline-block transition-transform text-sm ${isOpen ? "rotate-90 text-blue-600 dark:text-blue-400 font-bold" : ""}`}>›</span>
                     </td>
-                    <td className="w-[380px] lg:w-[400px] px-3 py-3 overflow-hidden text-left">
+                    <td className="w-[220px] lg:w-[250px] px-3 py-3 overflow-hidden text-left">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 min-w-0">
                           <TableTooltip text={inst.instituteName} className="font-medium text-slate-900 dark:text-slate-100">
@@ -668,6 +725,9 @@ export function InstitutionTable({
                     <td className="w-32 px-3 py-3 text-center whitespace-nowrap">
                       <Badge className={STATUS_COLOR[status]}>{STATUS_LABEL[status]}</Badge>
                     </td>
+                    <td className="w-36 px-3 py-3 text-center whitespace-nowrap">
+                      <CallUpdateDropdown inst={inst} onCallUpdateAdded={onCallUpdateAdded} />
+                    </td>
                     <td className="w-28 px-3 py-3 whitespace-nowrap text-right">
                       <ActionMenu
                         inst={inst}
@@ -680,7 +740,7 @@ export function InstitutionTable({
                   </tr>
                   {isOpen && (
                     <tr className="border-b border-slate-200 dark:border-slate-800/70 bg-slate-50/70 dark:bg-slate-950/60">
-                      <td colSpan={8} className="px-6 py-5">
+                      <td colSpan={9} className="px-6 py-5">
                         {/* Detailed Fields Grid for Desktop */}
                         <div className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
                           {DETAIL_FIELD_ORDER.map((key) => {
@@ -731,8 +791,114 @@ export function InstitutionTable({
           </tbody>
         </table>
       </div>
-    </>
+
+      {/* Bottom Pagination & Navigation Footer */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-2 px-1 border-t border-slate-200 dark:border-slate-800">
+        <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+          Showing <span className="font-bold text-slate-900 dark:text-slate-100">{totalCount > 0 ? startIndex + 1 : 0}</span> to{" "}
+          <span className="font-bold text-slate-900 dark:text-slate-100">{endIndex}</span> of{" "}
+          <span className="font-bold text-slate-900 dark:text-slate-100">{totalCount}</span> institutions
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Rows per page selector */}
+          <div className="flex items-center gap-1.5 text-xs">
+            <span className="text-slate-500 dark:text-slate-400 font-medium">Show:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                const val = e.target.value === "all" ? "all" : Number(e.target.value);
+                setPageSize(val);
+                setCurrentPage(1);
+              }}
+              className="px-2 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-slate-100 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-xs cursor-pointer"
+            >
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+              <option value={200}>200</option>
+              <option value="all">All</option>
+            </select>
+          </div>
+
+          {/* Navigation buttons */}
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setCurrentPage(1)}
+                disabled={validPage === 1}
+                className="px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                title="First Page"
+              >
+                «
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={validPage === 1}
+                className="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                ‹ Prev
+              </button>
+
+              {getPageNumbers(validPage, totalPages).map((p, i) =>
+                p === "..." ? (
+                  <span key={`dots-${i}`} className="px-1 text-slate-400 text-xs font-bold">
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setCurrentPage(Number(p))}
+                    className={`min-w-[28px] h-7 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      validPage === p
+                        ? "bg-blue-600 text-white shadow-xs"
+                        : "border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={validPage === totalPages}
+                className="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                Next ›
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={validPage === totalPages}
+                className="px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                title="Last Page"
+              >
+                »
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
+}
+
+function getPageNumbers(current: number, total: number): (number | string)[] {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+  if (current <= 4) {
+    return [1, 2, 3, 4, 5, "...", total];
+  }
+  if (current >= total - 3) {
+    return [1, "...", total - 4, total - 3, total - 2, total - 1, total];
+  }
+  return [1, "...", current - 1, current, current + 1, "...", total];
 }
 
 function fmtMaybeDate(key: string, value: string) {
