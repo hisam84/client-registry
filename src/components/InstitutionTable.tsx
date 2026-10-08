@@ -125,12 +125,14 @@ function ActionMenu({
   onDelete,
   onAddTask,
   onToggleDeactivate,
+  onCallUpdate,
 }: {
   inst: Institution;
   onEdit: (i: Institution) => void;
   onDelete: (i: Institution) => void;
   onAddTask?: (i: Institution) => void;
   onToggleDeactivate?: (i: Institution) => void;
+  onCallUpdate?: (i: Institution) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [menuCoords, setMenuCoords] = useState<{ top: number; right: number; placeAbove: boolean }>({
@@ -141,12 +143,13 @@ function ActionMenu({
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const isDeactivated = Boolean(inst.customFields?.isDeactivated);
+  const callCount = getCallCount(inst);
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
-      const menuHeight = 180;
+      const menuHeight = 220;
       const placeAbove = rect.bottom + menuHeight > window.innerHeight;
 
       setMenuCoords({
@@ -229,9 +232,32 @@ function ActionMenu({
               right: `${menuCoords.right}px`,
             }}
             onClick={(e) => e.stopPropagation()}
-            className="z-[9999] w-44 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 p-1.5 shadow-xl text-left backdrop-blur-md animate-in fade-in zoom-in-95 duration-100"
+            className="z-[9999] w-48 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 p-1.5 shadow-xl text-left backdrop-blur-md animate-in fade-in zoom-in-95 duration-100"
           >
             <div className="space-y-0.5">
+              {onCallUpdate && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    onCallUpdate(inst);
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/50 transition-colors text-left cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    <span>Call Update</span>
+                  </div>
+                  {callCount > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-white">
+                      {callCount}
+                    </span>
+                  )}
+                </button>
+              )}
+
               {onAddTask && (
                 <button
                   type="button"
@@ -247,6 +273,20 @@ function ActionMenu({
                   <span>Add Task</span>
                 </button>
               )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  onEdit(inst);
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left cursor-pointer"
+              >
+                <svg className="w-4 h-4 shrink-0 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <span>Edit Client</span>
+              </button>
 
               {onToggleDeactivate && (
                 <button
@@ -278,20 +318,6 @@ function ActionMenu({
                   )}
                 </button>
               )}
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsOpen(false);
-                  onEdit(inst);
-                }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left cursor-pointer"
-              >
-                <svg className="w-4 h-4 shrink-0 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                <span>Edit Client</span>
-              </button>
 
               <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
 
@@ -454,33 +480,18 @@ export function InstitutionTable({
                       )}
                       <div className="mt-1.5 flex items-center justify-between gap-2 flex-wrap text-xs text-slate-500">
                         <span className="truncate flex-1 min-w-0">{inst.instituteType} · {inst.category}</span>
-                        <div className="flex items-center gap-1.5 shrink-0">
+                        <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                           <Badge className={`text-[10px] px-2 py-0.5 ${STATUS_COLOR[status]}`}>
                             {STATUS_LABEL[status]}
                           </Badge>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedCallInst(inst);
-                            }}
-                            className={`inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all shadow-xs border cursor-pointer ${
-                              callCount > 0
-                                ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30 hover:bg-amber-500/20"
-                                : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750"
-                            }`}
-                            title="Call Updates Modal"
-                          >
-                            <svg className={`w-3 h-3 ${callCount > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                            </svg>
-                            <span>Call</span>
-                            {callCount > 0 && (
-                              <span className="px-1 py-0.2 rounded-full text-[9px] font-bold bg-amber-500 text-white">
-                                {callCount}
-                              </span>
-                            )}
-                          </button>
+                          <ActionMenu
+                            inst={inst}
+                            onEdit={onEdit}
+                            onDelete={onDelete}
+                            onAddTask={onAddTask}
+                            onToggleDeactivate={onToggleDeactivate}
+                            onCallUpdate={(i) => setSelectedCallInst(i)}
+                          />
                         </div>
                       </div>
                     </div>
@@ -491,8 +502,22 @@ export function InstitutionTable({
               {/* Dropdown Accordion Content (Visible when Expanded) */}
               {isOpen && (
                 <div className="p-3.5 pt-0 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-950/40">
-                  {/* Action Buttons for Mobile */}
-                  <div className="grid grid-cols-2 gap-2 my-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+                  {/* Quick Action Bar for Mobile */}
+                  <div className="flex items-center justify-between gap-2 my-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedCallInst(inst);
+                      }}
+                      className="flex-1 py-2 px-2.5 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 hover:bg-amber-500/20 font-semibold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors active:scale-95"
+                    >
+                      <svg className="w-3.5 h-3.5 shrink-0 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                      <span>Call ({callCount})</span>
+                    </button>
+
                     {onAddTask && (
                       <button
                         type="button"
@@ -500,69 +525,28 @@ export function InstitutionTable({
                           e.stopPropagation();
                           onAddTask(inst);
                         }}
-                        className="py-2.5 px-3 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 hover:bg-blue-100 font-semibold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors active:scale-95"
+                        className="flex-1 py-2 px-2.5 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 hover:bg-blue-100 font-semibold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors active:scale-95"
                       >
-                        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                         </svg>
                         <span>Add Task</span>
                       </button>
                     )}
+
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         onEdit(inst);
                       }}
-                      className="py-2.5 px-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 text-slate-700 dark:text-slate-300 hover:text-blue-600 font-semibold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors active:scale-95"
+                      className="py-2 px-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 text-slate-700 dark:text-slate-300 hover:text-blue-600 font-semibold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors active:scale-95"
+                      title="Edit"
                     >
-                      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
-                      <span>Edit Client</span>
-                    </button>
-                    {onToggleDeactivate && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onToggleDeactivate(inst);
-                        }}
-                        className={`py-2.5 px-3 rounded-lg border font-semibold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors active:scale-95 ${
-                          isDeactivated
-                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
-                            : "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20 hover:bg-sky-500/20"
-                        }`}
-                      >
-                        {isDeactivated ? (
-                          <>
-                            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>Activate</span>
-                          </>
-                        ) : (
-                          <>
-                            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                            </svg>
-                            <span>Deactivate</span>
-                          </>
-                        )}
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(inst);
-                      }}
-                      className="py-2.5 px-3 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 hover:bg-red-500/20 font-semibold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors active:scale-95"
-                    >
-                      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                      <span>Delete</span>
+                      <span>Edit</span>
                     </button>
                   </div>
 
@@ -792,6 +776,7 @@ export function InstitutionTable({
                         onDelete={onDelete}
                         onAddTask={onAddTask}
                         onToggleDeactivate={onToggleDeactivate}
+                        onCallUpdate={(i) => setSelectedCallInst(i)}
                       />
                     </td>
                   </tr>
