@@ -132,6 +132,7 @@ export function isInternalOrMigratedCustomField(key: string) {
   return (
     key === "isDeactivated" ||
     key === "callUpdates" ||
+    key === "googleMapsUrl" ||
     key === "inChargeTeacher2" ||
     key === "inChargeTeacher2Contact" ||
     key === "cf_in_charge_2" ||
@@ -141,6 +142,49 @@ export function isInternalOrMigratedCustomField(key: string) {
     key === "IN CHARGE 2" ||
     key === "IN CHARGE 2 CONTACT"
   );
+}
+
+export function getGoogleMapsEmbedSrc(input?: string | null, fallbackQuery?: string | null): string | null {
+  const raw = (input || "").trim();
+
+  if (raw) {
+    // Check if user pasted an <iframe>...</iframe> embed code
+    const iframeMatch = raw.match(/src=["'](https?:\/\/[^"']+)["']/i);
+    if (iframeMatch && iframeMatch[1]) {
+      return iframeMatch[1];
+    }
+
+    // Direct Google Maps embed URL
+    if (raw.includes("google.com/maps/embed")) {
+      return raw;
+    }
+
+    // Google Maps share / place / search URL
+    if (
+      raw.includes("google.com/maps") ||
+      raw.includes("maps.google.com") ||
+      raw.includes("goo.gl/maps") ||
+      raw.includes("maps.app.goo.gl")
+    ) {
+      try {
+        const urlObj = new URL(raw.startsWith("http") ? raw : `https://${raw}`);
+        const q = urlObj.searchParams.get("q") || urlObj.searchParams.get("query");
+        if (q) {
+          return `https://maps.google.com/maps?q=${encodeURIComponent(q)}&output=embed`;
+        }
+      } catch {}
+      return `https://maps.google.com/maps?q=${encodeURIComponent(raw)}&output=embed`;
+    }
+
+    // If it's a general URL or query
+    return `https://maps.google.com/maps?q=${encodeURIComponent(raw)}&output=embed`;
+  }
+
+  if (fallbackQuery && fallbackQuery.trim()) {
+    return `https://maps.google.com/maps?q=${encodeURIComponent(fallbackQuery.trim())}&output=embed`;
+  }
+
+  return null;
 }
 
 export interface CallUpdate {
@@ -187,6 +231,7 @@ export interface Institution {
   subDistrict: string | null;
   district: string | null;
   address: string | null;
+  googleMapsUrl?: string | null;
   customFields: Record<string, any>;
   callUpdates?: CallUpdate[];
   createdAt: string;

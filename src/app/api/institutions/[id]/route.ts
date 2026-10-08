@@ -20,6 +20,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       cf.in_charge_2_contact ||
       cf["IN CHARGE 2 CONTACT"] ||
       null,
+    googleMapsUrl: cf.googleMapsUrl || null,
   });
 }
 
@@ -83,6 +84,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         cf.in_charge_2_contact ||
         cf["IN CHARGE 2 CONTACT"] ||
         null,
+      googleMapsUrl: cf.googleMapsUrl || null,
     });
   } catch (err) {
     return NextResponse.json({ error: "Institution not found." }, { status: 404 });

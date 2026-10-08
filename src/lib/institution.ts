@@ -18,11 +18,16 @@ export function buildInstitutionData(body: any) {
     body.customFields?.["IN CHARGE 2 CONTACT"]
   );
 
+  const googleMapsUrl = strOrNull(
+    body.googleMapsUrl ??
+    body.customFields?.googleMapsUrl
+  );
+
   // Clean custom fields: keep non-empty values, exclude legacy migrated keys
   const cleanedCustomFields: Record<string, any> = {};
   if (body.customFields && typeof body.customFields === "object") {
     for (const [k, val] of Object.entries(body.customFields)) {
-      if (k === "isDeactivated" || k === "callUpdates") {
+      if (k === "isDeactivated" || k === "callUpdates" || k === "googleMapsUrl") {
         cleanedCustomFields[k] = val;
         continue;
       }
@@ -45,6 +50,9 @@ export function buildInstitutionData(body: any) {
   }
 
   // Backup into customFields for robust fallback
+  if (googleMapsUrl) {
+    cleanedCustomFields.googleMapsUrl = googleMapsUrl;
+  }
   if (inChargeTeacher2) {
     cleanedCustomFields.inChargeTeacher2 = inChargeTeacher2;
   }

@@ -35,12 +35,14 @@ const empty = {
   subDistrict: "",
   district: "",
   address: "",
+  googleMapsUrl: "",
 };
 
 function isInternalOrMigrated(key: string) {
   return (
     key === "isDeactivated" ||
     key === "callUpdates" ||
+    key === "googleMapsUrl" ||
     key === "inChargeTeacher2" ||
     key === "inChargeTeacher2Contact" ||
     key === "cf_in_charge_2" ||
@@ -81,6 +83,11 @@ export function InstitutionForm({
     (initial?.customFields as any)?.["IN CHARGE 2 CONTACT"] ||
     "";
 
+  const initialGoogleMapsUrl =
+    initial?.googleMapsUrl ||
+    (initial?.customFields as any)?.googleMapsUrl ||
+    "";
+
   const [form, setForm] = useState<any>(
     initial
       ? {
@@ -88,6 +95,7 @@ export function InstitutionForm({
           ...initial,
           inChargeTeacher2: initialInChargeTeacher2,
           inChargeTeacher2Contact: initialInChargeTeacher2Contact,
+          googleMapsUrl: initialGoogleMapsUrl,
           issueDate: toDateInput(initial.issueDate),
           expireDate: toDateInput(initial.expireDate),
           actualExpireDate: toDateInput(initial.actualExpireDate),
@@ -408,6 +416,17 @@ export function InstitutionForm({
               value={form.address ?? ""}
               onChange={(e) => set("address", e.target.value)}
             />
+          </Field>
+          <Field label="Google Maps (Embed Iframe Code / Share Link / Search Location)" full>
+            <input
+              className={inputClass}
+              value={form.googleMapsUrl ?? ""}
+              onChange={(e) => set("googleMapsUrl", e.target.value)}
+              placeholder="e.g. <iframe src='https://www.google.com/maps/embed?...'></iframe> or https://maps.google.com/?q=..."
+            />
+            <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+              Paste a Google Maps share link, embed iframe code, or location query. It will be rendered at the bottom of the institution details dropdown.
+            </p>
           </Field>
         </Section>
 

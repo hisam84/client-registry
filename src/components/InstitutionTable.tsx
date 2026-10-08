@@ -7,6 +7,7 @@ import {
   FIELD_LABELS,
   Institution,
   isInternalOrMigratedCustomField,
+  getGoogleMapsEmbedSrc,
   STATUS_COLOR,
   STATUS_LABEL,
   CallUpdate,
@@ -15,6 +16,82 @@ import { Badge, Button } from "./ui";
 import { CustomFieldDef } from "@/lib/types";
 import { formatDhakaDate } from "@/lib/dateUtils";
 import { CallUpdateModal } from "./CallUpdateModal";
+
+function InstitutionMapEmbed({ inst }: { inst: Institution }) {
+  const customMapUrl = inst.googleMapsUrl || (inst.customFields as any)?.googleMapsUrl;
+
+  const locationParts = [
+    inst.address,
+    inst.subDistrict,
+    inst.district,
+    "Bangladesh",
+  ].filter(Boolean);
+
+  const fallbackQuery = locationParts.length > 0
+    ? `${inst.instituteName}, ${locationParts.join(", ")}`
+    : inst.instituteName;
+
+  const embedSrc = getGoogleMapsEmbedSrc(customMapUrl, fallbackQuery);
+
+  const directMapLink =
+    customMapUrl && !customMapUrl.includes("<iframe")
+      ? customMapUrl
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fallbackQuery)}`;
+
+  if (!embedSrc) return null;
+
+  return (
+    <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          <svg className="w-4 h-4 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+            Google Map & Location
+          </span>
+          {customMapUrl ? (
+            <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              Custom Embed
+            </span>
+          ) : (
+            <span className="px-1.5 py-0.2 rounded text-[9px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+              Auto-Location
+            </span>
+          )}
+        </div>
+
+        <a
+          href={directMapLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1 shrink-0"
+        >
+          <span>Open in Google Maps</span>
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
+      </div>
+
+      <div className="relative w-full h-52 sm:h-64 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xs bg-slate-100 dark:bg-slate-900">
+        <iframe
+          src={embedSrc}
+          width="100%"
+          height="100%"
+          style={{ border: 0 }}
+          allowFullScreen
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          title={`${inst.instituteName} Location Map`}
+          className="w-full h-full"
+        />
+      </div>
+    </div>
+  );
+}
 
 function fmtDate(v: string | null) {
   return formatDhakaDate(v, { day: "2-digit", month: "short", year: "numeric" });
@@ -637,6 +714,9 @@ export function InstitutionTable({
                       );
                     })}
                   </div>
+
+                  {/* Render Google Map Embed at the bottom */}
+                  <InstitutionMapEmbed inst={inst} />
                 </div>
               )}
             </div>
@@ -823,6 +903,11 @@ export function InstitutionTable({
                               </div>
                             );
                           })}
+
+                          {/* Render Google Map Embed at the bottom */}
+                          <div className="col-span-1 sm:col-span-2 lg:col-span-3">
+                            <InstitutionMapEmbed inst={inst} />
+                          </div>
                         </div>
                       </td>
                     </tr>

@@ -69,6 +69,7 @@ export async function GET(req: NextRequest) {
         cf.in_charge_2_contact ||
         cf["IN CHARGE 2 CONTACT"] ||
         null,
+      googleMapsUrl: cf.googleMapsUrl || null,
     };
   });
 
