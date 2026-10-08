@@ -18,27 +18,18 @@ import { formatDhakaDate } from "@/lib/dateUtils";
 import { CallUpdateModal } from "./CallUpdateModal";
 
 function InstitutionMapEmbed({ inst }: { inst: Institution }) {
-  const customMapUrl = inst.googleMapsUrl || (inst.customFields as any)?.googleMapsUrl;
+  const customMapUrl = (inst.googleMapsUrl || (inst.customFields as any)?.googleMapsUrl || "").trim();
 
-  const locationParts = [
-    inst.address,
-    inst.subDistrict,
-    inst.district,
-    "Bangladesh",
-  ].filter(Boolean);
+  // If no map is provided, do NOT show the map at all!
+  if (!customMapUrl) return null;
 
-  const fallbackQuery = locationParts.length > 0
-    ? `${inst.instituteName}, ${locationParts.join(", ")}`
-    : inst.instituteName;
-
-  const embedSrc = getGoogleMapsEmbedSrc(customMapUrl, fallbackQuery);
+  const embedSrc = getGoogleMapsEmbedSrc(customMapUrl);
+  if (!embedSrc) return null;
 
   const directMapLink =
-    customMapUrl && !customMapUrl.includes("<iframe")
+    !customMapUrl.includes("<iframe") && (customMapUrl.startsWith("http://") || customMapUrl.startsWith("https://"))
       ? customMapUrl
-      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fallbackQuery)}`;
-
-  if (!embedSrc) return null;
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(inst.instituteName + (inst.district ? `, ${inst.district}` : ""))}`;
 
   return (
     <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
@@ -49,17 +40,8 @@ function InstitutionMapEmbed({ inst }: { inst: Institution }) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
           <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-            Google Map & Location
+            Google Map
           </span>
-          {customMapUrl ? (
-            <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-              Custom Embed
-            </span>
-          ) : (
-            <span className="px-1.5 py-0.2 rounded text-[9px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-              Auto-Location
-            </span>
-          )}
         </div>
 
         <a
