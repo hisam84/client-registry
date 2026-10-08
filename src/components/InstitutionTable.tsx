@@ -14,7 +14,7 @@ import {
 import { Badge, Button } from "./ui";
 import { CustomFieldDef } from "@/lib/types";
 import { formatDhakaDate } from "@/lib/dateUtils";
-import { CallUpdateDropdown } from "./CallUpdateDropdown";
+import { CallUpdateModal } from "./CallUpdateModal";
 
 function fmtDate(v: string | null) {
   return formatDhakaDate(v, { day: "2-digit", month: "short", year: "numeric" });
@@ -336,6 +336,7 @@ export function InstitutionTable({
   const [expanded, setExpanded] = useState<string | null>(null);
   const [pageSize, setPageSize] = useState<number | "all">(25);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [selectedCallInst, setSelectedCallInst] = useState<Institution | null>(null);
 
   const totalCount = institutions.length;
   const effectivePageSize = pageSize === "all" ? (totalCount || 1) : pageSize;
@@ -402,6 +403,7 @@ export function InstitutionTable({
           const isOpen = expanded === inst.id;
           const domainUrl = getDomainUrl(inst.domain);
           const serialNumber = startIndex + index + 1;
+          const callCount = getCallCount(inst);
 
           return (
             <div
@@ -456,7 +458,29 @@ export function InstitutionTable({
                           <Badge className={`text-[10px] px-2 py-0.5 ${STATUS_COLOR[status]}`}>
                             {STATUS_LABEL[status]}
                           </Badge>
-                          <CallUpdateDropdown inst={inst} onCallUpdateAdded={onCallUpdateAdded} />
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedCallInst(inst);
+                            }}
+                            className={`inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all shadow-xs border cursor-pointer ${
+                              callCount > 0
+                                ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30 hover:bg-amber-500/20"
+                                : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750"
+                            }`}
+                            title="Call Updates Modal"
+                          >
+                            <svg className={`w-3 h-3 ${callCount > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                            </svg>
+                            <span>Call</span>
+                            {callCount > 0 && (
+                              <span className="px-1 py-0.2 rounded-full text-[9px] font-bold bg-amber-500 text-white">
+                                {callCount}
+                              </span>
+                            )}
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -661,6 +685,7 @@ export function InstitutionTable({
               const isOpen = expanded === inst.id;
               const domainUrl = getDomainUrl(inst.domain);
               const serialNumber = startIndex + index + 1;
+              const callCount = getCallCount(inst);
 
               return (
                 <Fragment key={inst.id}>
@@ -726,7 +751,39 @@ export function InstitutionTable({
                       <Badge className={STATUS_COLOR[status]}>{STATUS_LABEL[status]}</Badge>
                     </td>
                     <td className="w-36 px-3 py-3 text-center whitespace-nowrap">
-                      <CallUpdateDropdown inst={inst} onCallUpdateAdded={onCallUpdateAdded} />
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedCallInst(inst);
+                        }}
+                        className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-xs border cursor-pointer ${
+                          callCount > 0
+                            ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30 hover:bg-amber-500/20 hover:border-amber-500/50"
+                            : "bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+                        }`}
+                        title="View & Log Call Updates"
+                      >
+                        <svg
+                          className={`w-3.5 h-3.5 ${callCount > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-400"}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                          />
+                        </svg>
+                        <span>Call Update</span>
+                        {callCount > 0 && (
+                          <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-white leading-tight">
+                            {callCount}
+                          </span>
+                        )}
+                      </button>
                     </td>
                     <td className="w-28 px-3 py-3 whitespace-nowrap text-right">
                       <ActionMenu
@@ -884,8 +941,40 @@ export function InstitutionTable({
           )}
         </div>
       </div>
+
+      {/* Call Update Modal */}
+      {selectedCallInst && (
+        <CallUpdateModal
+          inst={selectedCallInst}
+          onClose={() => setSelectedCallInst(null)}
+          onCallUpdateAdded={(instId, updatedCalls) => {
+            setSelectedCallInst((prev) =>
+              prev && prev.id === instId
+                ? {
+                    ...prev,
+                    callUpdates: updatedCalls,
+                    customFields: {
+                      ...(prev.customFields || {}),
+                      callUpdates: updatedCalls,
+                    },
+                  }
+                : prev
+            );
+            if (onCallUpdateAdded) {
+              onCallUpdateAdded(instId, updatedCalls);
+            }
+          }}
+        />
+      )}
     </div>
   );
+}
+
+function getCallCount(inst: Institution): number {
+  const cf = (inst.customFields as any) || {};
+  if (Array.isArray(inst.callUpdates)) return inst.callUpdates.length;
+  if (Array.isArray(cf.callUpdates)) return cf.callUpdates.length;
+  return 0;
 }
 
 function getPageNumbers(current: number, total: number): (number | string)[] {
