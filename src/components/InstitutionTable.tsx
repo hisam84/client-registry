@@ -637,7 +637,7 @@ export function InstitutionTable({
                             href={domainUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-brass-600 dark:text-brass-400 hover:underline font-mono text-xs break-all font-medium"
+                            className="inline-flex items-center gap-1.5 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline font-sans text-xs break-all font-medium"
                           >
                             <span>{inst.domain}</span>
                             <svg className="w-3.5 h-3.5 shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -771,14 +771,14 @@ export function InstitutionTable({
                         </TableTooltip>
                       </div>
                     </td>
-                    <td className="px-3 py-3 font-mono text-xs text-slate-700 dark:text-slate-300 overflow-hidden text-left">
+                    <td className="px-3 py-3 font-sans text-xs text-slate-700 dark:text-slate-300 overflow-hidden text-left">
                       {inst.domain ? (
                         <TableTooltip text={inst.domain}>
                           <a
                             href={domainUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-brass-600 dark:text-brass-400 hover:underline font-medium max-w-full"
+                            className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline font-medium font-sans max-w-full"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <span className="truncate">{inst.domain}</span>
