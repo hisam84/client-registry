@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, Fragment } from "react";
+import { useState, useRef, useEffect, Fragment } from "react";
 import { createPortal } from "react-dom";
 import {
   computeStatus,
@@ -110,6 +110,203 @@ function TableTooltip({
             className="z-[9999] pointer-events-none max-w-sm rounded-lg bg-slate-900/95 text-white text-xs px-3 py-1.5 shadow-2xl border border-slate-700/80 backdrop-blur-sm whitespace-normal break-words leading-relaxed"
           >
             {text}
+          </div>,
+          document.body
+        )}
+    </div>
+  );
+}
+
+function ActionMenu({
+  inst,
+  onEdit,
+  onDelete,
+  onAddTask,
+  onToggleDeactivate,
+}: {
+  inst: Institution;
+  onEdit: (i: Institution) => void;
+  onDelete: (i: Institution) => void;
+  onAddTask?: (i: Institution) => void;
+  onToggleDeactivate?: (i: Institution) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [menuCoords, setMenuCoords] = useState<{ top: number; right: number; placeAbove: boolean }>({
+    top: 0,
+    right: 0,
+    placeAbove: false,
+  });
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const isDeactivated = Boolean(inst.customFields?.isDeactivated);
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const menuHeight = 180;
+      const placeAbove = rect.bottom + menuHeight > window.innerHeight;
+
+      setMenuCoords({
+        top: placeAbove ? rect.top - 6 : rect.bottom + 6,
+        right: Math.max(12, window.innerWidth - rect.right),
+        placeAbove,
+      });
+      setIsOpen(true);
+    } else {
+      setIsOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    function handleClickOutside(e: MouseEvent) {
+      if (buttonRef.current && !buttonRef.current.contains(e.target as Node)) {
+        const portal = document.getElementById(`action-menu-portal-${inst.id}`);
+        if (portal && portal.contains(e.target as Node)) return;
+        setIsOpen(false);
+      }
+    }
+
+    function handleScrollOrResize() {
+      setIsOpen(false);
+    }
+
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setIsOpen(false);
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    window.addEventListener("scroll", handleScrollOrResize, true);
+    window.addEventListener("resize", handleScrollOrResize);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScrollOrResize, true);
+      window.removeEventListener("resize", handleScrollOrResize);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, inst.id]);
+
+  return (
+    <div className="relative inline-block text-left" onClick={(e) => e.stopPropagation()}>
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={handleToggle}
+        className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all shadow-xs cursor-pointer ${
+          isOpen
+            ? "bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-blue-600 dark:text-blue-400 ring-2 ring-blue-500/20"
+            : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
+        }`}
+        title="Actions"
+        aria-label="Actions"
+      >
+        <span>Actions</span>
+        <svg
+          className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180 text-blue-500" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            id={`action-menu-portal-${inst.id}`}
+            style={{
+              position: "fixed",
+              top: menuCoords.placeAbove ? undefined : `${menuCoords.top}px`,
+              bottom: menuCoords.placeAbove ? `${window.innerHeight - menuCoords.top}px` : undefined,
+              right: `${menuCoords.right}px`,
+            }}
+            onClick={(e) => e.stopPropagation()}
+            className="z-[9999] w-44 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 p-1.5 shadow-xl text-left backdrop-blur-md animate-in fade-in zoom-in-95 duration-100"
+          >
+            <div className="space-y-0.5">
+              {onAddTask && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    onAddTask(inst);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors text-left cursor-pointer"
+                >
+                  <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span>Add Task</span>
+                </button>
+              )}
+
+              {onToggleDeactivate && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    onToggleDeactivate(inst);
+                  }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-lg transition-colors text-left cursor-pointer ${
+                    isDeactivated
+                      ? "text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50"
+                      : "text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/50"
+                  }`}
+                >
+                  {isDeactivated ? (
+                    <>
+                      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>Activate</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                      </svg>
+                      <span>Deactivate</span>
+                    </>
+                  )}
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  onEdit(inst);
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left cursor-pointer"
+              >
+                <svg className="w-4 h-4 shrink-0 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <span>Edit Client</span>
+              </button>
+
+              <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  onDelete(inst);
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors text-left cursor-pointer"
+              >
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>Delete</span>
+              </button>
+            </div>
           </div>,
           document.body
         )}
@@ -398,7 +595,7 @@ export function InstitutionTable({
               <th className="w-28 px-3 py-3 text-center">Issue Date</th>
               <th className="w-28 px-3 py-3 text-center">Expire Date</th>
               <th className="w-32 px-3 py-3 text-center">Status</th>
-              <th className="w-36 px-3 py-3 text-right">Actions</th>
+              <th className="w-28 px-3 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 dark:divide-slate-800/70">
@@ -471,67 +668,14 @@ export function InstitutionTable({
                     <td className="w-32 px-3 py-3 text-center whitespace-nowrap">
                       <Badge className={STATUS_COLOR[status]}>{STATUS_LABEL[status]}</Badge>
                     </td>
-                    <td className="w-36 px-3 py-3 whitespace-nowrap text-right">
-                      <div className="flex justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
-                        {onAddTask && (
-                          <button
-                            type="button"
-                            onClick={() => onAddTask(inst)}
-                            className="p-1.5 text-xs rounded-md bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-colors flex items-center justify-center shrink-0"
-                            title="Add Task"
-                            aria-label="Add Task"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                            </svg>
-                          </button>
-                        )}
-                        {onToggleDeactivate && (
-                          <button
-                            type="button"
-                            onClick={() => onToggleDeactivate(inst)}
-                            className={`p-1.5 text-xs rounded-md border transition-colors flex items-center justify-center shrink-0 ${
-                              isDeactivated
-                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
-                                : "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20 hover:bg-sky-500/20"
-                            }`}
-                            title={isDeactivated ? "Activate Client" : "Deactivate Client"}
-                            aria-label={isDeactivated ? "Activate Client" : "Deactivate Client"}
-                          >
-                            {isDeactivated ? (
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                            ) : (
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                              </svg>
-                            )}
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => onEdit(inst)}
-                          className="p-1.5 text-xs rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center shrink-0"
-                          title="Edit Institution"
-                          aria-label="Edit Institution"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => onDelete(inst)}
-                          className="p-1.5 text-xs rounded-md bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors flex items-center justify-center shrink-0"
-                          title="Delete Institution"
-                          aria-label="Delete Institution"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
+                    <td className="w-28 px-3 py-3 whitespace-nowrap text-right">
+                      <ActionMenu
+                        inst={inst}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                        onAddTask={onAddTask}
+                        onToggleDeactivate={onToggleDeactivate}
+                      />
                     </td>
                   </tr>
                   {isOpen && (
