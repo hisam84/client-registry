@@ -58,9 +58,9 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ["var(--font-display)", "serif"],
-        sans: ["var(--font-sans)", "sans-serif"],
-        bengali: ["var(--font-bengali)", "sans-serif"],
+        display: ["var(--font-sans)", "var(--font-bengali)", "system-ui", "sans-serif"],
+        sans: ["var(--font-sans)", "var(--font-bengali)", "system-ui", "sans-serif"],
+        bengali: ["var(--font-bengali)", "var(--font-sans)", "system-ui", "sans-serif"],
         mono: ["var(--font-mono)", "monospace"],
       },
       boxShadow: {

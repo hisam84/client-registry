@@ -1,25 +1,24 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter, Hind_Siliguri, IBM_Plex_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Hind_Siliguri, IBM_Plex_Mono } from "next/font/google";
 import { AutoLogout } from "@/components/AutoLogout";
 import { BackToTop } from "@/components/BackToTop";
 import "./globals.css";
 
-const display = Fraunces({
+const sans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["500", "600"],
-  variable: "--font-display",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-sans",
   display: "swap",
 });
-const sans = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 const bengali = Hind_Siliguri({
   subsets: ["bengali"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700"],
   variable: "--font-bengali",
   display: "swap",
 });
 const mono = IBM_Plex_Mono({
   subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: ["400", "500", "600"],
   variable: "--font-mono",
   display: "swap",
 });
@@ -55,7 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body
-        className={`${display.variable} ${sans.variable} ${bengali.variable} ${mono.variable} font-sans min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors`}
+        className={`${sans.variable} ${bengali.variable} ${mono.variable} font-sans min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors antialiased`}
       >
         <AutoLogout />
         {children}
